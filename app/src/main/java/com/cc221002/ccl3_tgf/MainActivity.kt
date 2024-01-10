@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
 		factoryProducer = {
 			object : ViewModelProvider.Factory{
 				override fun <T : ViewModel> create(modelClass: Class<T>): T {
-					return MainViewModel(db.dao) as T
+					return MainViewModel(db.dao,db.categoriesDao) as T
 				}
 			}
 		}
@@ -42,6 +42,7 @@ class MainActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
+//		mainViewModel.insertCategories()
 //		mainViewModel.insertPreTrips()
 		setContent {
 			CCL3_TGFTheme {
@@ -54,21 +55,5 @@ class MainActivity : ComponentActivity() {
 				}
 			}
 		}
-	}
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-	Text(
-		text = "Hello $name!",
-		modifier = modifier
-	)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-	CCL3_TGFTheme {
-		Greeting("Android")
 	}
 }

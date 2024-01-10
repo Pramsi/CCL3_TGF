@@ -12,3 +12,4 @@ val Pink40 = Color(0xFF7D5260)
 
 val BackgroundBlue = Color(0xFF32699c)
 val BackgroundLightBlue = Color(0xFF7DA3C0)
+val NavigationBlue = Color(0xFF73a6ba)
