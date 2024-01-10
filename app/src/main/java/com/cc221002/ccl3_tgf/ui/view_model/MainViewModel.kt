@@ -30,8 +30,8 @@ class MainViewModel(private val dao: EntriesDao):ViewModel() {
 	// this function calls the dao function to collect all the trips that are saved in the database
 	fun getEntries() {
 		viewModelScope.launch {
-			dao.getEntries().collect{trips ->
-				_entries.value = trips
+			dao.getEntries().collect{entries ->
+				_entries.value = entries
 			}
 		}
 	}

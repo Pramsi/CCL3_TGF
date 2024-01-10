@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
-		mainViewModel.insertPreTrips()
+//		mainViewModel.insertPreTrips()
 		setContent {
 			CCL3_TGFTheme {
 				// A surface container using the 'background' color from the theme
