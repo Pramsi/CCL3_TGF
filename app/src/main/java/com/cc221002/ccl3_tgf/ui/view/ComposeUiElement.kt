@@ -4,14 +4,24 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.camera.core.ImageCapture
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -58,7 +68,11 @@ fun MainView(
 			}
 			composable(Screen.ShowCategories.route) {
 				mainViewModel.selectScreen(Screen.ShowCategories)
-
+				mainViewModel.getEntries()
+				AllCategories(
+					mainViewModel,
+					navController
+				)
 			}
 
 
@@ -102,4 +116,31 @@ fun SplashScreen(
 	if(loadingFinished.value) {
 		navController.navigate(Screen.ShowCategories.route)
 	}
+}
+
+@Composable
+fun AllCategories(
+	mainViewModel: MainViewModel,
+	navController: NavHostController,
+){
+	// collecting the information for all the trips and creating a mutable List with that
+	val entryState by mainViewModel.entries.collectAsState()
+	val entries = entryState.toMutableList()
+
+	Column {
+		Text(text = "sd")
+		LazyColumn(
+			state = rememberLazyListState(),
+			verticalArrangement = Arrangement.Top,
+			horizontalAlignment = Alignment.CenterHorizontally,
+			modifier = Modifier
+				.fillMaxSize()
+		) {
+
+
+
+
+		}
+	}
+
 }
