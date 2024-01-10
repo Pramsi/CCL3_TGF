@@ -1,5 +1,6 @@
 package com.cc221002.ccl3_tgf.data
 
+import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
@@ -7,6 +8,8 @@ import androidx.room.Update
 import com.cc221002.ccl3_tgf.data.model.SingleEntry
 import kotlinx.coroutines.flow.Flow
 
+// This interface is defined as Data Access Object (DAO)
+@Dao
 interface EntriesDao {
 	// all the functions below are for working with the database
 	// Insert, Update and Delete are Predefined and are ready to use
