@@ -1,5 +1,6 @@
 package com.cc221002.ccl3_tgf.ui.view_model
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cc221002.ccl3_tgf.data.CategoriesDao
@@ -32,6 +33,10 @@ class MainViewModel(
 	private val _entries = MutableStateFlow<List<SingleEntry>>(emptyList())
 	val entries: StateFlow<List<SingleEntry>> = _entries.asStateFlow()
 
+	private var _entriesForCategory = MutableStateFlow<List<SingleEntry>>(emptyList())
+	val entriesForCategory: StateFlow<List<SingleEntry>> = _entriesForCategory.asStateFlow()
+
+
 	// this function updates on which screen the user currently is
 	fun selectScreen(screen: Screen){
 		_mainViewState.update { it.copy(selectedScreen = screen) }
@@ -57,6 +62,10 @@ class MainViewModel(
 	fun getEntriesByCategory(categoryId: Int) {
 		viewModelScope.launch {
 			dao.getEntriesByCategory(categoryId).collect { entries ->
+				_entriesForCategory.value = entries
+				Log.d("CATEGORY","$categoryId")
+				Log.d("ENTRIES","$entries")
+
 				// Handle retrieved entries by category
 			}
 		}
@@ -82,6 +91,12 @@ class MainViewModel(
         val hardcodedSamples = listOf(
             SingleEntry("ChickenNuggets","24.10.2022", 1, 4, "Portions", 0),
 	        SingleEntry("Avocados","24.10.2022", 6, 2, "Pieces", 0),
+	        SingleEntry("Pasta Aciutta","5.10.2022", 1, 2, "Portions", 0),
+	        SingleEntry("AppleJuice","24.10.2022", 2, 4, "Glasses", 0),
+	        SingleEntry("Milk","24.10.2022", 3, 1, "Glasses", 0),
+	        SingleEntry("Filet","24.10.2022", 5, 1, "Pieces", 0),
+	        SingleEntry("Banana","24.10.2022", 6, 2, "Pieces", 0),
+	        SingleEntry("Carrot","24.10.2022", 7, 8, "Pieces", 0),
 
         )
         viewModelScope.launch{

@@ -1,10 +1,13 @@
 package com.cc221002.ccl3_tgf.ui.view
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.camera.core.ImageCapture
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,14 +21,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.Divider
+import androidx.compose.material.IconButton
 import androidx.compose.material.Slider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardElevation
@@ -47,9 +53,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.White
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -60,7 +70,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.cc221002.ccl3_tgf.R
+import com.cc221002.ccl3_tgf.data.model.SingleEntry
 import com.cc221002.ccl3_tgf.ui.theme.BackgroundBlue
+import com.cc221002.ccl3_tgf.ui.theme.BackgroundLightBlue
+import com.cc221002.ccl3_tgf.ui.theme.FridgeBlue
 import com.cc221002.ccl3_tgf.ui.theme.NavigationBlue
 import com.cc221002.ccl3_tgf.ui.view_model.MainViewModel
 import kotlinx.coroutines.delay
@@ -73,6 +86,7 @@ sealed class Screen(val route: String) {
 	object SplashScreen: Screen("splashScreen")
 	object ShowCategories: Screen("categories")
 	object News: Screen("news")
+	object ShowCategoryEntries: Screen("showCategoryEntries")
 }
 
 // this is the MainView Composable which is the first thing i navigate from the MainActivity
@@ -115,6 +129,10 @@ fun MainView(
 					mainViewModel,
 					navController
 				)
+			}
+			composable(Screen.ShowCategoryEntries.route) {
+				mainViewModel.selectScreen(Screen.ShowCategoryEntries)
+				categoryEntries(navController, mainViewModel)
 			}
 		}
 	}
@@ -242,6 +260,8 @@ fun AllCategories(
 							modifier = Modifier
 								.fillMaxWidth()
 								.clickable {
+									mainViewModel.getEntriesByCategory(it.id)
+									navController.navigate(Screen.ShowCategoryEntries.route)
 									// Handle click action for Leftovers category
 								}
 								.padding(16.dp),
@@ -269,6 +289,8 @@ fun AllCategories(
 								modifier = Modifier
 									.weight(1f)
 									.clickable {
+										mainViewModel.getEntriesByCategory(it.id)
+										navController.navigate(Screen.ShowCategoryEntries.route)
 										// Handle click action for Drinks category
 									}
 									.padding(16.dp),
@@ -282,6 +304,8 @@ fun AllCategories(
 								modifier = Modifier
 									.weight(1f)
 									.clickable {
+										mainViewModel.getEntriesByCategory(it.id)
+										navController.navigate(Screen.ShowCategoryEntries.route)
 										// Handle click action for Dairy category
 									}
 									.padding(16.dp),
@@ -302,6 +326,8 @@ fun AllCategories(
 						modifier = Modifier
 							.fillMaxWidth()
 							.clickable {
+								mainViewModel.getEntriesByCategory(it.id)
+								navController.navigate(Screen.ShowCategoryEntries.route)
 								// Handle click action for Extras category
 							}
 							.padding(16.dp),
@@ -315,6 +341,8 @@ fun AllCategories(
 						modifier = Modifier
 							.fillMaxWidth()
 							.clickable {
+								mainViewModel.getEntriesByCategory(it.id)
+								navController.navigate(Screen.ShowCategoryEntries.route)
 								// Handle click action for Meat category
 							}
 							.padding(16.dp),
@@ -337,6 +365,8 @@ fun AllCategories(
 							modifier = Modifier
 								.weight(1f)
 								.clickable {
+									mainViewModel.getEntriesByCategory(it.id)
+									navController.navigate(Screen.ShowCategoryEntries.route)
 									// Handle click action for Fruit category
 								}
 								.padding(16.dp),
@@ -350,6 +380,8 @@ fun AllCategories(
 							modifier = Modifier
 								.weight(1f)
 								.clickable {
+									mainViewModel.getEntriesByCategory(it.id)
+									navController.navigate(Screen.ShowCategoryEntries.route)
 									// Handle click action for Vegetable category
 								}
 								.padding(16.dp),
@@ -360,7 +392,99 @@ fun AllCategories(
 			}
 		}
 	}
-
 }
+
+@Composable
+fun categoryEntries(navController: NavHostController,mainViewModel: MainViewModel){
+	val entries = mainViewModel.entriesForCategory.collectAsState()
+	Log.d("CategoryEntries", entries.value.toString())
+
+	LazyColumn(
+		verticalArrangement = Arrangement.Top,
+		horizontalAlignment = Alignment.CenterHorizontally,
+		modifier = Modifier
+			.fillMaxSize()
+			.background(FridgeBlue),
+	){
+		items(entries.value){entry->
+			ItemUI(entry = entry)
+		}
+	}
+}
+
+@Composable
+fun ItemUI(entry:SingleEntry) {
+		Row(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(10.dp)
+				.clip(RoundedCornerShape(10.dp))
+				.background(BackgroundBlue)
+				,
+			horizontalArrangement = Arrangement.Start,
+			verticalAlignment = Alignment.CenterVertically
+		) {
+			Spacer(modifier = Modifier.padding(7.dp))
+			Box(
+				modifier = Modifier
+					.size(25.dp)
+					.border(BorderStroke(1.dp, White), RoundedCornerShape(3.dp))
+			)
+			Spacer(modifier = Modifier.padding(10.dp))
+			Column(
+				modifier = Modifier
+					.padding(vertical = 12.dp)
+					,
+
+			){
+				Text(
+					text = "${entry.foodName}",
+					fontWeight = FontWeight.Bold,
+					textAlign = TextAlign.Start,
+					fontSize = 17.sp,
+					style = TextStyle(fontFamily = FontFamily.Monospace),
+					color = Color.White,
+					modifier = Modifier
+						.padding(bottom = 10.dp)
+						.width(250.dp)
+				)
+				Text(
+					text = "${entry.portionAmount} ${entry.portionType}",
+					textAlign = TextAlign.Start,
+					fontSize = 12.sp,
+					style = TextStyle(fontFamily = FontFamily.Monospace),
+					color = Color.White,
+					modifier = Modifier
+						.padding(bottom = 5.dp)
+						.width(250.dp)
+				)
+				Text(
+					text = "Best Before: ${entry.bbDate}",
+					textAlign = TextAlign.Start,
+					fontSize = 12.sp,
+					style = TextStyle(fontFamily = FontFamily.Monospace),
+					color = Color.White,
+					modifier = Modifier
+						.padding(bottom = 5.dp)
+						.width(250.dp)
+				)
+			}
+			Spacer(modifier = Modifier.padding(7.dp))
+			Box(
+				modifier = Modifier
+					.size(25.dp)
+			){
+				Image(
+					painter = painterResource(id = R.drawable.delete_icon),
+					contentDescription = "Fridge",
+					contentScale = ContentScale.Fit,
+					modifier = Modifier
+						.size(35.dp)
+				)
+			}
+		}
+	}
+
+
 
 
