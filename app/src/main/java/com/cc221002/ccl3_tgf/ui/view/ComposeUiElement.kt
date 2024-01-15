@@ -220,6 +220,7 @@ fun AllCategories(
 
 	Column(
 		modifier = Modifier
+			.background(White)
 			.fillMaxSize(),
 		verticalArrangement = Arrangement.SpaceEvenly,
 		horizontalAlignment = Alignment.CenterHorizontally,
@@ -252,7 +253,10 @@ fun AllCategories(
 
 				leftovers?.let {
 					Box(
-						modifier = Modifier.fillMaxWidth(),
+						modifier = Modifier
+							.fillMaxWidth()
+							.background(BackgroundBlue)
+							.clip(RoundedCornerShape(10.dp)),
 						contentAlignment = Alignment.Center
 					) {
 						Text(
