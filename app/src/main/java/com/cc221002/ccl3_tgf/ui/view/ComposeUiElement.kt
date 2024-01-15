@@ -225,23 +225,8 @@ fun AllCategories(
 		verticalArrangement = Arrangement.SpaceEvenly,
 		horizontalAlignment = Alignment.CenterHorizontally,
 	) {
-		Row(
-			modifier = Modifier
-				.clip(shape = RoundedCornerShape(0.dp, 0.dp, 0.dp, 20.dp))
-				.background(NavigationBlue)
-				.fillMaxWidth()
-				.height(75.dp)
-			,
-			horizontalArrangement = Arrangement.Center,
-			verticalAlignment = Alignment.CenterVertically
-		){
-			Text(
-				text = "Your Fridge",
-				fontSize = 30.sp,
-				fontWeight = FontWeight.Bold,
-				color = Color.White
-			)
-		}
+
+	Header(title = "Your Fridge")
 
 		LazyColumn(
 			modifier = Modifier.fillMaxSize(),
@@ -401,20 +386,45 @@ fun AllCategories(
 @Composable
 fun categoryEntries(navController: NavHostController,mainViewModel: MainViewModel){
 	val entries = mainViewModel.entriesForCategory.collectAsState()
+	val categories by mainViewModel.categories.collectAsState()
 	Log.d("CategoryEntries", entries.value.toString())
+	Log.d("CategoryEntries", entries.value.)
 
+//	Header()
 	LazyColumn(
 		verticalArrangement = Arrangement.Top,
 		horizontalAlignment = Alignment.CenterHorizontally,
 		modifier = Modifier
 			.fillMaxSize()
 			.background(FridgeBlue),
-	){
-		items(entries.value){entry->
+	) {
+		items(entries.value) { entry ->
 			ItemUI(entry = entry)
 		}
 	}
-}
+	}
+
+
+@Composable
+fun Header(title:String){
+		Row(
+			modifier = Modifier
+				.clip(shape = RoundedCornerShape(0.dp, 0.dp, 0.dp, 20.dp))
+				.background(NavigationBlue)
+				.fillMaxWidth()
+				.height(75.dp),
+			horizontalArrangement = Arrangement.Center,
+			verticalAlignment = Alignment.CenterVertically
+		) {
+			Text(
+				text = "$title",
+				fontSize = 30.sp,
+				fontWeight = FontWeight.Bold,
+				color = Color.White
+			)
+		}
+	}
+
 
 @Composable
 fun ItemUI(entry:SingleEntry) {

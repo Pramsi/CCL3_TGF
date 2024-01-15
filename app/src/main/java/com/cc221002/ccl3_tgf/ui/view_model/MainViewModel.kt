@@ -36,7 +36,6 @@ class MainViewModel(
 	private var _entriesForCategory = MutableStateFlow<List<SingleEntry>>(emptyList())
 	val entriesForCategory: StateFlow<List<SingleEntry>> = _entriesForCategory.asStateFlow()
 
-
 	// this function updates on which screen the user currently is
 	fun selectScreen(screen: Screen){
 		_mainViewState.update { it.copy(selectedScreen = screen) }
@@ -70,6 +69,7 @@ class MainViewModel(
 			}
 		}
 	}
+
 
 	fun insertCategories(){
 		val hardcodedCategory = listOf(
