@@ -425,7 +425,7 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 			.background(FridgeBlue),
 	) {
 		items(entries.value) { entry ->
-			ItemUI(entry = entry)
+			ItemUI(mainViewModel,entry = entry)
 		}
 	}
 	if(state.value.openAddDialog){
@@ -470,7 +470,7 @@ fun Header(mainViewModel: MainViewModel,title:String){
 
 
 @Composable
-fun ItemUI(entry:SingleEntry) {
+fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 		Row(
 			modifier = Modifier
 				.fillMaxWidth()
@@ -530,6 +530,7 @@ fun ItemUI(entry:SingleEntry) {
 			Box(
 				modifier = Modifier
 					.size(25.dp)
+					.clickable { mainViewModel.deleteTrip(entry) }
 			){
 				Image(
 					painter = painterResource(id = R.drawable.delete_icon),

@@ -3,6 +3,7 @@ package com.cc221002.ccl3_tgf.ui.view_model
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
 import com.cc221002.ccl3_tgf.data.CategoriesDao
 import com.cc221002.ccl3_tgf.data.Category
 import com.cc221002.ccl3_tgf.data.EntriesDao
@@ -88,7 +89,14 @@ class MainViewModel(
 		}
 	}
 
-
+	// this function calls the dao function to delete the trip that was passed to it
+	fun deleteTrip(singleEntry: SingleEntry) {
+		viewModelScope.launch() {
+			dao.deleteEntry(singleEntry)
+			getEntries()
+			// and then navigates to the ShowAllTrips Screen
+		}
+	}
 
 
 
