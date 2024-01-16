@@ -28,7 +28,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.Button
 import androidx.compose.material.Divider
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ExposedDropdownMenuBox
+import androidx.compose.material.ExposedDropdownMenuDefaults
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.Slider
 import androidx.compose.material.SnackbarDefaults.backgroundColor
 import androidx.compose.material.icons.Icons
@@ -40,6 +44,7 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardElevation
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarItem
@@ -47,6 +52,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -60,6 +66,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Black
+import androidx.compose.ui.graphics.Color.Companion.DarkGray
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
@@ -225,7 +233,7 @@ fun AllCategories(
 	navController: NavHostController,
 ){
 	val categories by mainViewModel.categories.collectAsState()
-
+	val entriesForCategories by mainViewModel.entriesForCategory.collectAsState()
 	Column(
 		modifier = Modifier
 			.background(White)
@@ -242,13 +250,20 @@ fun AllCategories(
 			horizontalAlignment = Alignment.CenterHorizontally
 		) {
 			item {
+
 				val leftovers = categories.find { it.categoryName == "Leftovers" }
 
 				leftovers?.let {
 					Box(
 						modifier = Modifier
 							.fillMaxWidth()
-							.background(BackgroundBlue)
+							.background(
+								if(entriesForCategories.isEmpty()){
+									BackgroundBlue
+								} else {
+									BackgroundLightBlue
+								}
+							)
 							.clip(RoundedCornerShape(10.dp)),
 						contentAlignment = Alignment.Center
 					) {
@@ -397,7 +412,9 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 	val entries = mainViewModel.entriesForCategory.collectAsState()
 	val categories by mainViewModel.categories.collectAsState()
 	Log.d("CategoryEntries", entries.value.toString())
-Column {
+	Log.d("CategoryEntries", categories.toString())
+
+	Column {
 
 	Header(mainViewModel,"category name")
 	LazyColumn(
@@ -530,22 +547,31 @@ fun ItemUI(entry:SingleEntry) {
 fun AddingPopup(
 	mainViewModel: MainViewModel,
 ){
+	val categories by mainViewModel.categories.collectAsState()
+
 	var foodName by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
 	var bbDate by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
-	var categoryId by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
+	var categoryId by remember { mutableStateOf(0) }
 	var portionAmount by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
 	var portionType by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
 	var isChecked = 0
+	var categorySelection by remember { mutableStateOf("") }
+
 
 	AlertDialog(
 		onDismissRequest = {
 			mainViewModel.dismissAddDialog()
 						   },
-		modifier = Modifier.background(White)
+		modifier = Modifier
+			.clip(RoundedCornerShape(20.dp))
+			.background(White)
+			.padding(10.dp)
 	) {
 		Column(
 			modifier = Modifier
-				.fillMaxWidth()
+				.fillMaxWidth(),
+			horizontalAlignment = Alignment.CenterHorizontally
+
 		) {
 			Text(text = "What did you put into your Fridge?",
 				lineHeight = 45.sp,
@@ -560,63 +586,155 @@ fun AddingPopup(
 
 			TextField(
 				modifier = Modifier.padding(top = 20.dp),
+				colors = TextFieldDefaults.colors(
+					focusedTextColor = Black,
+					unfocusedTextColor = Black,
+					focusedContainerColor = White,
+					unfocusedContainerColor = White,
+					disabledContainerColor = White,
+				),
 				value = foodName,
 				onValueChange = {
 					newText-> foodName = newText
 				},
 				label = {
-					Text(text ="Food Name" )}
+					Text(text ="Food Name", color = Black )}
 			)
 
 			TextField(
 				modifier = Modifier.padding(top = 20.dp),
+				colors = TextFieldDefaults.colors(
+					focusedTextColor = Black,
+					unfocusedTextColor = Black,
+					focusedContainerColor = White,
+					unfocusedContainerColor = White,
+					disabledContainerColor = White,
+				),
 				value = bbDate,
 				onValueChange = {
 						newText-> bbDate = newText
 				},
 				label = {
-					Text(text ="Best-Before Date" )}
+					Text(text ="Best-Before Date", color = Black  )}
 			)
+
+			DropDownMenu(mainViewModel, categorySelection){ selectedCategory->
+				 categorySelection = selectedCategory
+				for(category in categories){
+					if(categorySelection == category.categoryName){
+						categoryId = category.id
+					}
+				}
+				Log.d("Categoryselected","$categorySelection $categoryId")
+			}
+//			TextField(
+//				modifier = Modifier.padding(top = 20.dp),
+//				value = categoryId,
+//				onValueChange = {
+//						newText-> categoryId = newText
+//				},
+//				label = {
+//					Text(text ="Category" )}
+//			)
 
 			TextField(
 				modifier = Modifier.padding(top = 20.dp),
-				value = categoryId,
-				onValueChange = {
-						newText-> categoryId = newText
-				},
-				label = {
-					Text(text ="Category" )}
-			)
-
-			TextField(
-				modifier = Modifier.padding(top = 20.dp),
+				colors = TextFieldDefaults.colors(
+					focusedTextColor = Black,
+					unfocusedTextColor = Black,
+					focusedContainerColor = White,
+					unfocusedContainerColor = White,
+					disabledContainerColor = White,
+				),
 				value = portionAmount,
 				onValueChange = {
 						newText-> portionAmount = newText
 				},
 				label = {
-					Text(text ="Portion Amount" )}
+					Text(text ="Portion Amount", color = Black  )}
 			)
 
 			TextField(
 				modifier = Modifier.padding(top = 20.dp),
+				colors = TextFieldDefaults.colors(
+					focusedTextColor = Black,
+					unfocusedTextColor = Black,
+					focusedContainerColor = White,
+					unfocusedContainerColor = White,
+					disabledContainerColor = White,
+				),
 				value = portionType,
 				onValueChange = {
 						newText-> portionType = newText
 				},
 				label = {
-					Text(text ="Portion Type" )}
+					Text(text ="Portion Type", color = Black  )}
 			)
 
 			Button(
-				onClick = { mainViewModel.saveButton(SingleEntry(foodName.text, bbDate.text, categoryId.text.toInt(), portionAmount.text.toInt(), portionType.text, isChecked)) },
+				onClick = {
+					mainViewModel.saveButton(SingleEntry(foodName.text, bbDate.text, categoryId, portionAmount.text.toInt(), portionType.text, isChecked))
+						  },
 				modifier = Modifier.padding(top = 20.dp),
 				colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundLightBlue)
 			) {
-				Text(text = "Save")
+				Text(text = "Add", color = White )
 			}
 		}
 	}
 }
 
+
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun DropDownMenu(mainViewModel: MainViewModel, selectedCategory:String,onCategorySelected: (String) -> Unit){
+	var isExpanded by remember {
+		mutableStateOf(false)
+	}
+
+	val distinctCategories = mainViewModel.getDistinctCategories()
+
+	Row(
+		modifier = Modifier.fillMaxWidth(),
+		horizontalArrangement = Arrangement.Center
+	){
+		ExposedDropdownMenuBox(
+			expanded = isExpanded,
+			onExpandedChange = { isExpanded = it }
+		){
+			TextField(
+				modifier = Modifier.padding(top = 20.dp),
+				label= { Text(text = "Categories", color = Black)},
+				value = selectedCategory,
+				onValueChange = {},
+				readOnly = true,
+				trailingIcon = {
+					ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded)
+				},
+				colors = TextFieldDefaults.colors(
+					focusedTextColor = Black,
+					unfocusedTextColor = Black,
+					focusedContainerColor = White,
+					unfocusedContainerColor = White,
+					disabledContainerColor = White,
+				),
+			)
+			ExposedDropdownMenu(
+				expanded = isExpanded,
+				onDismissRequest = { isExpanded = false }
+			) {
+				for(category in distinctCategories){
+					DropdownMenuItem(
+						text = { Text(text = category, color = Black, textAlign = TextAlign.Center) },
+						onClick = {
+						onCategorySelected(category)
+						isExpanded = false;
+					},
+
+					)
+				}
+			}
+		}
+	}
+}
 

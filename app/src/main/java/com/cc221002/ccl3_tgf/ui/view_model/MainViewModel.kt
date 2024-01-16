@@ -48,6 +48,9 @@ class MainViewModel(
 			}
 		}
 	}
+	fun getDistinctCategories(): List<String> {
+		return _categories.value.map{it.categoryName}.distinct()
+	}
 	// this function calls the dao function to collect all the trips that are saved in the database
 	fun getEntries() {
 		viewModelScope.launch {
@@ -80,6 +83,7 @@ class MainViewModel(
 	fun saveButton(entry: SingleEntry){
 		viewModelScope.launch {
 			dao.insertEntry(entry)
+			dismissAddDialog()
 			getEntries()
 		}
 	}
