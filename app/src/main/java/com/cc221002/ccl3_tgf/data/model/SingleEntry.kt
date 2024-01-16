@@ -18,7 +18,7 @@ data class SingleEntry(
 	val foodName: String,
 	val bbDate: String,
 	val categoryId: Int, // Reference to Category
-	val portionAmount: Int,
+	val portionAmount: Float,
 	val portionType: String,
 	val isChecked: Int,
 	@PrimaryKey(autoGenerate = true) val id: Int = 0,

@@ -1,5 +1,6 @@
 package com.cc221002.ccl3_tgf.ui.view
 
+import android.app.DatePickerDialog
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -9,6 +10,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +28,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.Button
 import androidx.compose.material.Divider
@@ -37,6 +41,7 @@ import androidx.compose.material.Slider
 import androidx.compose.material.SnackbarDefaults.backgroundColor
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.AlertDialog
@@ -44,6 +49,8 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardElevation
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -57,6 +64,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -69,13 +77,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.DarkGray
 import androidx.compose.ui.graphics.Color.Companion.White
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -86,6 +97,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.cc221002.ccl3_tgf.R
+import com.cc221002.ccl3_tgf.data.Category
 import com.cc221002.ccl3_tgf.data.model.SingleEntry
 import com.cc221002.ccl3_tgf.ui.theme.BackgroundBlue
 import com.cc221002.ccl3_tgf.ui.theme.BackgroundLightBlue
@@ -94,6 +106,8 @@ import com.cc221002.ccl3_tgf.ui.theme.NavigationBlue
 import com.cc221002.ccl3_tgf.ui.view_model.MainViewModel
 import kotlinx.coroutines.delay
 import java.io.File
+import java.time.LocalDate
+import java.util.Calendar
 import java.util.concurrent.ExecutorService
 
 
@@ -107,6 +121,7 @@ sealed class Screen(val route: String) {
 
 // this is the MainView Composable which is the first thing i navigate from the MainActivity
 // here the routes of the screens are defined
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainView(
 	mainViewModel: MainViewModel,
@@ -167,7 +182,7 @@ fun BottomNavigationBar(navController: NavHostController, selectedScreen: Screen
 				selected = (selectedScreen == Screen.News),
 				onClick = { navController.navigate(Screen.News.route) },
 				icon = { Image(
-					painter = painterResource(id = R.drawable.lightbulb_icon),
+					painter = painterResource(id = R.drawable.notification_icon),
 					contentDescription = "News",
 					contentScale = ContentScale.Fit,
 					modifier = Modifier
@@ -227,11 +242,13 @@ fun SplashScreen(
 	}
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AllCategories(
 	mainViewModel: MainViewModel,
 	navController: NavHostController,
 ){
+	val state by mainViewModel.mainViewState.collectAsState()
 	val categories by mainViewModel.categories.collectAsState()
 	val entriesForCategories by mainViewModel.entriesForCategory.collectAsState()
 	Column(
@@ -243,12 +260,16 @@ fun AllCategories(
 	) {
 
 	Header(mainViewModel,"Your Fridge")
+		if(state.openAddDialog){
+			AddingPopup(mainViewModel = mainViewModel)
+		}
 
 		LazyColumn(
 			modifier = Modifier.fillMaxSize(),
 			verticalArrangement = Arrangement.spacedBy(8.dp),
 			horizontalAlignment = Alignment.CenterHorizontally
 		) {
+
 			item {
 
 				val leftovers = categories.find { it.categoryName == "Leftovers" }
@@ -258,7 +279,7 @@ fun AllCategories(
 						modifier = Modifier
 							.fillMaxWidth()
 							.background(
-								if(entriesForCategories.isEmpty()){
+								if (entriesForCategories.isEmpty()) {
 									BackgroundBlue
 								} else {
 									BackgroundLightBlue
@@ -406,6 +427,7 @@ fun AllCategories(
 	}
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun categoryEntries(navController: NavHostController,mainViewModel: MainViewModel){
 	val state = mainViewModel.mainViewState.collectAsState()
@@ -471,6 +493,8 @@ fun Header(mainViewModel: MainViewModel,title:String){
 
 @Composable
 fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
+	var checkBoxState by remember { mutableStateOf(false) }
+
 		Row(
 			modifier = Modifier
 				.fillMaxWidth()
@@ -485,8 +509,14 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 			Box(
 				modifier = Modifier
 					.size(25.dp)
-					.border(BorderStroke(1.dp, White), RoundedCornerShape(3.dp))
-			)
+					.clickable { mainViewModel }
+			){
+				Checkbox(
+					checked = checkBoxState,
+					onCheckedChange = { checkBoxState = it },
+					colors = CheckboxDefaults.colors(BackgroundLightBlue)
+				)
+			}
 			Spacer(modifier = Modifier.padding(10.dp))
 			Column(
 				modifier = Modifier
@@ -543,6 +573,7 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 		}
 	}
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddingPopup(
@@ -551,13 +582,13 @@ fun AddingPopup(
 	val categories by mainViewModel.categories.collectAsState()
 
 	var foodName by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
-	var bbDate by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
-	var categoryId by remember { mutableStateOf(0) }
+	var bbDate by remember { mutableStateOf("") }
+	var categoryId by remember { mutableIntStateOf(0) }
 	var portionAmount by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
-	var portionType by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
+//	var portionType by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
 	var isChecked = 0
 	var categorySelection by remember { mutableStateOf("") }
-
+	var portionSelection by remember { mutableStateOf("") }
 
 	AlertDialog(
 		onDismissRequest = {
@@ -574,7 +605,7 @@ fun AddingPopup(
 			horizontalAlignment = Alignment.CenterHorizontally
 
 		) {
-			Text(text = "What did you put into your Fridge?",
+			Text(text = "ADD",
 				lineHeight = 45.sp,
 				fontWeight = FontWeight.Bold,
 				fontSize = 40.sp,
@@ -586,7 +617,10 @@ fun AddingPopup(
 
 
 			TextField(
-				modifier = Modifier.padding(top = 20.dp),
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(top = 20.dp)
+					.shadow(3.dp, RectangleShape,false),
 				colors = TextFieldDefaults.colors(
 					focusedTextColor = Black,
 					unfocusedTextColor = Black,
@@ -602,24 +636,9 @@ fun AddingPopup(
 					Text(text ="Food Name", color = Black )}
 			)
 
-			TextField(
-				modifier = Modifier.padding(top = 20.dp),
-				colors = TextFieldDefaults.colors(
-					focusedTextColor = Black,
-					unfocusedTextColor = Black,
-					focusedContainerColor = White,
-					unfocusedContainerColor = White,
-					disabledContainerColor = White,
-				),
-				value = bbDate,
-				onValueChange = {
-						newText-> bbDate = newText
-				},
-				label = {
-					Text(text ="Best-Before Date", color = Black  )}
-			)
+			DatePickerField(selectedDate = bbDate , onDateSelected = {bbDate = it.toString()})
 
-			DropDownMenu(mainViewModel, categorySelection){ selectedCategory->
+			CategoryDropDownMenu(mainViewModel, categorySelection){ selectedCategory->
 				 categorySelection = selectedCategory
 				for(category in categories){
 					if(categorySelection == category.categoryName){
@@ -628,56 +647,52 @@ fun AddingPopup(
 				}
 				Log.d("Categoryselected","$categorySelection $categoryId")
 			}
-//			TextField(
-//				modifier = Modifier.padding(top = 20.dp),
-//				value = categoryId,
-//				onValueChange = {
-//						newText-> categoryId = newText
-//				},
-//				label = {
-//					Text(text ="Category" )}
-//			)
 
-			TextField(
-				modifier = Modifier.padding(top = 20.dp),
-				colors = TextFieldDefaults.colors(
-					focusedTextColor = Black,
-					unfocusedTextColor = Black,
-					focusedContainerColor = White,
-					unfocusedContainerColor = White,
-					disabledContainerColor = White,
-				),
-				value = portionAmount,
-				onValueChange = {
-						newText-> portionAmount = newText
-				},
-				label = {
-					Text(text ="Portion Amount", color = Black  )}
-			)
+			Row (
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(top = 20.dp),
+				horizontalArrangement = Arrangement.SpaceBetween
+			){
+				TextField(
+					modifier = Modifier
+						.fillMaxWidth(0.4f)
+						.shadow(3.dp, RectangleShape,false),
+					keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+					trailingIcon ={Image(
+						painter = painterResource(id = R.drawable.arrows_up_down_icon),
+						contentDescription = "Calendar",
+						contentScale = ContentScale.Fit,
+						modifier = Modifier
+							.size(25.dp)
+					)} ,
+					colors = TextFieldDefaults.colors(
+						focusedTextColor = Black,
+						unfocusedTextColor = Black,
+						focusedContainerColor = White,
+						unfocusedContainerColor = White,
+						disabledContainerColor = White,
+					),
+					value = portionAmount,
+					onValueChange = {
+							newText-> portionAmount = newText
+					},
+					label = {
+						Text(text ="#", color = Black  )}
+				)
 
-			TextField(
-				modifier = Modifier.padding(top = 20.dp),
-				colors = TextFieldDefaults.colors(
-					focusedTextColor = Black,
-					unfocusedTextColor = Black,
-					focusedContainerColor = White,
-					unfocusedContainerColor = White,
-					disabledContainerColor = White,
-				),
-				value = portionType,
-				onValueChange = {
-						newText-> portionType = newText
-				},
-				label = {
-					Text(text ="Portion Type", color = Black  )}
-			)
+				PortionsDropDownMenu(mainViewModel = mainViewModel, selectedPortion = portionSelection){selectedCategory->
+					portionSelection = selectedCategory
+				}
+			}
+
 
 			Button(
 				onClick = {
-					mainViewModel.saveButton(SingleEntry(foodName.text, bbDate.text, categoryId, portionAmount.text.toInt(), portionType.text, isChecked))
+					mainViewModel.saveButton(SingleEntry(foodName.text, bbDate, categoryId, portionAmount.text.toFloat(), portionSelection, isChecked))
 						  },
 				modifier = Modifier.padding(top = 20.dp),
-				colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundLightBlue)
+				colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
 			) {
 				Text(text = "Add", color = White )
 			}
@@ -688,7 +703,7 @@ fun AddingPopup(
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun DropDownMenu(mainViewModel: MainViewModel, selectedCategory:String,onCategorySelected: (String) -> Unit){
+fun CategoryDropDownMenu(mainViewModel: MainViewModel, selectedCategory:String,onCategorySelected: (String) -> Unit){
 	var isExpanded by remember {
 		mutableStateOf(false)
 	}
@@ -696,7 +711,8 @@ fun DropDownMenu(mainViewModel: MainViewModel, selectedCategory:String,onCategor
 	val distinctCategories = mainViewModel.getDistinctCategories()
 
 	Row(
-		modifier = Modifier.fillMaxWidth(),
+		modifier = Modifier
+			.fillMaxWidth(),
 		horizontalArrangement = Arrangement.Center
 	){
 		ExposedDropdownMenuBox(
@@ -704,7 +720,10 @@ fun DropDownMenu(mainViewModel: MainViewModel, selectedCategory:String,onCategor
 			onExpandedChange = { isExpanded = it }
 		){
 			TextField(
-				modifier = Modifier.padding(top = 20.dp),
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(top = 20.dp)
+					.shadow(3.dp, RectangleShape,false),
 				label= { Text(text = "Categories", color = Black)},
 				value = selectedCategory,
 				onValueChange = {},
@@ -739,3 +758,132 @@ fun DropDownMenu(mainViewModel: MainViewModel, selectedCategory:String,onCategor
 	}
 }
 
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun PortionsDropDownMenu(mainViewModel: MainViewModel,selectedPortion:String,onPortionSelected: (String) -> Unit){
+	var isExpanded by remember {
+		mutableStateOf(false)
+	}
+
+
+
+		ExposedDropdownMenuBox(
+			expanded = isExpanded,
+			onExpandedChange = { isExpanded = it }
+		){
+			TextField(
+				modifier = Modifier
+					.fillMaxWidth(0.95f)
+					.shadow(3.dp, RectangleShape,false),
+				label= { Text(text = "Portion(s)", color = Black)},
+				value = selectedPortion,
+				onValueChange = {},
+				readOnly = true,
+				trailingIcon = {
+					ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded)
+				},
+				colors = TextFieldDefaults.colors(
+					focusedTextColor = Black,
+					unfocusedTextColor = Black,
+					focusedContainerColor = White,
+					unfocusedContainerColor = White,
+					disabledContainerColor = White,
+				),
+			)
+			ExposedDropdownMenu(
+				expanded = isExpanded,
+				onDismissRequest = { isExpanded = false }
+			) {
+				val hardcodedPortions = listOf(
+					"Piece(s)",
+					"Portion(s)",
+					"Glass(es)",
+					"Bottle(s)",
+					"g",
+					"dag",
+					"kg",
+				)
+				for(portion in hardcodedPortions){
+					DropdownMenuItem(
+						text = { Text(text = portion, color = Black, textAlign = TextAlign.Center) },
+						onClick = {
+							onPortionSelected(portion)
+							isExpanded = false;
+						},
+
+						)
+				}
+			}
+		}
+	}
+
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun DatePickerField(
+	selectedDate: String,
+	onDateSelected: (LocalDate) -> Unit
+) {
+	// variables to get the context and an instance of a Calendar
+	val context = LocalContext.current
+	val calendar = Calendar.getInstance()
+
+	// This is the window to show the calendar
+	val datePicker = remember { // Use remember to ensure the dialog state is retained
+		DatePickerDialog(
+			context,
+			{ _, selectedYear, selectedMonth, selectedDayOfMonth ->
+				onDateSelected(LocalDate.of(selectedYear, selectedMonth + 1, selectedDayOfMonth))
+			},
+			calendar[Calendar.YEAR],
+			calendar[Calendar.MONTH],
+			calendar[Calendar.DAY_OF_MONTH]
+		)
+	}
+
+	Row(
+		modifier = Modifier
+			.fillMaxWidth()
+			.padding(top=20.dp)
+			.shadow(3.dp, RectangleShape,false),
+		verticalAlignment = Alignment.CenterVertically,
+		horizontalArrangement = Arrangement.Center
+	)
+
+	{
+		// in the textfield it displays the selected Date
+		TextField(
+			value = selectedDate,
+			colors = TextFieldDefaults.colors(
+				focusedTextColor = Black,
+				unfocusedTextColor = Black,
+				focusedContainerColor = White,
+				unfocusedContainerColor = White,
+				disabledContainerColor = White,
+			),
+			trailingIcon ={Image(
+				painter = painterResource(id = R.drawable.calendar_icon),
+				contentDescription = "Calendar",
+				contentScale = ContentScale.Fit,
+				modifier = Modifier
+					.size(35.dp)
+			)},
+			onValueChange = {},
+			label = { Text(text = "Best-Before Date", color = Black) },
+			readOnly = true,
+
+			modifier = Modifier
+				.fillMaxWidth(),
+			interactionSource = remember{ MutableInteractionSource()}.also { interactionSource ->
+				LaunchedEffect(interactionSource){
+					interactionSource.interactions.collect{
+						if(it is PressInteraction.Release){
+							datePicker.show()
+						}
+					}
+				}
+			}
+		)
+	}
+}
