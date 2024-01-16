@@ -1,5 +1,6 @@
 package com.cc221002.ccl3_tgf.ui.view
 
+import android.graphics.BlurMaskFilter
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -51,17 +52,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.White
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -212,11 +219,13 @@ fun SplashScreen(
 }
 
 @Composable
-fun AllCategories(
+fun AllCategories (
 	mainViewModel: MainViewModel,
 	navController: NavHostController,
-){
+) {
 	val categories by mainViewModel.categories.collectAsState()
+
+	mainViewModel.getEntries()
 
 	Column(
 		modifier = Modifier
@@ -230,8 +239,7 @@ fun AllCategories(
 				.clip(shape = RoundedCornerShape(0.dp, 0.dp, 0.dp, 20.dp))
 				.background(NavigationBlue)
 				.fillMaxWidth()
-				.height(75.dp)
-			,
+				.height(75.dp),
 			horizontalArrangement = Arrangement.Center,
 			verticalAlignment = Alignment.CenterVertically
 		){
@@ -243,22 +251,127 @@ fun AllCategories(
 			)
 		}
 
-		LazyColumn(
-			modifier = Modifier.fillMaxSize(),
-			verticalArrangement = Arrangement.spacedBy(8.dp),
-			horizontalAlignment = Alignment.CenterHorizontally
+		// fridge box containing all the categories
+		Box(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 45.dp)
+				.clip(RoundedCornerShape(16.dp))
+				.background(FridgeBlue),
+			contentAlignment = Alignment.Center
 		) {
-			item {
-				val leftovers = categories.find { it.categoryName == "Leftovers" }
+			LazyColumn(
+				modifier = Modifier
+					.fillMaxSize()
+					.padding(start = 10.dp, top = 45.dp, end = 10.dp),
+				verticalArrangement = Arrangement.spacedBy(8.dp),
+				horizontalAlignment = Alignment.CenterHorizontally
+			) {
 
-				leftovers?.let {
+
+				item {
+					val leftovers = categories.find { it.categoryName == "Leftovers" }
+
+					leftovers?.let {
+						Box(
+							modifier = Modifier
+								.shadow(
+									color = Color(0x51000000),
+									borderRadius = 6.dp,
+									blurRadius = 6.dp,
+									offsetY = 4.dp,
+									spread = 2f.dp
+								)
+								.fillMaxWidth()
+								.clip(RoundedCornerShape(6.dp))
+								.background(
+									if (mainViewModel.hasEntriesInCategory(leftovers.id)) BackgroundBlue else BackgroundLightBlue,
+								),
+							contentAlignment = Alignment.Center
+						) {
+							Text(
+								text = it.categoryName,
+								modifier = Modifier
+									.fillMaxWidth()
+									.clickable {
+										mainViewModel.getEntriesByCategory(it.id)
+										navController.navigate(Screen.ShowCategoryEntries.route)
+										// Handle click action for Leftovers category
+									}
+									.padding(30.dp),
+								textAlign = TextAlign.Center,
+								fontSize = 20.sp,
+								fontWeight = FontWeight.Bold,
+								color = Color.White
+							)
+						}
+					}
+				}
+
+				item {
 					Box(
-						modifier = Modifier
-							.fillMaxWidth()
-							.background(BackgroundBlue)
-							.clip(RoundedCornerShape(10.dp)),
+						modifier = Modifier.fillMaxWidth(),
 						contentAlignment = Alignment.Center
 					) {
+						Row(
+							modifier = Modifier.fillMaxWidth(),
+							horizontalArrangement = Arrangement.spacedBy(8.dp)
+						) {
+							val drinks = categories.find { it.categoryName == "Drinks" }
+							val dairy = categories.find { it.categoryName == "Dairy" }
+
+							drinks?.let {
+								Text(
+									text = it.categoryName,
+									modifier = Modifier
+										.weight(1f)
+										.clickable {
+											mainViewModel.getEntriesByCategory(it.id)
+											navController.navigate(Screen.ShowCategoryEntries.route)
+											// Handle click action for Drinks category
+										}
+										.clip(RoundedCornerShape(6.dp))
+										.background(
+											if (mainViewModel.hasEntriesInCategory(drinks.id)) BackgroundBlue else BackgroundLightBlue,
+										)
+										.padding(30.dp),
+									textAlign = TextAlign.Center,
+									fontSize = 20.sp,
+									fontWeight = FontWeight.Bold,
+									color = Color.White
+								)
+							}
+
+							dairy?.let {
+								Text(
+									text = it.categoryName,
+									modifier = Modifier
+										.weight(1f)
+										.clickable {
+											mainViewModel.getEntriesByCategory(it.id)
+											navController.navigate(Screen.ShowCategoryEntries.route)
+											// Handle click action for Dairy category
+										}
+										.clip(RoundedCornerShape(6.dp))
+										.background(
+											if (mainViewModel.hasEntriesInCategory(dairy.id)) BackgroundBlue else BackgroundLightBlue,
+										)
+										.padding(30.dp),
+									textAlign = TextAlign.Center,
+									fontSize = 20.sp,
+									fontWeight = FontWeight.Bold,
+									color = Color.White
+								)
+							}
+						}
+					}
+				}
+
+				item {
+					val extras = categories.find { it.categoryName == "Extras" }
+					val meat = categories.find { it.categoryName == "Meat" }
+
+					extras?.let {
 						Text(
 							text = it.categoryName,
 							modifier = Modifier
@@ -266,28 +379,54 @@ fun AllCategories(
 								.clickable {
 									mainViewModel.getEntriesByCategory(it.id)
 									navController.navigate(Screen.ShowCategoryEntries.route)
-									// Handle click action for Leftovers category
+									// Handle click action for Extras category
 								}
-								.padding(16.dp),
-							textAlign = TextAlign.Center
+								.clip(RoundedCornerShape(6.dp))
+								.background(
+									if (mainViewModel.hasEntriesInCategory(extras.id)) BackgroundBlue else BackgroundLightBlue,
+								)
+								.padding(30.dp),
+							textAlign = TextAlign.Center,
+							fontSize = 20.sp,
+							fontWeight = FontWeight.Bold,
+							color = Color.White
+						)
+					}
+
+					Spacer(modifier = Modifier.height(8.dp))
+
+					meat?.let {
+						Text(
+							text = it.categoryName,
+							modifier = Modifier
+								.fillMaxWidth()
+								.clickable {
+									mainViewModel.getEntriesByCategory(it.id)
+									navController.navigate(Screen.ShowCategoryEntries.route)
+									// Handle click action for Meat category
+								}
+								.clip(RoundedCornerShape(6.dp))
+								.background(
+									if (mainViewModel.hasEntriesInCategory(meat.id)) BackgroundBlue else BackgroundLightBlue,
+								)
+								.padding(30.dp),
+							textAlign = TextAlign.Center,
+							fontSize = 20.sp,
+							fontWeight = FontWeight.Bold,
+							color = Color.White
 						)
 					}
 				}
-			}
 
-			item {
-				Box(
-					modifier = Modifier.fillMaxWidth(),
-					contentAlignment = Alignment.Center
-				) {
+				item {
 					Row(
 						modifier = Modifier.fillMaxWidth(),
 						horizontalArrangement = Arrangement.spacedBy(8.dp)
 					) {
-						val drinks = categories.find { it.categoryName == "Drinks" }
-						val dairy = categories.find { it.categoryName == "Dairy" }
+						val fruit = categories.find { it.categoryName == "Fruit" }
+						val vegetable = categories.find { it.categoryName == "Vegetable" }
 
-						drinks?.let {
+						fruit?.let {
 							Text(
 								text = it.categoryName,
 								modifier = Modifier
@@ -295,14 +434,21 @@ fun AllCategories(
 									.clickable {
 										mainViewModel.getEntriesByCategory(it.id)
 										navController.navigate(Screen.ShowCategoryEntries.route)
-										// Handle click action for Drinks category
+										// Handle click action for Fruit category
 									}
-									.padding(16.dp),
-								textAlign = TextAlign.Center
+									.clip(RoundedCornerShape(6.dp))
+									.background(
+										if (mainViewModel.hasEntriesInCategory(fruit.id)) BackgroundBlue else BackgroundLightBlue,
+									)
+									.padding(30.dp),
+								textAlign = TextAlign.Center,
+								fontSize = 20.sp,
+								fontWeight = FontWeight.Bold,
+								color = Color.White
 							)
 						}
 
-						dairy?.let {
+						vegetable?.let {
 							Text(
 								text = it.categoryName,
 								modifier = Modifier
@@ -310,87 +456,19 @@ fun AllCategories(
 									.clickable {
 										mainViewModel.getEntriesByCategory(it.id)
 										navController.navigate(Screen.ShowCategoryEntries.route)
-										// Handle click action for Dairy category
+										// Handle click action for Vegetable category
 									}
-									.padding(16.dp),
-								textAlign = TextAlign.Center
+									.clip(RoundedCornerShape(6.dp))
+									.background(
+										if (mainViewModel.hasEntriesInCategory(vegetable.id)) BackgroundBlue else BackgroundLightBlue,
+									)
+									.padding(30.dp),
+								textAlign = TextAlign.Center,
+								fontSize = 20.sp,
+								fontWeight = FontWeight.Bold,
+								color = Color.White
 							)
 						}
-					}
-				}
-			}
-
-			item {
-				val extras = categories.find { it.categoryName == "Extras" }
-				val meat = categories.find { it.categoryName == "Meat" }
-
-				extras?.let {
-					Text(
-						text = it.categoryName,
-						modifier = Modifier
-							.fillMaxWidth()
-							.clickable {
-								mainViewModel.getEntriesByCategory(it.id)
-								navController.navigate(Screen.ShowCategoryEntries.route)
-								// Handle click action for Extras category
-							}
-							.padding(16.dp),
-						textAlign = TextAlign.Center
-					)
-				}
-
-				meat?.let {
-					Text(
-						text = it.categoryName,
-						modifier = Modifier
-							.fillMaxWidth()
-							.clickable {
-								mainViewModel.getEntriesByCategory(it.id)
-								navController.navigate(Screen.ShowCategoryEntries.route)
-								// Handle click action for Meat category
-							}
-							.padding(16.dp),
-						textAlign = TextAlign.Center
-					)
-				}
-			}
-
-			item {
-				Row(
-					modifier = Modifier.fillMaxWidth(),
-					horizontalArrangement = Arrangement.spacedBy(8.dp)
-				) {
-					val fruit = categories.find { it.categoryName == "Fruit" }
-					val vegetable = categories.find { it.categoryName == "Vegetable" }
-
-					fruit?.let {
-						Text(
-							text = it.categoryName,
-							modifier = Modifier
-								.weight(1f)
-								.clickable {
-									mainViewModel.getEntriesByCategory(it.id)
-									navController.navigate(Screen.ShowCategoryEntries.route)
-									// Handle click action for Fruit category
-								}
-								.padding(16.dp),
-							textAlign = TextAlign.Center
-						)
-					}
-
-					vegetable?.let {
-						Text(
-							text = it.categoryName,
-							modifier = Modifier
-								.weight(1f)
-								.clickable {
-									mainViewModel.getEntriesByCategory(it.id)
-									navController.navigate(Screen.ShowCategoryEntries.route)
-									// Handle click action for Vegetable category
-								}
-								.padding(16.dp),
-							textAlign = TextAlign.Center
-						)
 					}
 				}
 			}
@@ -400,7 +478,9 @@ fun AllCategories(
 
 @Composable
 fun categoryEntries(navController: NavHostController,mainViewModel: MainViewModel){
+
 	val entries = mainViewModel.entriesForCategory.collectAsState()
+
 	Log.d("CategoryEntries", entries.value.toString())
 
 	LazyColumn(
@@ -489,6 +569,46 @@ fun ItemUI(entry:SingleEntry) {
 		}
 	}
 
+fun Modifier.shadow(
+	color: Color = Color.Black,
+	borderRadius: Dp = 0.dp,
+	blurRadius: Dp = 0.dp,
+	offsetY: Dp = 0.dp,
+	offsetX: Dp = 0.dp,
+	spread: Dp = 0f.dp,
+	modifier: Modifier = Modifier
+) = this.then(
+	modifier.drawBehind {
+		this.drawIntoCanvas {
+			val paint = Paint()
+			val frameworkPaint = paint.asFrameworkPaint()
+			val spreadPixel = spread.toPx()
+			val leftPixel = (0f - spreadPixel) + offsetX.toPx()
+			val topPixel = (0f - spreadPixel) + offsetY.toPx()
+			val rightPixel = (this.size.width + spreadPixel)
+			val bottomPixel = (this.size.height + spreadPixel)
+
+			if (blurRadius != 0.dp) {
+				frameworkPaint.maskFilter =
+					(BlurMaskFilter(blurRadius.toPx(), BlurMaskFilter.Blur.NORMAL))
+			}
+
+			frameworkPaint.color = color.toArgb()
+			it.drawRoundRect(
+				left = leftPixel,
+				top = topPixel,
+				right = rightPixel,
+				bottom = bottomPixel,
+				radiusX = borderRadius.toPx(),
+				radiusY = borderRadius.toPx(),
+				paint
+			)
+		}
+	}
+)
+
+
+// https://github.com/Debdutta-Panda/CustomShadow/blob/master/app/src/main/java/com/debduttapanda/customshadow/MainActivity.kt
 
 
 
