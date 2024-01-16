@@ -13,4 +13,9 @@ data class MainViewState (
 
 	// this one saves on which screen the user is
 	val selectedScreen: Screen = Screen.SplashScreen,
+
+	val openEditDialog: Boolean = false,
+	val openAddDialog: Boolean = false,
+
+
 	)

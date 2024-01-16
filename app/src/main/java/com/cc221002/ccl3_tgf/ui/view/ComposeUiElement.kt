@@ -26,20 +26,27 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigation
+import androidx.compose.material.Button
 import androidx.compose.material.Divider
 import androidx.compose.material.IconButton
 import androidx.compose.material.Slider
+import androidx.compose.material.SnackbarDefaults.backgroundColor
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardElevation
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarItem
 
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -61,6 +68,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -226,7 +234,7 @@ fun AllCategories(
 		horizontalAlignment = Alignment.CenterHorizontally,
 	) {
 
-	Header(title = "Your Fridge")
+	Header(mainViewModel,"Your Fridge")
 
 		LazyColumn(
 			modifier = Modifier.fillMaxSize(),
@@ -385,12 +393,13 @@ fun AllCategories(
 
 @Composable
 fun categoryEntries(navController: NavHostController,mainViewModel: MainViewModel){
+	val state = mainViewModel.mainViewState.collectAsState()
 	val entries = mainViewModel.entriesForCategory.collectAsState()
 	val categories by mainViewModel.categories.collectAsState()
 	Log.d("CategoryEntries", entries.value.toString())
-	Log.d("CategoryEntries", entries.value.)
+Column {
 
-//	Header()
+	Header(mainViewModel,"category name")
 	LazyColumn(
 		verticalArrangement = Arrangement.Top,
 		horizontalAlignment = Alignment.CenterHorizontally,
@@ -402,11 +411,14 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 			ItemUI(entry = entry)
 		}
 	}
+	if(state.value.openAddDialog){
+		AddingPopup(mainViewModel = mainViewModel)
 	}
-
+	}
+}
 
 @Composable
-fun Header(title:String){
+fun Header(mainViewModel: MainViewModel,title:String){
 		Row(
 			modifier = Modifier
 				.clip(shape = RoundedCornerShape(0.dp, 0.dp, 0.dp, 20.dp))
@@ -422,6 +434,20 @@ fun Header(title:String){
 				fontWeight = FontWeight.Bold,
 				color = Color.White
 			)
+			Spacer(modifier = Modifier.padding(50.dp,0.dp))
+			Box(
+				modifier = Modifier
+					.size(35.dp)
+					.clickable { mainViewModel.openAddDialog() }
+			){
+				Image(
+					painter = painterResource(id = R.drawable.add_icon),
+					contentDescription = "Fridge",
+					contentScale = ContentScale.Fit,
+					modifier = Modifier
+						.size(35.dp)
+				)
+			}
 		}
 	}
 
@@ -499,6 +525,98 @@ fun ItemUI(entry:SingleEntry) {
 		}
 	}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddingPopup(
+	mainViewModel: MainViewModel,
+){
+	var foodName by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
+	var bbDate by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
+	var categoryId by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
+	var portionAmount by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
+	var portionType by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
+	var isChecked = 0
 
+	AlertDialog(
+		onDismissRequest = {
+			mainViewModel.dismissAddDialog()
+						   },
+		modifier = Modifier.background(White)
+	) {
+		Column(
+			modifier = Modifier
+				.fillMaxWidth()
+		) {
+			Text(text = "What did you put into your Fridge?",
+				lineHeight = 45.sp,
+				fontWeight = FontWeight.Bold,
+				fontSize = 40.sp,
+				style = TextStyle(fontFamily = FontFamily.SansSerif),
+				color = Color.Black,
+				textAlign = TextAlign.Center,
+				modifier = Modifier
+					.fillMaxWidth(),)
+
+
+			TextField(
+				modifier = Modifier.padding(top = 20.dp),
+				value = foodName,
+				onValueChange = {
+					newText-> foodName = newText
+				},
+				label = {
+					Text(text ="Food Name" )}
+			)
+
+			TextField(
+				modifier = Modifier.padding(top = 20.dp),
+				value = bbDate,
+				onValueChange = {
+						newText-> bbDate = newText
+				},
+				label = {
+					Text(text ="Best-Before Date" )}
+			)
+
+			TextField(
+				modifier = Modifier.padding(top = 20.dp),
+				value = categoryId,
+				onValueChange = {
+						newText-> categoryId = newText
+				},
+				label = {
+					Text(text ="Category" )}
+			)
+
+			TextField(
+				modifier = Modifier.padding(top = 20.dp),
+				value = portionAmount,
+				onValueChange = {
+						newText-> portionAmount = newText
+				},
+				label = {
+					Text(text ="Portion Amount" )}
+			)
+
+			TextField(
+				modifier = Modifier.padding(top = 20.dp),
+				value = portionType,
+				onValueChange = {
+						newText-> portionType = newText
+				},
+				label = {
+					Text(text ="Portion Type" )}
+			)
+
+			Button(
+				onClick = { mainViewModel.saveButton(SingleEntry(foodName.text, bbDate.text, categoryId.text.toInt(), portionAmount.text.toInt(), portionType.text, isChecked)) },
+				modifier = Modifier.padding(top = 20.dp),
+				colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundLightBlue)
+			) {
+				Text(text = "Save")
+			}
+		}
+	}
+}
 
 

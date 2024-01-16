@@ -70,6 +70,31 @@ class MainViewModel(
 		}
 	}
 
+	fun openAddDialog(){
+		_mainViewState.update{ it.copy(openAddDialog = true)}
+	}
+	fun dismissAddDialog(){
+		_mainViewState.update{ it.copy(openAddDialog = false)}
+	}
+
+	fun saveButton(entry: SingleEntry){
+		viewModelScope.launch {
+			dao.insertEntry(entry)
+			getEntries()
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+
 
 	fun insertCategories(){
 		val hardcodedCategory = listOf(
