@@ -84,6 +84,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.DarkGray
 import androidx.compose.ui.graphics.Color.Companion.White
+import androidx.compose.ui.graphics.Color.Companion.Yellow
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
@@ -112,6 +113,7 @@ import com.cc221002.ccl3_tgf.data.Category
 import com.cc221002.ccl3_tgf.data.model.SingleEntry
 import com.cc221002.ccl3_tgf.ui.theme.BackgroundBlue
 import com.cc221002.ccl3_tgf.ui.theme.BackgroundLightBlue
+import com.cc221002.ccl3_tgf.ui.theme.ExpiredRed
 import com.cc221002.ccl3_tgf.ui.theme.FridgeBlue
 import com.cc221002.ccl3_tgf.ui.theme.NavigationBlue
 import com.cc221002.ccl3_tgf.ui.view_model.MainViewModel
@@ -119,6 +121,7 @@ import kotlinx.coroutines.delay
 import java.io.File
 import java.time.LocalDate
 import java.util.Calendar
+import java.util.Date
 import java.util.concurrent.ExecutorService
 
 
@@ -543,22 +546,33 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 
 	val categoryName = mainViewModel.currentCategory
 
-	Column {
-	Header(mainViewModel,"$categoryName")
-	LazyColumn(
-		verticalArrangement = Arrangement.Top,
-		horizontalAlignment = Alignment.CenterHorizontally,
-		modifier = Modifier
-			.fillMaxSize()
-			.background(FridgeBlue),
-	) {
-		items(entries.value.sortedBy { it.bbDate }) { entry ->
-			ItemUI(mainViewModel,entry = entry)
+		Column(
+			modifier = Modifier.background(White)
+		) {
+			Header(mainViewModel, "$categoryName")
+			Box(
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 45.dp)
+					.clip(RoundedCornerShape(16.dp))
+					.background(FridgeBlue),
+				contentAlignment = Alignment.Center
+			) {
+				LazyColumn(
+				verticalArrangement = Arrangement.Top,
+				horizontalAlignment = Alignment.CenterHorizontally,
+				modifier = Modifier
+					.fillMaxSize()
+//			.background(FridgeBlue),
+			) {
+				items(entries.value.sortedBy { it.bbDate }) { entry ->
+					ItemUI(mainViewModel, entry = entry)
+				}
+			}
+			if (state.value.openAddDialog) {
+				AddingPopup(mainViewModel = mainViewModel)
+			}
 		}
-	}
-	if(state.value.openAddDialog){
-		AddingPopup(mainViewModel = mainViewModel)
-	}
 	}
 }
 
@@ -589,6 +603,13 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 	var checkBoxState by remember { mutableStateOf(false) }
 	val state = mainViewModel.mainViewState.collectAsState()
 
+	val currentDate = LocalDate.now()
+	val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
+
+
+
+
+
 	if(state.value.openEditDialog){
 		EditPopUp(mainViewModel = mainViewModel)
 	}
@@ -597,7 +618,11 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 				.fillMaxWidth()
 				.padding(10.dp)
 				.clip(RoundedCornerShape(10.dp))
-				.background(BackgroundBlue)
+				.background(if (storedDate != null && storedDate.isAfter(currentDate)) {
+					BackgroundBlue
+				} else {
+					ExpiredRed
+				})
 				.clickable { mainViewModel.editEntry(entry) }
 				,
 			horizontalArrangement = Arrangement.Start,
@@ -626,7 +651,7 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					text = "${entry.foodName}",
 					fontWeight = FontWeight.Bold,
 					textAlign = TextAlign.Start,
-					fontSize = 17.sp,
+					fontSize = 20.sp,
 					style = TextStyle(fontFamily = FontFamily.Monospace),
 					color = Color.White,
 					modifier = Modifier
@@ -640,7 +665,7 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					style = TextStyle(fontFamily = FontFamily.Monospace),
 					color = Color.White,
 					modifier = Modifier
-						.padding(bottom = 5.dp)
+						.padding(bottom = 7.dp)
 						.width(250.dp)
 				)
 				Text(
@@ -648,9 +673,13 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					textAlign = TextAlign.Start,
 					fontSize = 12.sp,
 					style = TextStyle(fontFamily = FontFamily.Monospace),
-					color = Color.White,
+					color = if (storedDate != null && storedDate.isAfter(currentDate)) {
+						White
+					} else {
+						Yellow
+					},
 					modifier = Modifier
-						.padding(bottom = 5.dp)
+						.padding(bottom = 7.dp)
 						.width(250.dp)
 				)
 			}
@@ -665,7 +694,8 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					contentDescription = "Fridge",
 					contentScale = ContentScale.Fit,
 					modifier = Modifier
-						.size(35.dp)
+						.size(35.dp),
+					colorFilter = ColorFilter.tint(White)
 				)
 			}
 		}
