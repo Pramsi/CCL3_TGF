@@ -9,18 +9,21 @@ import com.cc221002.ccl3_tgf.data.Category
 import com.cc221002.ccl3_tgf.data.EntriesDao
 import com.cc221002.ccl3_tgf.data.model.SingleEntry
 import com.cc221002.ccl3_tgf.ui.view.Screen
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class MainViewModel(
+class MainViewModel (
 	private val dao: EntriesDao,
 	private val categoriesDao: CategoriesDao
-):ViewModel() {
+) : ViewModel() {
 	// in those variables the states are saved
 	private val _mainViewState = MutableStateFlow(MainViewState())
 	val mainViewState: StateFlow<MainViewState> = _mainViewState.asStateFlow()
@@ -37,6 +40,11 @@ class MainViewModel(
 	private var _entriesForCategory = MutableStateFlow<List<SingleEntry>>(emptyList())
 	val entriesForCategory: StateFlow<List<SingleEntry>> = _entriesForCategory.asStateFlow()
 
+	private var _giveEntries = MutableStateFlow<List<SingleEntry>>(emptyList())
+	val giveEntries: StateFlow<List<SingleEntry>> = _entriesForCategory.asStateFlow()
+
+
+
 	// this function updates on which screen the user currently is
 	fun selectScreen(screen: Screen){
 		_mainViewState.update { it.copy(selectedScreen = screen) }
@@ -52,6 +60,12 @@ class MainViewModel(
 	fun getDistinctCategories(): List<String> {
 		return _categories.value.map{it.categoryName}.distinct()
 	}
+
+	// this function determines whether category has entries or not (background color blue or light blue?)
+	fun hasEntriesInCategory(categoryId: Int) : Boolean {
+		return entries.value.any { it.categoryId == categoryId }
+	}
+
 	// this function calls the dao function to collect all the trips that are saved in the database
 	fun getEntries() {
 		viewModelScope.launch {
@@ -70,6 +84,11 @@ class MainViewModel(
 				Log.d("ENTRIES","$entries")
 
 				// Handle retrieved entries by category
+
+				// call hasEntriesInCategory after updating entriesForCategory
+				_mainViewState.update {
+					it.copy(selectedScreen = Screen.ShowCategoryEntries)
+				}
 			}
 		}
 	}
