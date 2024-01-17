@@ -161,23 +161,23 @@ class MainViewModel (
 		}
 	}
 
-	fun insertPreTrips(){
-        val hardcodedSamples = listOf(
-            SingleEntry("ChickenNuggets","24.10.2022", 1, 4.0f, "Portions", 0),
-	        SingleEntry("Avocados","24.10.2022", 6, 1.0f, "Pieces", 0),
-	        SingleEntry("Pasta Aciutta","5.10.2022", 1, 3.0f, "Portions", 0),
-	        SingleEntry("AppleJuice","24.10.2022", 2, 2.0f, "Glasses", 0),
-	        SingleEntry("Milk","24.10.2022", 3, 4.0f, "Glasses", 0),
-	        SingleEntry("Filet","24.10.2022", 5, 6.0f, "Pieces", 0),
-	        SingleEntry("Banana","24.10.2022", 6, 8.0f, "Pieces", 0),
-	        SingleEntry("Carrot","24.10.2022", 7, 9.0f, "Pieces", 0),
-
-        )
-        viewModelScope.launch{
-            for (entry in hardcodedSamples)
-                dao.insertEntry(entry)
-        }
-    }
+//	fun insertPreTrips(){
+//        val hardcodedSamples = listOf(
+//            SingleEntry("ChickenNuggets","24.10.2022", 1, "4.0f", "Portions", 0),
+//	        SingleEntry("Avocados","24.10.2022", 6, 1.0f, "Pieces", 0),
+//	        SingleEntry("Pasta Aciutta","5.10.2022", 1, 3.0f, "Portions", 0),
+//	        SingleEntry("AppleJuice","24.10.2022", 2, 2.0f, "Glasses", 0),
+//	        SingleEntry("Milk","24.10.2022", 3, 4.0f, "Glasses", 0),
+//	        SingleEntry("Filet","24.10.2022", 5, 6.0f, "Pieces", 0),
+//	        SingleEntry("Banana","24.10.2022", 6, 8.0f, "Pieces", 0),
+//	        SingleEntry("Carrot","24.10.2022", 7, 9.0f, "Pieces", 0),
+//
+//        )
+//        viewModelScope.launch{
+//            for (entry in hardcodedSamples)
+//                dao.insertEntry(entry)
+//        }
+//    }
 
 
 

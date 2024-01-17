@@ -808,7 +808,7 @@ fun AddingPopup(
 
 			Button(
 				onClick = {
-					mainViewModel.saveButton(SingleEntry(foodName.text, bbDate, categoryId, portionAmount.text.toFloat(), portionSelection, isChecked))
+					mainViewModel.saveButton(SingleEntry(foodName.text, bbDate, categoryId, portionAmount.text, portionSelection, isChecked))
 						  },
 				modifier = Modifier.padding(top = 20.dp),
 				colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
@@ -837,7 +837,7 @@ fun EditPopUp(
 		mutableIntStateOf(state.value.editSingleEntry.categoryId)
 	}
 	var portionAmount by rememberSaveable {
-		mutableFloatStateOf(state.value.editSingleEntry.portionAmount)
+		mutableStateOf(state.value.editSingleEntry.portionAmount)
 	}
 	var portionType by rememberSaveable {
 		mutableStateOf(state.value.editSingleEntry.portionType)
@@ -857,7 +857,6 @@ fun EditPopUp(
 		}
 	}
 
-	portionAmount = 1.0f
 
 		AlertDialog(
 			onDismissRequest = {
@@ -887,28 +886,30 @@ fun EditPopUp(
 				)
 
 
-				TextField(
-					modifier = Modifier
-						.fillMaxWidth()
-						.padding(top = 20.dp)
-						.shadow(3.dp, RectangleShape, false),
-					colors = TextFieldDefaults.colors(
-						focusedTextColor = Black,
-						unfocusedTextColor = Black,
-						focusedContainerColor = White,
-						unfocusedContainerColor = White,
-						disabledContainerColor = White,
-					),
-					value = foodName,
-					onValueChange = { newText ->
-						foodName = newText
-					},
-					label = {
-						Text(text = "Food Name", color = Black)
-					}
-				)
+				foodName?.let {
+					TextField(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(top = 20.dp)
+							.shadow(3.dp, RectangleShape, false),
+						colors = TextFieldDefaults.colors(
+							focusedTextColor = Black,
+							unfocusedTextColor = Black,
+							focusedContainerColor = White,
+							unfocusedContainerColor = White,
+							disabledContainerColor = White,
+						),
+						value = it,
+						onValueChange = { newText ->
+							foodName = newText
+						},
+						label = {
+							Text(text = "Food Name", color = Black)
+						}
+					)
+				}
 
-				DatePickerField(selectedDate = bbDate, onDateSelected = { bbDate = it.toString() })
+				bbDate?.let { DatePickerField(selectedDate = it, onDateSelected = { bbDate = it.toString() }) }
 
 				CategoryDropDownMenu(mainViewModel, categorySelection) { selectedCategory ->
 					categorySelection = selectedCategory
@@ -926,38 +927,41 @@ fun EditPopUp(
 						.padding(top = 20.dp),
 					horizontalArrangement = Arrangement.SpaceBetween
 				) {
-//					TextField(
-//						modifier = Modifier
-//							.fillMaxWidth(0.4f)
-//							.shadow(3.dp, RectangleShape, false),
-//						keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-//						trailingIcon ={Image(
-//							painter = painterResource(id = R.drawable.arrows_up_down_icon),
-//							contentDescription = "Amount",
-//							contentScale = ContentScale.Fit,
-//							modifier = Modifier
-//								.size(25.dp)
-//						)} ,
-//						colors = TextFieldDefaults.colors(
-//							focusedTextColor = Black,
-//							unfocusedTextColor = Black,
-//							focusedContainerColor = White,
-//							unfocusedContainerColor = White,
-//							disabledContainerColor = White,
-//						),
-//						value = portionAmount,
-//						onValueChange = {
-//								newText-> portionAmount = newText
-//						},
-//						label = {
-//							Text(text ="#", color = Black  )}
-//					)
+					TextField(
+						value = portionAmount.toString(),
+						modifier = Modifier
+							.fillMaxWidth(0.4f)
+							.shadow(3.dp, RectangleShape, false),
+						keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+						trailingIcon ={Image(
+							painter = painterResource(id = R.drawable.arrows_up_down_icon),
+							contentDescription = "Amount",
+							contentScale = ContentScale.Fit,
+							modifier = Modifier
+								.size(25.dp)
+						) },
+						colors = TextFieldDefaults.colors(
+							focusedTextColor = Black,
+							unfocusedTextColor = Black,
+							focusedContainerColor = White,
+							unfocusedContainerColor = White,
+							disabledContainerColor = White,
+						),
 
-					PortionsDropDownMenu(
-						mainViewModel = mainViewModel,
-						selectedPortion = portionType
-					) { selectedCategory ->
-						portionType = selectedCategory
+						onValueChange = {
+								newText:String-> portionAmount = newText
+						},
+						label ={Text(text ="#", color = Black  )}
+
+					)
+
+					portionType?.let {
+						PortionsDropDownMenu(
+							mainViewModel = mainViewModel,
+							selectedPortion = it
+						) { selectedCategory ->
+							portionType = selectedCategory
+						}
 					}
 				}
 
