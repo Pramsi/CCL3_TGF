@@ -60,11 +60,13 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -562,16 +564,22 @@ fun Header(mainViewModel: MainViewModel,title:String){
 	}
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 	var checkBoxState by remember { mutableStateOf(false) }
+	val state = mainViewModel.mainViewState.collectAsState()
 
+	if(state.value.openEditDialog){
+		EditPopUp(mainViewModel = mainViewModel)
+	}
 		Row(
 			modifier = Modifier
 				.fillMaxWidth()
 				.padding(10.dp)
 				.clip(RoundedCornerShape(10.dp))
 				.background(BackgroundBlue)
+				.clickable { mainViewModel.editEntry(entry) }
 				,
 			horizontalArrangement = Arrangement.Start,
 			verticalAlignment = Alignment.CenterVertically
@@ -731,7 +739,7 @@ fun AddingPopup(
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(top = 20.dp)
-					.shadow(3.dp, RectangleShape,false),
+					.shadow(3.dp, RectangleShape, false),
 				colors = TextFieldDefaults.colors(
 					focusedTextColor = Black,
 					unfocusedTextColor = Black,
@@ -768,11 +776,11 @@ fun AddingPopup(
 				TextField(
 					modifier = Modifier
 						.fillMaxWidth(0.4f)
-						.shadow(3.dp, RectangleShape,false),
+						.shadow(3.dp, RectangleShape, false),
 					keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
 					trailingIcon ={Image(
 						painter = painterResource(id = R.drawable.arrows_up_down_icon),
-						contentDescription = "Calendar",
+						contentDescription = "Amount",
 						contentScale = ContentScale.Fit,
 						modifier = Modifier
 							.size(25.dp)
@@ -811,6 +819,181 @@ fun AddingPopup(
 	}
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditPopUp(
+	mainViewModel: MainViewModel
+){
+	val state = mainViewModel.mainViewState.collectAsState()
+
+	var foodName by rememberSaveable {
+		mutableStateOf(state.value.editSingleEntry.foodName)
+	}
+	var bbDate by rememberSaveable {
+		mutableStateOf(state.value.editSingleEntry.bbDate)
+	}
+	var categoryId by rememberSaveable {
+		mutableIntStateOf(state.value.editSingleEntry.categoryId)
+	}
+	var portionAmount by rememberSaveable {
+		mutableFloatStateOf(state.value.editSingleEntry.portionAmount)
+	}
+	var portionType by rememberSaveable {
+		mutableStateOf(state.value.editSingleEntry.portionType)
+	}
+	var isChecked by rememberSaveable {
+		mutableIntStateOf(state.value.editSingleEntry.isChecked)
+	}
+
+	val categories by mainViewModel.categories.collectAsState()
+
+	var categorySelection by remember { mutableStateOf("") }
+
+	for (category in categories) {
+		if (categoryId == category.id) {
+			categorySelection = category.categoryName
+			Log.d("IDTOCATEGORY", categorySelection)
+		}
+	}
+
+	portionAmount = 1.0f
+
+		AlertDialog(
+			onDismissRequest = {
+				mainViewModel.dismissEditDialog()
+			},
+			modifier = Modifier
+				.clip(RoundedCornerShape(20.dp))
+				.background(White)
+				.padding(10.dp)
+		) {
+			Column(
+				modifier = Modifier
+					.fillMaxWidth(),
+				horizontalAlignment = Alignment.CenterHorizontally
+
+			) {
+				Text(
+					text = "EDIT",
+					lineHeight = 45.sp,
+					fontWeight = FontWeight.Bold,
+					fontSize = 40.sp,
+					style = TextStyle(fontFamily = FontFamily.SansSerif),
+					color = Color.Black,
+					textAlign = TextAlign.Center,
+					modifier = Modifier
+						.fillMaxWidth(),
+				)
+
+
+				TextField(
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(top = 20.dp)
+						.shadow(3.dp, RectangleShape, false),
+					colors = TextFieldDefaults.colors(
+						focusedTextColor = Black,
+						unfocusedTextColor = Black,
+						focusedContainerColor = White,
+						unfocusedContainerColor = White,
+						disabledContainerColor = White,
+					),
+					value = foodName,
+					onValueChange = { newText ->
+						foodName = newText
+					},
+					label = {
+						Text(text = "Food Name", color = Black)
+					}
+				)
+
+				DatePickerField(selectedDate = bbDate, onDateSelected = { bbDate = it.toString() })
+
+				CategoryDropDownMenu(mainViewModel, categorySelection) { selectedCategory ->
+					categorySelection = selectedCategory
+					for (category in categories) {
+						if (categorySelection == category.categoryName) {
+							categoryId = category.id
+						}
+					}
+					Log.d("Categoryselected", "$categorySelection $categoryId")
+				}
+
+				Row(
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(top = 20.dp),
+					horizontalArrangement = Arrangement.SpaceBetween
+				) {
+//					TextField(
+//						modifier = Modifier
+//							.fillMaxWidth(0.4f)
+//							.shadow(3.dp, RectangleShape, false),
+//						keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+//						trailingIcon ={Image(
+//							painter = painterResource(id = R.drawable.arrows_up_down_icon),
+//							contentDescription = "Amount",
+//							contentScale = ContentScale.Fit,
+//							modifier = Modifier
+//								.size(25.dp)
+//						)} ,
+//						colors = TextFieldDefaults.colors(
+//							focusedTextColor = Black,
+//							unfocusedTextColor = Black,
+//							focusedContainerColor = White,
+//							unfocusedContainerColor = White,
+//							disabledContainerColor = White,
+//						),
+//						value = portionAmount,
+//						onValueChange = {
+//								newText-> portionAmount = newText
+//						},
+//						label = {
+//							Text(text ="#", color = Black  )}
+//					)
+
+					PortionsDropDownMenu(
+						mainViewModel = mainViewModel,
+						selectedPortion = portionType
+					) { selectedCategory ->
+						portionType = selectedCategory
+					}
+				}
+
+				Button(
+					onClick = {
+						mainViewModel.saveEditedEntry(
+							SingleEntry(
+								foodName,
+								bbDate,
+								categoryId,
+								portionAmount,
+								portionType,
+								isChecked,
+								state.value.editSingleEntry.id
+							)
+						)
+					Log.d("SAVINGEDIT","${SingleEntry(
+							foodName,
+						bbDate,
+						categoryId,
+						portionAmount,
+						portionType,
+						isChecked,
+						state.value.editSingleEntry.id
+					)}")
+							  },
+					modifier = Modifier.padding(top = 20.dp),
+					colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
+				) {
+					Text(text = "Save", color = White)
+				}
+			}
+		}
+	}
+
+
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -834,7 +1017,7 @@ fun CategoryDropDownMenu(mainViewModel: MainViewModel, selectedCategory:String,o
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(top = 20.dp)
-					.shadow(3.dp, RectangleShape,false),
+					.shadow(3.dp, RectangleShape, false),
 				label= { Text(text = "Categories", color = Black)},
 				value = selectedCategory,
 				onValueChange = {},
@@ -885,7 +1068,7 @@ fun PortionsDropDownMenu(mainViewModel: MainViewModel,selectedPortion:String,onP
 			TextField(
 				modifier = Modifier
 					.fillMaxWidth(0.95f)
-					.shadow(3.dp, RectangleShape,false),
+					.shadow(3.dp, RectangleShape, false),
 				label= { Text(text = "Portion(s)", color = Black)},
 				value = selectedPortion,
 				onValueChange = {},
@@ -956,8 +1139,8 @@ fun DatePickerField(
 	Row(
 		modifier = Modifier
 			.fillMaxWidth()
-			.padding(top=20.dp)
-			.shadow(3.dp, RectangleShape,false),
+			.padding(top = 20.dp)
+			.shadow(3.dp, RectangleShape, false),
 		verticalAlignment = Alignment.CenterVertically,
 		horizontalArrangement = Arrangement.Center
 	)

@@ -108,6 +108,23 @@ class MainViewModel (
 		}
 	}
 
+	fun editEntry(singleEntry: SingleEntry){
+		_mainViewState.update{ it.copy(openEditDialog = true, editSingleEntry = singleEntry) }
+	}
+
+	fun saveEditedEntry(singleEntry: SingleEntry){
+		dismissEditDialog()
+		viewModelScope.launch {
+			dao.updateEntry(singleEntry)
+			getEntries()
+		}
+	}
+
+
+	fun dismissEditDialog(){
+		_mainViewState.update{ it.copy(openEditDialog = false) }
+	}
+
 	// this function calls the dao function to delete the trip that was passed to it
 	fun deleteTrip(singleEntry: SingleEntry) {
 		viewModelScope.launch() {
