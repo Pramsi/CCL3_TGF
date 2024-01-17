@@ -1,5 +1,6 @@
 package com.cc221002.ccl3_tgf
 
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -41,13 +42,28 @@ class MainActivity : ComponentActivity() {
 			}
 		}
 	)
+
+	private val PREFS_NAME = "MyPrefsFile"
+	private val CATEGORIES_INSERTED_KEY = "categories_inserted"
 	@RequiresApi(Build.VERSION_CODES.O)
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
-//		deleteDatabase("EntriesDatabase.db")
 
-//		mainViewModel.insertCategories()
+		val sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+		val categoriesInserted = sharedPreferences.getBoolean(CATEGORIES_INSERTED_KEY, false)
+
+
+		if (!categoriesInserted) {
+			mainViewModel.insertCategories()
+
+			// Mark categories as inserted
+			val editor = sharedPreferences.edit()
+			editor.putBoolean(CATEGORIES_INSERTED_KEY, true)
+			editor.apply()
+		}
+
+//		deleteDatabase("EntriesDatabase.db")
 //		mainViewModel.insertPreTrips()
 		setContent {
 			CCL3_TGFTheme {

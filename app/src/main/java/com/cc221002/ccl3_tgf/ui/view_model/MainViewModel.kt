@@ -1,7 +1,9 @@
 package com.cc221002.ccl3_tgf.ui.view_model
 
 import android.util.Log
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
@@ -25,6 +27,7 @@ class MainViewModel (
 	private val dao: EntriesDao,
 	private val categoriesDao: CategoriesDao
 ) : ViewModel() {
+
 	// in those variables the states are saved
 	private val _mainViewState = MutableStateFlow(MainViewState())
 	val mainViewState: StateFlow<MainViewState> = _mainViewState.asStateFlow()
@@ -47,6 +50,8 @@ class MainViewModel (
 
 	private var _giveEntries = MutableStateFlow<List<SingleEntry>>(emptyList())
 	val giveEntries: StateFlow<List<SingleEntry>> = _entriesForCategory.asStateFlow()
+
+
 
 	// this function updates on which screen the user currently is
 	fun selectScreen(screen: Screen){
@@ -154,20 +159,21 @@ class MainViewModel (
 
 
 	fun insertCategories(){
-		val hardcodedCategory = listOf(
-			Category("Leftovers"),
-			Category("Drinks"),
-			Category("Dairy"),
-			Category("Extras"),
-			Category("Meat"),
-			Category("Fruit"),
-			Category("Vegetable"),
+			val hardcodedCategory = listOf(
+				Category("Leftovers"),
+				Category("Drinks"),
+				Category("Dairy"),
+				Category("Extras"),
+				Category("Meat"),
+				Category("Fruit"),
+				Category("Vegetable"),
 			)
-		viewModelScope.launch{
-			for (category in hardcodedCategory)
-				categoriesDao.insertCategory(category)
+			viewModelScope.launch {
+				for (category in hardcodedCategory)
+					categoriesDao.insertCategory(category)
+			}
 		}
-	}
+
 
 //	fun insertPreTrips(){
 //        val hardcodedSamples = listOf(
