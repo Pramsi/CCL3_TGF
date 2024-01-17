@@ -58,17 +58,21 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarItem
 
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -84,6 +88,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.DarkGray
 import androidx.compose.ui.graphics.Color.Companion.White
+import androidx.compose.ui.graphics.Color.Companion.Yellow
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
@@ -112,11 +117,14 @@ import com.cc221002.ccl3_tgf.data.Category
 import com.cc221002.ccl3_tgf.data.model.SingleEntry
 import com.cc221002.ccl3_tgf.ui.theme.BackgroundBlue
 import com.cc221002.ccl3_tgf.ui.theme.BackgroundLightBlue
+import com.cc221002.ccl3_tgf.ui.theme.ExpiredRed
 import com.cc221002.ccl3_tgf.ui.theme.FridgeBlue
 import com.cc221002.ccl3_tgf.ui.theme.NavigationBlue
 import com.cc221002.ccl3_tgf.ui.theme.TransparentLightBlue
 import com.cc221002.ccl3_tgf.ui.view_model.MainViewModel
+import com.cc221002.ccl3_tgf.ui.view_model.MainViewState
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.update
 import java.io.File
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -153,6 +161,24 @@ fun MainView(
 	}
 	// defining the routes to each Screen and what happens when that route is used
 	Scaffold(
+		floatingActionButton = {
+			// Add a floating button to navigate to the AddingPopup
+			FloatingActionButton(
+				containerColor = NavigationBlue,
+				onClick = {
+					mainViewModel.openAddDialog()
+				},
+				modifier = Modifier) {
+				Image(
+					painter = painterResource(id = R.drawable.add_icon),
+					contentDescription = "Fridge",
+					contentScale = ContentScale.Fit,
+					modifier = Modifier
+						.size(35.dp)
+				)
+			}
+		},
+		floatingActionButtonPosition = FabPosition.End,
 		bottomBar = { if(showBottomBar)BottomNavigationBar(navController, state.value.selectedScreen) }
 	) {
 		NavHost(
@@ -256,6 +282,7 @@ fun SplashScreen(
 	}
 }
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AllCategories (
@@ -276,7 +303,7 @@ fun AllCategories (
 		horizontalAlignment = Alignment.CenterHorizontally,
 	) {
 
-	Header(mainViewModel,"Your Fridge")
+	Header(mainViewModel = mainViewModel, title = "Your Fridge")
 		if(state.openAddDialog){
 			AddingPopup(mainViewModel = mainViewModel)
 		}
@@ -297,8 +324,6 @@ fun AllCategories (
 				verticalArrangement = Arrangement.spacedBy(8.dp),
 				horizontalAlignment = Alignment.CenterHorizontally
 			) {
-
-
 				item {
 					val leftovers = categories.find { it.categoryName == "Leftovers" }
 
@@ -328,6 +353,7 @@ fun AllCategories (
 								modifier = Modifier
 									.fillMaxWidth()
 									.clickable {
+										mainViewModel.setCurrentCategory(it.categoryName)
 										mainViewModel.getEntriesByCategory(it.id)
 										navController.navigate(Screen.ShowCategoryEntries.route)
 										// Handle click action for Leftovers category
@@ -367,6 +393,7 @@ fun AllCategories (
 										)
 										.weight(1f)
 										.clickable {
+											mainViewModel.setCurrentCategory(it.categoryName)
 											mainViewModel.getEntriesByCategory(it.id)
 											navController.navigate(Screen.ShowCategoryEntries.route)
 											// Handle click action for Drinks category
@@ -396,6 +423,7 @@ fun AllCategories (
 										)
 										.weight(1f)
 										.clickable {
+											mainViewModel.setCurrentCategory(it.categoryName)
 											mainViewModel.getEntriesByCategory(it.id)
 											navController.navigate(Screen.ShowCategoryEntries.route)
 											// Handle click action for Dairy category
@@ -432,6 +460,7 @@ fun AllCategories (
 								)
 								.fillMaxWidth()
 								.clickable {
+									mainViewModel.setCurrentCategory(it.categoryName)
 									mainViewModel.getEntriesByCategory(it.id)
 									navController.navigate(Screen.ShowCategoryEntries.route)
 									// Handle click action for Extras category
@@ -463,6 +492,7 @@ fun AllCategories (
 								)
 								.fillMaxWidth()
 								.clickable {
+									mainViewModel.setCurrentCategory(it.categoryName)
 									mainViewModel.getEntriesByCategory(it.id)
 									navController.navigate(Screen.ShowCategoryEntries.route)
 									// Handle click action for Meat category
@@ -501,6 +531,7 @@ fun AllCategories (
 									)
 									.weight(1f)
 									.clickable {
+										mainViewModel.setCurrentCategory(it.categoryName)
 										mainViewModel.getEntriesByCategory(it.id)
 										navController.navigate(Screen.ShowCategoryEntries.route)
 										// Handle click action for Fruit category
@@ -530,6 +561,7 @@ fun AllCategories (
 									)
 									.weight(1f)
 									.clickable {
+										mainViewModel.setCurrentCategory(it.categoryName)
 										mainViewModel.getEntriesByCategory(it.id)
 										navController.navigate(Screen.ShowCategoryEntries.route)
 										// Handle click action for Vegetable category
@@ -566,23 +598,35 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 	Log.d("CategoryEntries", entries.value.toString())
 	Log.d("CategoryEntries", categories.toString())
 
-	Column {
+	val categoryName = mainViewModel.currentCategory
 
-	Header(mainViewModel,"category name")
-	LazyColumn(
-		verticalArrangement = Arrangement.Top,
-		horizontalAlignment = Alignment.CenterHorizontally,
-		modifier = Modifier
-			.fillMaxSize()
-			.background(FridgeBlue),
-	) {
-		items(entries.value) { entry ->
-			ItemUI(mainViewModel,entry = entry)
+		Column(
+			modifier = Modifier.background(White)
+		) {
+			Header(mainViewModel, "$categoryName")
+			Box(
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 45.dp)
+					.clip(RoundedCornerShape(16.dp))
+					.background(FridgeBlue),
+				contentAlignment = Alignment.Center
+			) {
+				LazyColumn(
+				verticalArrangement = Arrangement.Top,
+				horizontalAlignment = Alignment.CenterHorizontally,
+				modifier = Modifier
+					.fillMaxSize()
+//			.background(FridgeBlue),
+			) {
+				items(entries.value.sortedBy { it.bbDate }) { entry ->
+					ItemUI(mainViewModel, entry = entry)
+				}
+			}
+			if (state.value.openAddDialog) {
+				AddingPopup(mainViewModel = mainViewModel)
+			}
 		}
-	}
-	if(state.value.openAddDialog){
-		AddingPopup(mainViewModel = mainViewModel)
-	}
 	}
 }
 
@@ -603,28 +647,22 @@ fun Header(mainViewModel: MainViewModel,title:String){
 				fontWeight = FontWeight.Bold,
 				color = Color.White
 			)
-			Spacer(modifier = Modifier.padding(50.dp,0.dp))
-			Box(
-				modifier = Modifier
-					.size(35.dp)
-					.clickable { mainViewModel.openAddDialog() }
-			){
-				Image(
-					painter = painterResource(id = R.drawable.add_icon),
-					contentDescription = "Fridge",
-					contentScale = ContentScale.Fit,
-					modifier = Modifier
-						.size(35.dp)
-				)
-			}
 		}
 	}
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 	var checkBoxState by remember { mutableStateOf(false) }
+	val state = mainViewModel.mainViewState.collectAsState()
 
+	val currentDate = LocalDate.now()
+	val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
+
+	if(state.value.openEditDialog){
+		EditPopUp(mainViewModel = mainViewModel)
+	}
 		Row(
 			modifier = Modifier
 //				.shadow(
@@ -637,7 +675,14 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 				.fillMaxWidth()
 				.padding(10.dp)
 				.clip(RoundedCornerShape(10.dp))
-				.background(BackgroundBlue),
+				.background(
+					if (storedDate != null && storedDate.isAfter(currentDate)) {
+						BackgroundBlue
+					} else {
+						ExpiredRed
+					}
+				)
+				.clickable { mainViewModel.editEntry(entry) },
 			horizontalArrangement = Arrangement.Start,
 			verticalAlignment = Alignment.CenterVertically
 		) {
@@ -664,7 +709,7 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					text = "${entry.foodName}",
 					fontWeight = FontWeight.Bold,
 					textAlign = TextAlign.Start,
-					fontSize = 17.sp,
+					fontSize = 20.sp,
 					style = TextStyle(fontFamily = FontFamily.Monospace),
 					color = Color.White,
 					modifier = Modifier
@@ -678,7 +723,7 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					style = TextStyle(fontFamily = FontFamily.Monospace),
 					color = Color.White,
 					modifier = Modifier
-						.padding(bottom = 5.dp)
+						.padding(bottom = 7.dp)
 						.width(250.dp)
 				)
 				Text(
@@ -686,9 +731,13 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					textAlign = TextAlign.Start,
 					fontSize = 12.sp,
 					style = TextStyle(fontFamily = FontFamily.Monospace),
-					color = Color.White,
+					color = if (storedDate != null && storedDate.isAfter(currentDate)) {
+						White
+					} else {
+						Yellow
+					},
 					modifier = Modifier
-						.padding(bottom = 5.dp)
+						.padding(bottom = 7.dp)
 						.width(250.dp)
 				)
 			}
@@ -703,11 +752,13 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					contentDescription = "Fridge",
 					contentScale = ContentScale.Fit,
 					modifier = Modifier
-						.size(35.dp)
+						.size(35.dp),
+					colorFilter = ColorFilter.tint(White)
 				)
 			}
 		}
 	}
+
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -801,7 +852,7 @@ fun AddingPopup(
 					keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
 					trailingIcon ={Image(
 						painter = painterResource(id = R.drawable.arrows_up_down_icon),
-						contentDescription = "Calendar",
+						contentDescription = "Amount",
 						contentScale = ContentScale.Fit,
 						modifier = Modifier
 							.size(25.dp)
@@ -829,7 +880,7 @@ fun AddingPopup(
 
 			Button(
 				onClick = {
-					mainViewModel.saveButton(SingleEntry(foodName.text, bbDate, categoryId, portionAmount.text.toFloat(), portionSelection, isChecked))
+					mainViewModel.saveButton(SingleEntry(foodName.text, bbDate, categoryId, portionAmount.text, portionSelection, isChecked))
 						  },
 				modifier = Modifier.padding(top = 20.dp),
 				colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
@@ -839,6 +890,185 @@ fun AddingPopup(
 		}
 	}
 }
+
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditPopUp(
+	mainViewModel: MainViewModel
+){
+	val state = mainViewModel.mainViewState.collectAsState()
+
+	var foodName by rememberSaveable {
+		mutableStateOf(state.value.editSingleEntry.foodName)
+	}
+	var bbDate by rememberSaveable {
+		mutableStateOf(state.value.editSingleEntry.bbDate)
+	}
+	var categoryId by rememberSaveable {
+		mutableIntStateOf(state.value.editSingleEntry.categoryId)
+	}
+	var portionAmount by rememberSaveable {
+		mutableStateOf(state.value.editSingleEntry.portionAmount)
+	}
+	var portionType by rememberSaveable {
+		mutableStateOf(state.value.editSingleEntry.portionType)
+	}
+	var isChecked by rememberSaveable {
+		mutableIntStateOf(state.value.editSingleEntry.isChecked)
+	}
+
+	val categories by mainViewModel.categories.collectAsState()
+
+	var categorySelection by remember { mutableStateOf("") }
+
+	for (category in categories) {
+		if (categoryId == category.id) {
+			categorySelection = category.categoryName
+			Log.d("IDTOCATEGORY", categorySelection)
+		}
+	}
+
+
+		AlertDialog(
+			onDismissRequest = {
+				mainViewModel.dismissEditDialog()
+			},
+			modifier = Modifier
+				.clip(RoundedCornerShape(20.dp))
+				.background(White)
+				.padding(10.dp)
+		) {
+			Column(
+				modifier = Modifier
+					.fillMaxWidth(),
+				horizontalAlignment = Alignment.CenterHorizontally
+
+			) {
+				Text(
+					text = "EDIT",
+					lineHeight = 45.sp,
+					fontWeight = FontWeight.Bold,
+					fontSize = 40.sp,
+					style = TextStyle(fontFamily = FontFamily.SansSerif),
+					color = Color.Black,
+					textAlign = TextAlign.Center,
+					modifier = Modifier
+						.fillMaxWidth(),
+				)
+
+
+				foodName?.let {
+					TextField(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(top = 20.dp)
+							.shadow(3.dp, RectangleShape, false),
+						colors = TextFieldDefaults.colors(
+							focusedTextColor = Black,
+							unfocusedTextColor = Black,
+							focusedContainerColor = White,
+							unfocusedContainerColor = White,
+							disabledContainerColor = White,
+						),
+						value = it,
+						onValueChange = { newText ->
+							foodName = newText
+						},
+						label = {
+							Text(text = "Food Name", color = Black)
+						}
+					)
+				}
+
+				bbDate?.let { DatePickerField(selectedDate = it, onDateSelected = { bbDate = it.toString() }) }
+
+				CategoryDropDownMenu(mainViewModel, categorySelection) { selectedCategory ->
+					categorySelection = selectedCategory
+					for (category in categories) {
+						if (categorySelection == category.categoryName) {
+							categoryId = category.id
+						}
+					}
+					Log.d("Categoryselected", "$categorySelection $categoryId")
+				}
+
+				Row(
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(top = 20.dp),
+					horizontalArrangement = Arrangement.SpaceBetween
+				) {
+					TextField(
+						value = portionAmount.toString(),
+						modifier = Modifier
+							.fillMaxWidth(0.4f)
+							.shadow(3.dp, RectangleShape, false),
+						keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+						trailingIcon ={Image(
+							painter = painterResource(id = R.drawable.arrows_up_down_icon),
+							contentDescription = "Amount",
+							contentScale = ContentScale.Fit,
+							modifier = Modifier
+								.size(25.dp)
+						) },
+						colors = TextFieldDefaults.colors(
+							focusedTextColor = Black,
+							unfocusedTextColor = Black,
+							focusedContainerColor = White,
+							unfocusedContainerColor = White,
+							disabledContainerColor = White,
+						),
+
+						onValueChange = {
+								newText:String-> portionAmount = newText
+						},
+						label ={Text(text ="#", color = Black  )}
+
+					)
+
+					portionType?.let {
+						PortionsDropDownMenu(
+							mainViewModel = mainViewModel,
+							selectedPortion = it
+						) { selectedCategory ->
+							portionType = selectedCategory
+						}
+					}
+				}
+
+				Button(
+					onClick = {
+						mainViewModel.saveEditedEntry(
+							SingleEntry(
+								foodName,
+								bbDate,
+								categoryId,
+								portionAmount,
+								portionType,
+								isChecked,
+								state.value.editSingleEntry.id
+							)
+						)
+					Log.d("SAVINGEDIT","${SingleEntry(
+							foodName,
+						bbDate,
+						categoryId,
+						portionAmount,
+						portionType,
+						isChecked,
+						state.value.editSingleEntry.id
+					)}")
+							  },
+					modifier = Modifier.padding(top = 20.dp),
+					colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
+				) {
+					Text(text = "Save", color = White)
+				}
+			}
+		}
+	}
+
 
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)

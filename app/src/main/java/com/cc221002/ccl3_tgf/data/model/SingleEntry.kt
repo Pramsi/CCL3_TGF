@@ -15,11 +15,11 @@ import com.cc221002.ccl3_tgf.data.Category
 	)]
 )
 data class SingleEntry(
-	val foodName: String,
-	val bbDate: String,
+	val foodName: String?,
+	val bbDate: String?,
 	val categoryId: Int, // Reference to Category
-	val portionAmount: Float,
-	val portionType: String,
+	val portionAmount: String?,
+	val portionType: String?,
 	val isChecked: Int,
 	@PrimaryKey(autoGenerate = true) val id: Int = 0,
 
