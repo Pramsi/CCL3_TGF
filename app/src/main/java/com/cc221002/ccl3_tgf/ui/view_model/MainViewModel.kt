@@ -163,9 +163,9 @@ class MainViewModel (
 			Category("Extras"),
 			Category("Meat"),
 			Category("Fruit"),
-			Category("Vegetable"),
-		)
-		viewModelScope.launch {
+			Category("Vegetables"),
+			)
+		viewModelScope.launch{
 			for (category in hardcodedCategory)
 				categoriesDao.insertCategory(category)
 		}
