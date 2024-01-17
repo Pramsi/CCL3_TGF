@@ -519,7 +519,7 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 			.fillMaxSize()
 			.background(FridgeBlue),
 	) {
-		items(entries.value) { entry ->
+		items(entries.value.sortedBy { it.bbDate }) { entry ->
 			ItemUI(mainViewModel,entry = entry)
 		}
 	}
@@ -689,9 +689,9 @@ fun Modifier.shadow(
 		}
 	}
 )
-
-
 // https://github.com/Debdutta-Panda/CustomShadow/blob/master/app/src/main/java/com/debduttapanda/customshadow/MainActivity.kt
+
+
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
