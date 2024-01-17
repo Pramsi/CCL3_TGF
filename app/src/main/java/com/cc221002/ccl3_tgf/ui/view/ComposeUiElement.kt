@@ -117,7 +117,9 @@ import com.cc221002.ccl3_tgf.ui.theme.ExpiredRed
 import com.cc221002.ccl3_tgf.ui.theme.FridgeBlue
 import com.cc221002.ccl3_tgf.ui.theme.NavigationBlue
 import com.cc221002.ccl3_tgf.ui.view_model.MainViewModel
+import com.cc221002.ccl3_tgf.ui.view_model.MainViewState
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.update
 import java.io.File
 import java.time.LocalDate
 import java.util.Calendar
@@ -318,8 +320,6 @@ fun AllCategories (
 					verticalArrangement = Arrangement.spacedBy(8.dp),
 					horizontalAlignment = Alignment.CenterHorizontally
 				) {
-
-
 					item {
 						val leftovers = categories.find { it.categoryName == "Leftovers" }
 
@@ -618,11 +618,13 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 				.fillMaxWidth()
 				.padding(10.dp)
 				.clip(RoundedCornerShape(10.dp))
-				.background(if (storedDate != null && storedDate.isAfter(currentDate)) {
-					BackgroundBlue
-				} else {
-					ExpiredRed
-				})
+				.background(
+					if (storedDate != null && storedDate.isAfter(currentDate)) {
+						BackgroundBlue
+					} else {
+						ExpiredRed
+					}
+				)
 				.clickable { mainViewModel.editEntry(entry) }
 				,
 			horizontalArrangement = Arrangement.Start,
