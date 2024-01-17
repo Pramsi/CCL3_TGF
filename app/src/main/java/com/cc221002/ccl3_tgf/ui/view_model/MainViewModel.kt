@@ -136,7 +136,7 @@ class MainViewModel (
 			Category("Extras"),
 			Category("Meat"),
 			Category("Fruit"),
-			Category("Vegetable"),
+			Category("Vegetables"),
 			)
 		viewModelScope.launch{
 			for (category in hardcodedCategory)

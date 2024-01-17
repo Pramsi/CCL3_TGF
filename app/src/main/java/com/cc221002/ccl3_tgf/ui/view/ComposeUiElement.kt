@@ -1,7 +1,11 @@
 package com.cc221002.ccl3_tgf.ui.view
 
+import android.annotation.SuppressLint
 import android.graphics.BlurMaskFilter
 import android.app.DatePickerDialog
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.Rect
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -74,6 +78,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
@@ -109,11 +114,14 @@ import com.cc221002.ccl3_tgf.ui.theme.BackgroundBlue
 import com.cc221002.ccl3_tgf.ui.theme.BackgroundLightBlue
 import com.cc221002.ccl3_tgf.ui.theme.FridgeBlue
 import com.cc221002.ccl3_tgf.ui.theme.NavigationBlue
+import com.cc221002.ccl3_tgf.ui.theme.TransparentLightBlue
 import com.cc221002.ccl3_tgf.ui.view_model.MainViewModel
 import kotlinx.coroutines.delay
 import java.io.File
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.util.Calendar
+import java.util.Date
 import java.util.concurrent.ExecutorService
 
 
@@ -121,7 +129,7 @@ import java.util.concurrent.ExecutorService
 sealed class Screen(val route: String) {
 	object SplashScreen: Screen("splashScreen")
 	object ShowCategories: Screen("categories")
-	object News: Screen("news")
+	object Overview: Screen("overview")
 	object ShowCategoryEntries: Screen("showCategoryEntries")
 }
 
@@ -155,21 +163,21 @@ fun MainView(
 		) {
 			composable(Screen.SplashScreen.route) {
 				mainViewModel.selectScreen(Screen.SplashScreen)
-				SplashScreen(
-					navController,
-				)
+				SplashScreen(navController)
 			}
 			composable(Screen.ShowCategories.route) {
 				mainViewModel.selectScreen(Screen.ShowCategories)
 				mainViewModel.getAllCategories()
-				AllCategories(
-					mainViewModel,
-					navController
-				)
+				AllCategories(mainViewModel, navController)
 			}
 			composable(Screen.ShowCategoryEntries.route) {
 				mainViewModel.selectScreen(Screen.ShowCategoryEntries)
 				categoryEntries(navController, mainViewModel)
+			}
+			composable(Screen.Overview.route) {
+				mainViewModel.selectScreen(Screen.Overview)
+				mainViewModel.getEntries()
+				OverviewScreen(mainViewModel, navController)
 			}
 		}
 	}
@@ -185,11 +193,11 @@ fun BottomNavigationBar(navController: NavHostController, selectedScreen: Screen
 		) {
 
 			NavigationBarItem(
-				selected = (selectedScreen == Screen.News),
-				onClick = { navController.navigate(Screen.News.route) },
+				selected = (selectedScreen == Screen.Overview),
+				onClick = { navController.navigate(Screen.Overview.route) },
 				icon = { Image(
 					painter = painterResource(id = R.drawable.notification_icon),
-					contentDescription = "News",
+					contentDescription = "Overview",
 					contentScale = ContentScale.Fit,
 					modifier = Modifier
 						.size(35.dp)
@@ -298,16 +306,20 @@ fun AllCategories (
 						Box(
 							modifier = Modifier
 								.shadow(
-									color = Color(0x51000000),
+									color = Color(0x950B1418),
 									borderRadius = 6.dp,
-									blurRadius = 6.dp,
+									blurRadius = 4.dp,
 									offsetY = 4.dp,
-									spread = 2f.dp
+									spread = 1f.dp
 								)
 								.fillMaxWidth()
 								.clip(RoundedCornerShape(6.dp))
 								.background(
-									if (mainViewModel.hasEntriesInCategory(leftovers.id)) BackgroundBlue else BackgroundLightBlue,
+									if (mainViewModel.hasEntriesInCategory(leftovers.id)) {
+										BackgroundBlue
+									} else {
+										BackgroundLightBlue
+									},
 								),
 							contentAlignment = Alignment.Center
 						) {
@@ -346,6 +358,13 @@ fun AllCategories (
 								Text(
 									text = it.categoryName,
 									modifier = Modifier
+										.shadow(
+											color = Color(0x950B1418),
+											borderRadius = 6.dp,
+											blurRadius = 4.dp,
+											offsetY = 4.dp,
+											spread = 1f.dp
+										)
 										.weight(1f)
 										.clickable {
 											mainViewModel.getEntriesByCategory(it.id)
@@ -368,6 +387,13 @@ fun AllCategories (
 								Text(
 									text = it.categoryName,
 									modifier = Modifier
+										.shadow(
+											color = Color(0x950B1418),
+											borderRadius = 6.dp,
+											blurRadius = 4.dp,
+											offsetY = 4.dp,
+											spread = 1f.dp
+										)
 										.weight(1f)
 										.clickable {
 											mainViewModel.getEntriesByCategory(it.id)
@@ -397,6 +423,13 @@ fun AllCategories (
 						Text(
 							text = it.categoryName,
 							modifier = Modifier
+								.shadow(
+									color = Color(0x950B1418),
+									borderRadius = 6.dp,
+									blurRadius = 4.dp,
+									offsetY = 4.dp,
+									spread = 1f.dp
+								)
 								.fillMaxWidth()
 								.clickable {
 									mainViewModel.getEntriesByCategory(it.id)
@@ -421,6 +454,13 @@ fun AllCategories (
 						Text(
 							text = it.categoryName,
 							modifier = Modifier
+								.shadow(
+									color = Color(0x950B1418),
+									borderRadius = 6.dp,
+									blurRadius = 4.dp,
+									offsetY = 4.dp,
+									spread = 1f.dp
+								)
 								.fillMaxWidth()
 								.clickable {
 									mainViewModel.getEntriesByCategory(it.id)
@@ -446,12 +486,19 @@ fun AllCategories (
 						horizontalArrangement = Arrangement.spacedBy(8.dp)
 					) {
 						val fruit = categories.find { it.categoryName == "Fruit" }
-						val vegetable = categories.find { it.categoryName == "Vegetable" }
+						val vegetables = categories.find { it.categoryName == "Vegetables" }
 
 						fruit?.let {
 							Text(
 								text = it.categoryName,
 								modifier = Modifier
+									.shadow(
+										color = Color(0x950B1418),
+										borderRadius = 6.dp,
+										blurRadius = 4.dp,
+										offsetY = 4.dp,
+										spread = 1f.dp
+									)
 									.weight(1f)
 									.clickable {
 										mainViewModel.getEntriesByCategory(it.id)
@@ -470,10 +517,17 @@ fun AllCategories (
 							)
 						}
 
-						vegetable?.let {
+						vegetables?.let {
 							Text(
 								text = it.categoryName,
 								modifier = Modifier
+									.shadow(
+										color = Color(0x950B1418),
+										borderRadius = 6.dp,
+										blurRadius = 4.dp,
+										offsetY = 4.dp,
+										spread = 1f.dp
+									)
 									.weight(1f)
 									.clickable {
 										mainViewModel.getEntriesByCategory(it.id)
@@ -482,9 +536,14 @@ fun AllCategories (
 									}
 									.clip(RoundedCornerShape(6.dp))
 									.background(
-										if (mainViewModel.hasEntriesInCategory(vegetable.id)) BackgroundBlue else BackgroundLightBlue,
+										if (mainViewModel.hasEntriesInCategory(vegetables.id)) BackgroundBlue else BackgroundLightBlue,
 									)
-									.padding(30.dp),
+									.padding(
+										start = 28.dp,
+										end = 28.dp,
+										top = 30.dp,
+										bottom = 30.dp
+									),
 								textAlign = TextAlign.Center,
 								fontSize = 20.sp,
 								fontWeight = FontWeight.Bold,
@@ -568,11 +627,17 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 
 		Row(
 			modifier = Modifier
+//				.shadow(
+//					color = Color(0x950B1418),
+//					borderRadius = 4.dp,
+//					blurRadius = 2.dp,
+//					offsetY = 4.dp,
+//					spread = 1.dp
+//				)
 				.fillMaxWidth()
 				.padding(10.dp)
 				.clip(RoundedCornerShape(10.dp))
-				.background(BackgroundBlue)
-				,
+				.background(BackgroundBlue),
 			horizontalArrangement = Arrangement.Start,
 			verticalAlignment = Alignment.CenterVertically
 		) {
@@ -644,46 +709,7 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 		}
 	}
 
-fun Modifier.shadow(
-	color: Color = Color.Black,
-	borderRadius: Dp = 0.dp,
-	blurRadius: Dp = 0.dp,
-	offsetY: Dp = 0.dp,
-	offsetX: Dp = 0.dp,
-	spread: Dp = 0f.dp,
-	modifier: Modifier = Modifier
-) = this.then(
-	modifier.drawBehind {
-		this.drawIntoCanvas {
-			val paint = Paint()
-			val frameworkPaint = paint.asFrameworkPaint()
-			val spreadPixel = spread.toPx()
-			val leftPixel = (0f - spreadPixel) + offsetX.toPx()
-			val topPixel = (0f - spreadPixel) + offsetY.toPx()
-			val rightPixel = (this.size.width + spreadPixel)
-			val bottomPixel = (this.size.height + spreadPixel)
 
-			if (blurRadius != 0.dp) {
-				frameworkPaint.maskFilter =
-					(BlurMaskFilter(blurRadius.toPx(), BlurMaskFilter.Blur.NORMAL))
-			}
-
-			frameworkPaint.color = color.toArgb()
-			it.drawRoundRect(
-				left = leftPixel,
-				top = topPixel,
-				right = rightPixel,
-				bottom = bottomPixel,
-				radiusX = borderRadius.toPx(),
-				radiusY = borderRadius.toPx(),
-				paint
-			)
-		}
-	}
-)
-
-
-// https://github.com/Debdutta-Panda/CustomShadow/blob/master/app/src/main/java/com/debduttapanda/customshadow/MainActivity.kt
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -708,7 +734,7 @@ fun AddingPopup(
 		modifier = Modifier
 			.clip(RoundedCornerShape(20.dp))
 			.background(White)
-			.padding(10.dp)
+			.padding(20.dp)
 	) {
 		Column(
 			modifier = Modifier
@@ -716,22 +742,25 @@ fun AddingPopup(
 			horizontalAlignment = Alignment.CenterHorizontally
 
 		) {
-			Text(text = "ADD",
+			Text(text = "ADD ITEM",
 				lineHeight = 45.sp,
 				fontWeight = FontWeight.Bold,
-				fontSize = 40.sp,
+				fontSize = 25.sp,
+				letterSpacing = 2.sp,
 				style = TextStyle(fontFamily = FontFamily.SansSerif),
 				color = Color.Black,
 				textAlign = TextAlign.Center,
 				modifier = Modifier
-					.fillMaxWidth(),)
+					.padding(10.dp)
+					.fillMaxWidth(),
+				)
 
 
 			TextField(
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(top = 20.dp)
-					.shadow(3.dp, RectangleShape,false),
+					.shadow(3.dp, RectangleShape, false),
 				colors = TextFieldDefaults.colors(
 					focusedTextColor = Black,
 					unfocusedTextColor = Black,
@@ -744,7 +773,7 @@ fun AddingPopup(
 					newText-> foodName = newText
 				},
 				label = {
-					Text(text ="Food Name", color = Black )}
+					Text(text ="Food Name", color = Black)}
 			)
 
 			DatePickerField(selectedDate = bbDate , onDateSelected = {bbDate = it.toString()})
@@ -768,7 +797,7 @@ fun AddingPopup(
 				TextField(
 					modifier = Modifier
 						.fillMaxWidth(0.4f)
-						.shadow(3.dp, RectangleShape,false),
+						.shadow(3.dp, RectangleShape, false),
 					keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
 					trailingIcon ={Image(
 						painter = painterResource(id = R.drawable.arrows_up_down_icon),
@@ -834,7 +863,7 @@ fun CategoryDropDownMenu(mainViewModel: MainViewModel, selectedCategory:String,o
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(top = 20.dp)
-					.shadow(3.dp, RectangleShape,false),
+					.shadow(3.dp, RectangleShape, false),
 				label= { Text(text = "Categories", color = Black)},
 				value = selectedCategory,
 				onValueChange = {},
@@ -885,7 +914,7 @@ fun PortionsDropDownMenu(mainViewModel: MainViewModel,selectedPortion:String,onP
 			TextField(
 				modifier = Modifier
 					.fillMaxWidth(0.95f)
-					.shadow(3.dp, RectangleShape,false),
+					.shadow(3.dp, RectangleShape, false),
 				label= { Text(text = "Portion(s)", color = Black)},
 				value = selectedPortion,
 				onValueChange = {},
@@ -956,8 +985,8 @@ fun DatePickerField(
 	Row(
 		modifier = Modifier
 			.fillMaxWidth()
-			.padding(top=20.dp)
-			.shadow(3.dp, RectangleShape,false),
+			.padding(top = 20.dp)
+			.shadow(3.dp, RectangleShape, false),
 		verticalAlignment = Alignment.CenterVertically,
 		horizontalArrangement = Arrangement.Center
 	)
@@ -998,3 +1027,298 @@ fun DatePickerField(
 		)
 	}
 }
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+@SuppressLint("StateFlowValueCalledInComposition")
+@Composable
+fun OverviewScreen(
+	mainViewModel: MainViewModel,
+	navController: NavHostController
+) {
+	val state by mainViewModel.mainViewState.collectAsState()
+	mainViewModel.getEntries()
+	val allEntries by mainViewModel.entries.collectAsState()
+
+
+	Column(
+		modifier = Modifier
+			.background(White)
+			.fillMaxSize(),
+		verticalArrangement = Arrangement.SpaceEvenly,
+		horizontalAlignment = Alignment.CenterHorizontally,
+	) {
+
+		Header(mainViewModel, "Overview")
+
+		// Alert box for overdue items
+		Box(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(25.dp),
+		) {
+
+
+//			val expireTodayEntries = mainViewModel.entriesForCategory.value
+//				.filter { it.bbDate == getCurrentDate() }
+//
+//			val overdueEntries = mainViewModel.entriesForCategory.value
+//				.filter { it.bbDate < getCurrentDate() }
+
+//			Column(
+//				modifier = Modifier
+//					.fillMaxSize()
+//					.clip(RoundedCornerShape(10.dp))
+//					.background(BackgroundBlue)
+//					.padding(15.dp),
+//			) {
+//				if (overdueEntries.isNotEmpty() || expireTodayEntries.isNotEmpty()) {
+//					Text(
+//						text = "Watch out!",
+//						fontWeight = FontWeight.Bold,
+//						fontSize = 25.sp,
+//						style = TextStyle(fontFamily = FontFamily.SansSerif),
+//						color = Color.White,
+//						textAlign = TextAlign.Center,
+//						modifier = Modifier
+//							.fillMaxWidth()
+//							.padding(10.dp),
+//					)
+//					Text(
+//						text = "There are items in your fridge that need to be taken care of!",
+//						color = Color.White,
+//						modifier = Modifier
+//							.fillMaxWidth()
+//							.padding(bottom = 16.dp),
+//						fontSize = 16.sp
+//					)
+//
+//					if (overdueEntries.isNotEmpty()) {
+//						Text(
+//							text = "OVERDUE:",
+//							modifier = Modifier
+//								.fillMaxWidth()
+//								.padding(bottom = 8.dp),
+//							fontWeight = FontWeight.Bold,
+//							fontSize = 20.sp,
+//							color = Color.White
+//						)
+//						overdueEntries.forEach { entry ->
+//							ItemCard(entry, true)
+//						}
+//					}
+//					if (expireTodayEntries.isNotEmpty()) {
+//						Text(
+//							text = "Expires today",
+//							modifier = Modifier
+//								.padding(8.dp),
+//							fontSize = 20.sp,
+//							fontWeight = FontWeight.Bold,
+//							color = Color.White
+//						)
+//						expireTodayEntries.forEach { entry ->
+//							ItemCard(entry, false)
+//						}
+//					}
+//				} else {
+//					Text(
+//						text = "Great job!",
+//						fontWeight = FontWeight.Bold,
+//						fontSize = 25.sp,
+//						style = TextStyle(fontFamily = FontFamily.SansSerif),
+//						color = Color.White,
+//						textAlign = TextAlign.Center,
+//						modifier = Modifier
+//							.fillMaxWidth()
+//							.padding(10.dp),
+//					)
+//					Text(
+//						text = "Everything in your fridge seems fine for today.",
+//						color = Color.White,
+//						modifier = Modifier
+//							.fillMaxWidth()
+//							.padding(bottom = 16.dp),
+//						fontSize = 16.sp
+//					)
+//				}
+//			}
+
+			Column(
+				modifier = Modifier
+					.fillMaxSize()
+					.clip(RoundedCornerShape(10.dp))
+					.background(BackgroundBlue)
+					.padding(15.dp),
+			) {
+				LazyColumn(
+					modifier = Modifier
+						.fillMaxSize()
+						.padding(15.dp),
+				) {
+					items(
+						allEntries
+					) { entry ->
+						val currentDate = LocalDate.now()
+						val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
+						if (storedDate != null && storedDate.isBefore(currentDate)) {
+							ItemUI(mainViewModel, entry = entry)
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+// items in list of overdue or expiring-today items in alert box in Overview
+@Composable
+fun ItemCard(entry: SingleEntry, isOverdue: Boolean) {
+
+	val bgColor = if (isOverdue) Color.Red else Color.Blue
+
+	Box(
+		modifier = Modifier
+			.fillMaxWidth()
+			.background(bgColor)
+			.padding(12.dp)
+			.clip(RoundedCornerShape(8.dp)),
+		contentAlignment = Alignment.CenterStart
+	) {
+		Column (
+			modifier = Modifier.padding(16.dp)
+		) {
+			Text(
+				text = entry.foodName,
+				fontWeight = FontWeight.Bold,
+				fontSize = 16.sp,
+				color = Color.White
+			)
+			Text(
+				text = "${entry.portionAmount} ${entry.portionType}",
+				fontSize = 14.sp,
+				color = Color.White
+			)
+			Text(
+				text = "BB: ${entry.bbDate}",
+				fontSize = 14.sp,
+				color = Color.White
+			)
+		}
+	}
+}
+
+
+
+
+
+
+
+			// custom drop shadow function
+// https://github.com/Debdutta-Panda/CustomShadow/blob/master/app/src/main/java/com/debduttapanda/customshadow/MainActivity.kt
+fun Modifier.shadow(
+	color: Color = Color.Black,
+	borderRadius: Dp = 0.dp,
+	blurRadius: Dp = 0.dp,
+	offsetY: Dp = 0.dp,
+	offsetX: Dp = 0.dp,
+	spread: Dp = 0f.dp,
+	modifier: Modifier = Modifier
+) = this.then(
+	modifier.drawBehind {
+		this.drawIntoCanvas {
+			val paint = Paint()
+			val frameworkPaint = paint.asFrameworkPaint()
+			val spreadPixel = spread.toPx()
+			val leftPixel = (0f - spreadPixel) + offsetX.toPx()
+			val topPixel = (0f - spreadPixel) + offsetY.toPx()
+			val rightPixel = (this.size.width + spreadPixel)
+			val bottomPixel = (this.size.height + spreadPixel)
+
+			if (blurRadius != 0.dp) {
+				frameworkPaint.maskFilter =
+					(BlurMaskFilter(blurRadius.toPx(), BlurMaskFilter.Blur.NORMAL))
+			}
+
+			frameworkPaint.color = color.toArgb()
+			it.drawRoundRect(
+				left = leftPixel,
+				top = topPixel,
+				right = rightPixel,
+				bottom = bottomPixel,
+				radiusX = borderRadius.toPx(),
+				radiusY = borderRadius.toPx(),
+				paint
+			)
+		}
+	}
+)
+
+// custom inner box shadow
+// https://stackoverflow.com/questions/71054138/jetpack-compose-inner-shadow
+//	fun Modifier.innerShadow(
+//	color: Color = Color.Black,
+//	cornersRadius: Dp = 0.dp,
+//	spread: Dp = 0.dp,
+//	blur: Dp = 0.dp,
+//	offsetY: Dp = 0.dp,
+//	offsetX: Dp = 0.dp
+//	) = drawWithContent {
+//
+//		drawContent()
+//
+//		val rect = Rect(Offset.Zero, size)
+//		val paint = Paint()
+//
+//		drawIntoCanvas {
+//
+//			paint.color = color
+//			paint.isAntiAlias = true
+//			it.saveLayer(rect, paint)
+//			it.drawRoundRect(
+//				left = rect.left,
+//				top = rect.top,
+//				right = rect.right,
+//				bottom = rect.bottom,
+//				cornersRadius.toPx(),
+//				cornersRadius.toPx(),
+//				paint
+//			)
+//			val frameworkPaint = paint.asFrameworkPaint()
+//			frameworkPaint.xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT)
+//			if (blur.toPx() > 0) {
+//				frameworkPaint.maskFilter = BlurMaskFilter(blur.toPx(), BlurMaskFilter.Blur.NORMAL)
+//			}
+//			val left = if (offsetX > 0.dp) {
+//				rect.left + offsetX.toPx()
+//			} else {
+//				rect.left
+//			}
+//			val top = if (offsetY > 0.dp) {
+//				rect.top + offsetY.toPx()
+//			} else {
+//				rect.top
+//			}
+//			val right = if (offsetX < 0.dp) {
+//				rect.right + offsetX.toPx()
+//			} else {
+//				rect.right
+//			}
+//			val bottom = if (offsetY < 0.dp) {
+//				rect.bottom + offsetY.toPx()
+//			} else {
+//				rect.bottom
+//			}
+//			paint.color = Color.Black
+//			it.drawRoundRect(
+//				left = left + spread.toPx() / 2,
+//				top = top + spread.toPx() / 2,
+//				right = right - spread.toPx() / 2,
+//				bottom = bottom - spread.toPx() / 2,
+//				cornersRadius.toPx(),
+//				cornersRadius.toPx(),
+//				paint
+//			)
+//			frameworkPaint.xfermode = null
+//			frameworkPaint.maskFilter = null
+//		}
+//	}
