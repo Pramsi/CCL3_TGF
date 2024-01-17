@@ -137,6 +137,14 @@ class MainViewModel (
 		_mainViewState.update{ it.copy(openEditDialog = false) }
 	}
 
+	fun openAskAmountDialog(){
+		_mainViewState.update{ it.copy(openAskAmountDialog = true)}
+	}
+
+	fun dismissAskAmountDialog(){
+		_mainViewState.update{ it.copy(openAskAmountDialog = false)}
+	}
+
 	// this function calls the dao function to delete the trip that was passed to it
 	fun deleteTrip(singleEntry: SingleEntry) {
 		viewModelScope.launch() {

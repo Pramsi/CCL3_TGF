@@ -606,10 +606,9 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 	val currentDate = LocalDate.now()
 	val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
 
-
-
-
-
+	if (state.value.openAskAmountDialog) {
+		AskAmountModal(mainViewModel = mainViewModel,entry = entry, checkBoxState )
+	}
 	if(state.value.openEditDialog){
 		EditPopUp(mainViewModel = mainViewModel)
 	}
@@ -638,7 +637,10 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 			){
 				Checkbox(
 					checked = checkBoxState,
-					onCheckedChange = { checkBoxState = it },
+					onCheckedChange = {
+						checkBoxState = it
+						mainViewModel.openAskAmountDialog()
+									  },
 					colors = CheckboxDefaults.colors(BackgroundLightBlue)
 				)
 			}
@@ -1234,5 +1236,138 @@ fun DatePickerField(
 				}
 			}
 		)
+	}
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxState:Boolean) {
+	val state = mainViewModel.mainViewState.collectAsState()
+
+	var foodName by rememberSaveable {
+		mutableStateOf(state.value.editSingleEntry.foodName)
+	}
+	var bbDate by rememberSaveable {
+		mutableStateOf(state.value.editSingleEntry.bbDate)
+	}
+	var categoryId by rememberSaveable {
+		mutableIntStateOf(state.value.editSingleEntry.categoryId)
+	}
+	var portionAmount by rememberSaveable {
+		mutableStateOf(state.value.editSingleEntry.portionAmount)
+	}
+	var portionType by rememberSaveable {
+		mutableStateOf(state.value.editSingleEntry.portionType)
+	}
+	var isChecked by rememberSaveable {
+		mutableIntStateOf(state.value.editSingleEntry.isChecked)
+	}
+
+	var amountTaken = ""
+
+
+
+	AlertDialog(
+		onDismissRequest = {
+			mainViewModel.dismissAskAmountDialog()
+
+		},
+		modifier = Modifier
+			.clip(RoundedCornerShape(20.dp))
+			.background(White)
+			.padding(10.dp)
+	) {
+		Column(
+			modifier = Modifier
+				.fillMaxWidth(),
+			horizontalAlignment = Alignment.CenterHorizontally
+
+		) {
+			Text(
+				text = "How much did you take?",
+				lineHeight = 45.sp,
+				fontWeight = FontWeight.Bold,
+				fontSize = 40.sp,
+				style = TextStyle(fontFamily = FontFamily.SansSerif),
+				color = Color.Black,
+				textAlign = TextAlign.Center,
+				modifier = Modifier
+					.fillMaxWidth(),
+			)
+
+			Row(
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(top = 20.dp),
+				horizontalArrangement = Arrangement.SpaceBetween
+			) {
+				TextField(
+					value = amountTaken,
+					modifier = Modifier
+						.fillMaxWidth(0.4f)
+						.shadow(3.dp, RectangleShape, false),
+					keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+					trailingIcon = {
+						Image(
+							painter = painterResource(id = R.drawable.arrows_up_down_icon),
+							contentDescription = "Amount",
+							contentScale = ContentScale.Fit,
+							modifier = Modifier
+								.size(25.dp)
+						)
+					},
+					colors = TextFieldDefaults.colors(
+						focusedTextColor = Black,
+						unfocusedTextColor = Black,
+						focusedContainerColor = White,
+						unfocusedContainerColor = White,
+						disabledContainerColor = White,
+					),
+
+					onValueChange = {
+
+							newText: String ->
+						amountTaken = newText
+					},
+					label = { Text(text = "#", color = Black) }
+
+				)
+
+
+				Button(
+					onClick = {
+						mainViewModel.saveEditedEntry(
+							SingleEntry(
+								foodName,
+								bbDate,
+								categoryId,
+								portionAmount,
+								portionType,
+								isChecked,
+								state.value.editSingleEntry.id
+							)
+						)
+						Log.d(
+							"SAVINGEDIT", "${
+								SingleEntry(
+									foodName,
+									bbDate,
+									categoryId,
+									portionAmount,
+									portionType,
+									isChecked,
+									state.value.editSingleEntry.id
+								)
+							}"
+						)
+					},
+					modifier = Modifier.padding(top = 20.dp),
+					colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
+				) {
+					Text(text = "Save", color = White)
+				}
+			}
+		}
 	}
 }
