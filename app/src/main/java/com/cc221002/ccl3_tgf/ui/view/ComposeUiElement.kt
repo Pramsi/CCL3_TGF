@@ -1401,41 +1401,41 @@ fun OverviewScreen(
 }
 
 // items in list of overdue or expiring-today items in alert box in Overview
-@Composable
-fun ItemCard(entry: SingleEntry, isOverdue: Boolean) {
-
-	val bgColor = if (isOverdue) Color.Red else Color.Blue
-
-	Box(
-		modifier = Modifier
-			.fillMaxWidth()
-			.background(bgColor)
-			.padding(12.dp)
-			.clip(RoundedCornerShape(8.dp)),
-		contentAlignment = Alignment.CenterStart
-	) {
-		Column (
-			modifier = Modifier.padding(16.dp)
-		) {
-			Text(
-				text = entry.foodName,
-				fontWeight = FontWeight.Bold,
-				fontSize = 16.sp,
-				color = Color.White
-			)
-			Text(
-				text = "${entry.portionAmount} ${entry.portionType}",
-				fontSize = 14.sp,
-				color = Color.White
-			)
-			Text(
-				text = "BB: ${entry.bbDate}",
-				fontSize = 14.sp,
-				color = Color.White
-			)
-		}
-	}
-}
+//@Composable
+//fun ItemCard(entry: SingleEntry, isOverdue: Boolean) {
+//
+//	val bgColor = if (isOverdue) Color.Red else Color.Blue
+//
+//	Box(
+//		modifier = Modifier
+//			.fillMaxWidth()
+//			.background(bgColor)
+//			.padding(12.dp)
+//			.clip(RoundedCornerShape(8.dp)),
+//		contentAlignment = Alignment.CenterStart
+//	) {
+//		Column (
+//			modifier = Modifier.padding(16.dp)
+//		) {
+//			Text(
+//				text = entry.foodName,
+//				fontWeight = FontWeight.Bold,
+//				fontSize = 16.sp,
+//				color = Color.White
+//			)
+//			Text(
+//				text = "${entry.portionAmount} ${entry.portionType}",
+//				fontSize = 14.sp,
+//				color = Color.White
+//			)
+//			Text(
+//				text = "BB: ${entry.bbDate}",
+//				fontSize = 14.sp,
+//				color = Color.White
+//			)
+//		}
+//	}
+//}
 
 
 
