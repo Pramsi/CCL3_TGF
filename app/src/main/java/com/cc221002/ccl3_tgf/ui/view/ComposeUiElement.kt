@@ -1,5 +1,6 @@
 package com.cc221002.ccl3_tgf.ui.view
 
+import android.annotation.SuppressLint
 import android.graphics.BlurMaskFilter
 import android.app.DatePickerDialog
 import android.os.Build
@@ -54,6 +55,8 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarItem
 
@@ -147,6 +150,24 @@ fun MainView(
 	}
 	// defining the routes to each Screen and what happens when that route is used
 	Scaffold(
+		floatingActionButton = {
+			// Add a floating button to navigate to the AddingPopup
+			FloatingActionButton(
+				containerColor = NavigationBlue,
+				onClick = {
+					mainViewModel.openAddDialog()
+				},
+				modifier = Modifier) {
+				Image(
+					painter = painterResource(id = R.drawable.add_icon),
+					contentDescription = "Fridge",
+					contentScale = ContentScale.Fit,
+					modifier = Modifier
+						.size(35.dp)
+				)
+			}
+		},
+		floatingActionButtonPosition = FabPosition.End,
 		bottomBar = { if(showBottomBar)BottomNavigationBar(navController, state.value.selectedScreen) }
 	) {
 		NavHost(
@@ -250,6 +271,7 @@ fun SplashScreen(
 	}
 }
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AllCategories (
@@ -262,66 +284,184 @@ fun AllCategories (
 
 	mainViewModel.getEntries()
 
-	Column(
-		modifier = Modifier
-			.background(White)
-			.fillMaxSize(),
-		verticalArrangement = Arrangement.SpaceEvenly,
-		horizontalAlignment = Alignment.CenterHorizontally,
-	) {
 
-	Header(mainViewModel,"Your Fridge")
-		if(state.openAddDialog){
-			AddingPopup(mainViewModel = mainViewModel)
-		}
-
-		// fridge box containing all the categories
-		Box(
+			Column(
 			modifier = Modifier
-				.fillMaxWidth()
-				.padding(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 45.dp)
-				.clip(RoundedCornerShape(16.dp))
-				.background(FridgeBlue),
-			contentAlignment = Alignment.Center
+				.background(White)
+				.fillMaxSize(),
+			verticalArrangement = Arrangement.SpaceEvenly,
+			horizontalAlignment = Alignment.CenterHorizontally,
 		) {
-			LazyColumn(
+
+				Header(mainViewModel = mainViewModel, title = "Your Fridge")
+
+			if(state.openAddDialog){
+				AddingPopup(mainViewModel = mainViewModel)
+			}
+
+			// fridge box containing all the categories
+			Box(
 				modifier = Modifier
-					.fillMaxSize()
-					.padding(start = 10.dp, top = 45.dp, end = 10.dp),
-				verticalArrangement = Arrangement.spacedBy(8.dp),
-				horizontalAlignment = Alignment.CenterHorizontally
+					.fillMaxWidth()
+					.padding(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 45.dp)
+					.clip(RoundedCornerShape(16.dp))
+					.background(FridgeBlue),
+				contentAlignment = Alignment.Center
 			) {
+				LazyColumn(
+					modifier = Modifier
+						.fillMaxSize()
+						.padding(start = 10.dp, top = 45.dp, end = 10.dp),
+					verticalArrangement = Arrangement.spacedBy(8.dp),
+					horizontalAlignment = Alignment.CenterHorizontally
+				) {
 
 
-				item {
-					val leftovers = categories.find { it.categoryName == "Leftovers" }
+					item {
+						val leftovers = categories.find { it.categoryName == "Leftovers" }
 
-					leftovers?.let {
-						Box(
-							modifier = Modifier
-								.shadow(
-									color = Color(0x51000000),
-									borderRadius = 6.dp,
-									blurRadius = 6.dp,
-									offsetY = 4.dp,
-									spread = 2f.dp
+						leftovers?.let {
+							Box(
+								modifier = Modifier
+									.shadow(
+										color = Color(0x51000000),
+										borderRadius = 6.dp,
+										blurRadius = 6.dp,
+										offsetY = 4.dp,
+										spread = 2f.dp
+									)
+									.fillMaxWidth()
+									.clip(RoundedCornerShape(6.dp))
+									.background(
+										if (mainViewModel.hasEntriesInCategory(leftovers.id)) BackgroundBlue else BackgroundLightBlue,
+									),
+								contentAlignment = Alignment.Center
+							) {
+								Text(
+									text = it.categoryName,
+									modifier = Modifier
+										.fillMaxWidth()
+										.clickable {
+											mainViewModel.setCurrentCategory(it.categoryName)
+											mainViewModel.getEntriesByCategory(it.id)
+											navController.navigate(Screen.ShowCategoryEntries.route)
+											// Handle click action for Leftovers category
+										}
+										.padding(30.dp),
+									textAlign = TextAlign.Center,
+									fontSize = 20.sp,
+									fontWeight = FontWeight.Bold,
+									color = Color.White
 								)
-								.fillMaxWidth()
-								.clip(RoundedCornerShape(6.dp))
-								.background(
-									if (mainViewModel.hasEntriesInCategory(leftovers.id)) BackgroundBlue else BackgroundLightBlue,
-								),
+							}
+						}
+					}
+
+					item {
+						Box(
+							modifier = Modifier.fillMaxWidth(),
 							contentAlignment = Alignment.Center
 						) {
+							Row(
+								modifier = Modifier.fillMaxWidth(),
+								horizontalArrangement = Arrangement.spacedBy(8.dp)
+							) {
+								val drinks = categories.find { it.categoryName == "Drinks" }
+								val dairy = categories.find { it.categoryName == "Dairy" }
+
+								drinks?.let {
+									Text(
+										text = it.categoryName,
+										modifier = Modifier
+											.weight(1f)
+											.clickable {
+												mainViewModel.setCurrentCategory(it.categoryName)
+												mainViewModel.getEntriesByCategory(it.id)
+												navController.navigate(Screen.ShowCategoryEntries.route)
+												// Handle click action for Drinks category
+											}
+											.clip(RoundedCornerShape(6.dp))
+											.background(
+												if (mainViewModel.hasEntriesInCategory(drinks.id)) BackgroundBlue else BackgroundLightBlue,
+											)
+											.padding(30.dp),
+										textAlign = TextAlign.Center,
+										fontSize = 20.sp,
+										fontWeight = FontWeight.Bold,
+										color = Color.White
+									)
+								}
+
+								dairy?.let {
+									Text(
+										text = it.categoryName,
+										modifier = Modifier
+											.weight(1f)
+											.clickable {
+												mainViewModel.setCurrentCategory(it.categoryName)
+												mainViewModel.getEntriesByCategory(it.id)
+												navController.navigate(Screen.ShowCategoryEntries.route)
+												// Handle click action for Dairy category
+											}
+											.clip(RoundedCornerShape(6.dp))
+											.background(
+												if (mainViewModel.hasEntriesInCategory(dairy.id)) BackgroundBlue else BackgroundLightBlue,
+											)
+											.padding(30.dp),
+										textAlign = TextAlign.Center,
+										fontSize = 20.sp,
+										fontWeight = FontWeight.Bold,
+										color = Color.White
+									)
+								}
+							}
+						}
+					}
+
+					item {
+						val extras = categories.find { it.categoryName == "Extras" }
+						val meat = categories.find { it.categoryName == "Meat" }
+
+						extras?.let {
 							Text(
 								text = it.categoryName,
 								modifier = Modifier
 									.fillMaxWidth()
 									.clickable {
+										mainViewModel.setCurrentCategory(it.categoryName)
 										mainViewModel.getEntriesByCategory(it.id)
 										navController.navigate(Screen.ShowCategoryEntries.route)
-										// Handle click action for Leftovers category
+										// Handle click action for Extras category
 									}
+									.clip(RoundedCornerShape(6.dp))
+									.background(
+										if (mainViewModel.hasEntriesInCategory(extras.id)) BackgroundBlue else BackgroundLightBlue,
+									)
+									.padding(30.dp),
+								textAlign = TextAlign.Center,
+								fontSize = 20.sp,
+								fontWeight = FontWeight.Bold,
+								color = Color.White
+							)
+						}
+
+						Spacer(modifier = Modifier.height(8.dp))
+
+						meat?.let {
+							Text(
+								text = it.categoryName,
+								modifier = Modifier
+									.fillMaxWidth()
+									.clickable {
+										mainViewModel.setCurrentCategory(it.categoryName)
+										mainViewModel.getEntriesByCategory(it.id)
+										navController.navigate(Screen.ShowCategoryEntries.route)
+										// Handle click action for Meat category
+									}
+									.clip(RoundedCornerShape(6.dp))
+									.background(
+										if (mainViewModel.hasEntriesInCategory(meat.id)) BackgroundBlue else BackgroundLightBlue,
+									)
 									.padding(30.dp),
 								textAlign = TextAlign.Center,
 								fontSize = 20.sp,
@@ -330,33 +470,29 @@ fun AllCategories (
 							)
 						}
 					}
-				}
 
-				item {
-					Box(
-						modifier = Modifier.fillMaxWidth(),
-						contentAlignment = Alignment.Center
-					) {
+					item {
 						Row(
 							modifier = Modifier.fillMaxWidth(),
 							horizontalArrangement = Arrangement.spacedBy(8.dp)
 						) {
-							val drinks = categories.find { it.categoryName == "Drinks" }
-							val dairy = categories.find { it.categoryName == "Dairy" }
+							val fruit = categories.find { it.categoryName == "Fruit" }
+							val vegetable = categories.find { it.categoryName == "Vegetable" }
 
-							drinks?.let {
+							fruit?.let {
 								Text(
 									text = it.categoryName,
 									modifier = Modifier
 										.weight(1f)
 										.clickable {
+											mainViewModel.setCurrentCategory(it.categoryName)
 											mainViewModel.getEntriesByCategory(it.id)
 											navController.navigate(Screen.ShowCategoryEntries.route)
-											// Handle click action for Drinks category
+											// Handle click action for Fruit category
 										}
 										.clip(RoundedCornerShape(6.dp))
 										.background(
-											if (mainViewModel.hasEntriesInCategory(drinks.id)) BackgroundBlue else BackgroundLightBlue,
+											if (mainViewModel.hasEntriesInCategory(fruit.id)) BackgroundBlue else BackgroundLightBlue,
 										)
 										.padding(30.dp),
 									textAlign = TextAlign.Center,
@@ -366,19 +502,20 @@ fun AllCategories (
 								)
 							}
 
-							dairy?.let {
+							vegetable?.let {
 								Text(
 									text = it.categoryName,
 									modifier = Modifier
 										.weight(1f)
 										.clickable {
+											mainViewModel.setCurrentCategory(it.categoryName)
 											mainViewModel.getEntriesByCategory(it.id)
 											navController.navigate(Screen.ShowCategoryEntries.route)
-											// Handle click action for Dairy category
+											// Handle click action for Vegetable category
 										}
 										.clip(RoundedCornerShape(6.dp))
 										.background(
-											if (mainViewModel.hasEntriesInCategory(dairy.id)) BackgroundBlue else BackgroundLightBlue,
+											if (mainViewModel.hasEntriesInCategory(vegetable.id)) BackgroundBlue else BackgroundLightBlue,
 										)
 										.padding(30.dp),
 									textAlign = TextAlign.Center,
@@ -387,118 +524,13 @@ fun AllCategories (
 									color = Color.White
 								)
 							}
-						}
-					}
-				}
-
-				item {
-					val extras = categories.find { it.categoryName == "Extras" }
-					val meat = categories.find { it.categoryName == "Meat" }
-
-					extras?.let {
-						Text(
-							text = it.categoryName,
-							modifier = Modifier
-								.fillMaxWidth()
-								.clickable {
-									mainViewModel.getEntriesByCategory(it.id)
-									navController.navigate(Screen.ShowCategoryEntries.route)
-									// Handle click action for Extras category
-								}
-								.clip(RoundedCornerShape(6.dp))
-								.background(
-									if (mainViewModel.hasEntriesInCategory(extras.id)) BackgroundBlue else BackgroundLightBlue,
-								)
-								.padding(30.dp),
-							textAlign = TextAlign.Center,
-							fontSize = 20.sp,
-							fontWeight = FontWeight.Bold,
-							color = Color.White
-						)
-					}
-
-					Spacer(modifier = Modifier.height(8.dp))
-
-					meat?.let {
-						Text(
-							text = it.categoryName,
-							modifier = Modifier
-								.fillMaxWidth()
-								.clickable {
-									mainViewModel.getEntriesByCategory(it.id)
-									navController.navigate(Screen.ShowCategoryEntries.route)
-									// Handle click action for Meat category
-								}
-								.clip(RoundedCornerShape(6.dp))
-								.background(
-									if (mainViewModel.hasEntriesInCategory(meat.id)) BackgroundBlue else BackgroundLightBlue,
-								)
-								.padding(30.dp),
-							textAlign = TextAlign.Center,
-							fontSize = 20.sp,
-							fontWeight = FontWeight.Bold,
-							color = Color.White
-						)
-					}
-				}
-
-				item {
-					Row(
-						modifier = Modifier.fillMaxWidth(),
-						horizontalArrangement = Arrangement.spacedBy(8.dp)
-					) {
-						val fruit = categories.find { it.categoryName == "Fruit" }
-						val vegetable = categories.find { it.categoryName == "Vegetable" }
-
-						fruit?.let {
-							Text(
-								text = it.categoryName,
-								modifier = Modifier
-									.weight(1f)
-									.clickable {
-										mainViewModel.getEntriesByCategory(it.id)
-										navController.navigate(Screen.ShowCategoryEntries.route)
-										// Handle click action for Fruit category
-									}
-									.clip(RoundedCornerShape(6.dp))
-									.background(
-										if (mainViewModel.hasEntriesInCategory(fruit.id)) BackgroundBlue else BackgroundLightBlue,
-									)
-									.padding(30.dp),
-								textAlign = TextAlign.Center,
-								fontSize = 20.sp,
-								fontWeight = FontWeight.Bold,
-								color = Color.White
-							)
-						}
-
-						vegetable?.let {
-							Text(
-								text = it.categoryName,
-								modifier = Modifier
-									.weight(1f)
-									.clickable {
-										mainViewModel.getEntriesByCategory(it.id)
-										navController.navigate(Screen.ShowCategoryEntries.route)
-										// Handle click action for Vegetable category
-									}
-									.clip(RoundedCornerShape(6.dp))
-									.background(
-										if (mainViewModel.hasEntriesInCategory(vegetable.id)) BackgroundBlue else BackgroundLightBlue,
-									)
-									.padding(30.dp),
-								textAlign = TextAlign.Center,
-								fontSize = 20.sp,
-								fontWeight = FontWeight.Bold,
-								color = Color.White
-							)
 						}
 					}
 				}
 			}
 		}
-	}
-}
+		}
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -509,9 +541,10 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 	Log.d("CategoryEntries", entries.value.toString())
 	Log.d("CategoryEntries", categories.toString())
 
-	Column {
+	val categoryName = mainViewModel.currentCategory
 
-	Header(mainViewModel,"category name")
+	Column {
+	Header(mainViewModel,"$categoryName")
 	LazyColumn(
 		verticalArrangement = Arrangement.Top,
 		horizontalAlignment = Alignment.CenterHorizontally,
@@ -546,20 +579,6 @@ fun Header(mainViewModel: MainViewModel,title:String){
 				fontWeight = FontWeight.Bold,
 				color = Color.White
 			)
-			Spacer(modifier = Modifier.padding(50.dp,0.dp))
-			Box(
-				modifier = Modifier
-					.size(35.dp)
-					.clickable { mainViewModel.openAddDialog() }
-			){
-				Image(
-					painter = painterResource(id = R.drawable.add_icon),
-					contentDescription = "Fridge",
-					contentScale = ContentScale.Fit,
-					modifier = Modifier
-						.size(35.dp)
-				)
-			}
 		}
 	}
 

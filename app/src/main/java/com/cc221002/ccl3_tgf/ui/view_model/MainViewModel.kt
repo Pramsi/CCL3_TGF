@@ -1,6 +1,7 @@
 package com.cc221002.ccl3_tgf.ui.view_model
 
 import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
@@ -32,6 +33,10 @@ class MainViewModel (
 	private val _categories = MutableStateFlow<List<Category>>(emptyList())
 	val categories: StateFlow<List<Category>> = _categories.asStateFlow()
 
+	// Get the current Category the user is on
+	private val _currentCategory = mutableStateOf<String?>(null)
+	val currentCategory: String?
+		get() = _currentCategory.value
 
 	// this variable is a list of all the entries
 	private val _entries = MutableStateFlow<List<SingleEntry>>(emptyList())
@@ -42,8 +47,6 @@ class MainViewModel (
 
 	private var _giveEntries = MutableStateFlow<List<SingleEntry>>(emptyList())
 	val giveEntries: StateFlow<List<SingleEntry>> = _entriesForCategory.asStateFlow()
-
-
 
 	// this function updates on which screen the user currently is
 	fun selectScreen(screen: Screen){
@@ -73,6 +76,11 @@ class MainViewModel (
 				_entries.value = entries
 			}
 		}
+	}
+
+	// Method to set the current category
+	fun setCurrentCategory(categoryName: String) {
+		_currentCategory.value = categoryName
 	}
 
 	// Function to get entries by category
