@@ -626,11 +626,14 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 	val categoryName = mainViewModel.currentCategory
 
 		Column(
-			modifier = Modifier.background(White)
+			modifier = Modifier
+				.background(White)
+
 		) {
 			Header("$categoryName")
 			Box(
 				modifier = Modifier
+					.offset(y = (-15).dp)
 					.fillMaxWidth()
 					.padding(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 45.dp)
 					.clip(RoundedCornerShape(16.dp))
@@ -650,6 +653,7 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 					}
 				}
 			}
+
 			if (state.value.openAddDialog) {
 				AddingPopup(mainViewModel = mainViewModel)
 			}
@@ -670,7 +674,7 @@ fun Header(title:String){
 		"Vegetables" to R.drawable.vegetables_icon
 	)
 
-	if(title == "Your Fridge"){
+	if(title == "Your Fridge" || title == "Overview"){
 
 		Box(
 			modifier = Modifier
@@ -716,7 +720,6 @@ fun Header(title:String){
 			}
 			Box(
 				modifier = Modifier
-					.offset(y = (-0).dp)
 					.width(100.dp)
 					.height(50.dp)
 					.clip(RoundedCornerShape(0.dp,0.dp,50.dp,50.dp))
