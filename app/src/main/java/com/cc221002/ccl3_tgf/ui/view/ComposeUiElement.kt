@@ -20,11 +20,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.BottomNavigation
@@ -69,6 +71,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -271,7 +274,7 @@ fun AllCategories (
 		horizontalAlignment = Alignment.CenterHorizontally,
 	) {
 
-	Header(mainViewModel = mainViewModel, title = "Your Fridge")
+	Header(title = "Your Fridge")
 		if(state.openAddDialog){
 			AddingPopup(mainViewModel = mainViewModel)
 		}
@@ -625,7 +628,7 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 		Column(
 			modifier = Modifier.background(White)
 		) {
-			Header(mainViewModel, "$categoryName")
+			Header("$categoryName")
 			Box(
 				modifier = Modifier
 					.fillMaxWidth()
@@ -655,44 +658,90 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 }
 
 @Composable
-fun Header(mainViewModel: MainViewModel,title:String, categoryImage: Int? = null){
+fun Header(title:String){
+
 	val categoryImageMap = mapOf(
 		"Leftovers" to R.drawable.leftovers_icon,
 		"Drinks" to R.drawable.drinks_icon,
 		"Dairy" to R.drawable.dairy_icon,
 		"Extras" to R.drawable.extras_icon,
 		"Meat" to R.drawable.meat_icon,
-		"Fruit" to R.drawable.fruir_icon,
+		"Fruit" to R.drawable.fruit_icon,
 		"Vegetables" to R.drawable.vegetables_icon
-		// Add more categories as needed
 	)
-		Row(
+
+	if(title == "Your Fridge"){
+
+		Box(
 			modifier = Modifier
 				.clip(shape = RoundedCornerShape(0.dp, 0.dp, 0.dp, 20.dp))
-				.background(NavigationBlue)
 				.fillMaxWidth()
-				.height(75.dp),
-			horizontalArrangement = Arrangement.Center,
-			verticalAlignment = Alignment.CenterVertically
+				.height(75.dp)
+				.background(NavigationBlue),
+			contentAlignment = Alignment.Center
 		) {
-			// Display category image if provided
-			categoryImage?.let { image ->
-				Image(
-					painter = painterResource(id = image),
-					contentDescription = null, // Provide a content description if needed
-					modifier = Modifier
-						.size(40.dp) // Adjust the size as needed
-						.padding(end = 8.dp)
-				)
-			}
 			Text(
-				text = "$title",
+				text = title,
 				fontSize = 30.sp,
 				fontWeight = FontWeight.Bold,
-				color = Color.White
+				color = Color.White,
+				modifier = Modifier.padding(start = 8.dp) // Adjust padding as needed
 			)
 		}
+	} else {
+		Column(
+			modifier = Modifier
+				.fillMaxWidth(),
+			horizontalAlignment = Alignment.CenterHorizontally,
+			verticalArrangement = Arrangement.Center
+		) {
+			Box(
+				modifier = Modifier
+					.clip(shape = RoundedCornerShape(0.dp, 0.dp, 0.dp, 20.dp))
+					.fillMaxWidth()
+					.height(75.dp)
+					.background(NavigationBlue),
+				contentAlignment = Alignment.Center
+			) {
+				Row {
+					Text(
+						text = title,
+						fontSize = 30.sp,
+						fontWeight = FontWeight.Bold,
+						color = Color.White,
+						modifier = Modifier.padding(start = 8.dp) // Adjust padding as needed
+					)
+				}
+
+			}
+			Box(
+				modifier = Modifier
+					.offset(y = (-0).dp)
+					.width(100.dp)
+					.height(50.dp)
+					.clip(RoundedCornerShape(0.dp,0.dp,50.dp,50.dp))
+					.background(NavigationBlue),
+				contentAlignment = Alignment.Center
+			) {
+				val categoryImage = categoryImageMap[title]
+				// Display category image if provided
+				categoryImage?.let { image ->
+					Image(
+						painter = painterResource(id = image),
+						contentDescription = null,
+						modifier = Modifier
+							.size(60.dp)
+							.padding(bottom = 10.dp)
+					)
+				}
+			}
+
 	}
+
+	}
+}
+
+
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -1332,7 +1381,7 @@ fun OverviewScreen(
 		horizontalAlignment = Alignment.CenterHorizontally,
 	) {
 
-		Header(mainViewModel, "Overview")
+		Header("Overview")
 
 		// Alert box for overdue items
 		Box(
