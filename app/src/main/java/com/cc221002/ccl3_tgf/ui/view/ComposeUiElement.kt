@@ -3,17 +3,12 @@ package com.cc221002.ccl3_tgf.ui.view
 import android.annotation.SuppressLint
 import android.graphics.BlurMaskFilter
 import android.app.DatePickerDialog
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffXfermode
-import android.graphics.Rect
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.camera.core.ImageCapture
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -30,49 +25,30 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.Button
-import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.ExposedDropdownMenuDefaults
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme.colors
-import androidx.compose.material.Slider
-import androidx.compose.material.SnackbarDefaults.backgroundColor
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardElevation
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarItem
 
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -82,18 +58,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
-import androidx.compose.ui.graphics.Color.Companion.DarkGray
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.Color.Companion.Yellow
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -120,17 +93,10 @@ import com.cc221002.ccl3_tgf.ui.theme.BackgroundLightBlue
 import com.cc221002.ccl3_tgf.ui.theme.ExpiredRed
 import com.cc221002.ccl3_tgf.ui.theme.FridgeBlue
 import com.cc221002.ccl3_tgf.ui.theme.NavigationBlue
-import com.cc221002.ccl3_tgf.ui.theme.TransparentLightBlue
 import com.cc221002.ccl3_tgf.ui.view_model.MainViewModel
-import com.cc221002.ccl3_tgf.ui.view_model.MainViewState
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.update
-import java.io.File
-import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.util.Calendar
-import java.util.Date
-import java.util.concurrent.ExecutorService
 
 
 // creating a sealed class for the Screens to navigate between
@@ -291,7 +257,9 @@ fun AllCategories (
 ) {
 	val state by mainViewModel.mainViewState.collectAsState()
 	val categories by mainViewModel.categories.collectAsState()
-	val entriesForCategories by mainViewModel.entriesForCategory.collectAsState()
+	val entriesForIsCheckedCheck by mainViewModel.entriesForIsCheckedCheck.collectAsState()
+
+
 
 	mainViewModel.getEntries()
 
@@ -328,6 +296,18 @@ fun AllCategories (
 					val leftovers = categories.find { it.categoryName == "Leftovers" }
 
 					leftovers?.let {
+						// Determine background color based on conditions
+						val backgroundColor = if (!mainViewModel.hasEntriesForCategory(leftovers.id)) {
+							// No entries for the category
+							BackgroundLightBlue
+						} else if (mainViewModel.areAllEntriesChecked(leftovers.id)) {
+							// All entries for the category are checked
+							BackgroundLightBlue
+						} else {
+							// Some entries are not checked
+							BackgroundBlue
+						}
+
 						Box(
 							modifier = Modifier
 								.shadow(
@@ -339,13 +319,7 @@ fun AllCategories (
 								)
 								.fillMaxWidth()
 								.clip(RoundedCornerShape(6.dp))
-								.background(
-									if (mainViewModel.hasEntriesInCategory(leftovers.id)) {
-										BackgroundBlue
-									} else {
-										BackgroundLightBlue
-									},
-								),
+								.background(color = backgroundColor),
 							contentAlignment = Alignment.Center
 						) {
 							Text(
@@ -381,6 +355,16 @@ fun AllCategories (
 							val dairy = categories.find { it.categoryName == "Dairy" }
 
 							drinks?.let {
+								val backgroundColor = if (!mainViewModel.hasEntriesForCategory(drinks.id)) {
+									// No entries for the category
+									BackgroundLightBlue
+								} else if (mainViewModel.areAllEntriesChecked(drinks.id)) {
+									// All entries for the category are checked
+									BackgroundLightBlue
+								} else {
+									// Some entries are not checked
+									BackgroundBlue
+								}
 								Text(
 									text = it.categoryName,
 									modifier = Modifier
@@ -399,9 +383,7 @@ fun AllCategories (
 											// Handle click action for Drinks category
 										}
 										.clip(RoundedCornerShape(6.dp))
-										.background(
-											if (mainViewModel.hasEntriesInCategory(drinks.id)) BackgroundBlue else BackgroundLightBlue,
-										)
+										.background(color = backgroundColor)
 										.padding(30.dp),
 									textAlign = TextAlign.Center,
 									fontSize = 20.sp,
@@ -411,6 +393,16 @@ fun AllCategories (
 							}
 
 							dairy?.let {
+								val backgroundColor = if (!mainViewModel.hasEntriesForCategory(dairy.id)) {
+									// No entries for the category
+									BackgroundLightBlue
+								} else if (mainViewModel.areAllEntriesChecked(dairy.id)) {
+									// All entries for the category are checked
+									BackgroundLightBlue
+								} else {
+									// Some entries are not checked
+									BackgroundBlue
+								}
 								Text(
 									text = it.categoryName,
 									modifier = Modifier
@@ -429,9 +421,7 @@ fun AllCategories (
 											// Handle click action for Dairy category
 										}
 										.clip(RoundedCornerShape(6.dp))
-										.background(
-											if (mainViewModel.hasEntriesInCategory(dairy.id)) BackgroundBlue else BackgroundLightBlue,
-										)
+										.background(color = backgroundColor)
 										.padding(30.dp),
 									textAlign = TextAlign.Center,
 									fontSize = 20.sp,
@@ -448,6 +438,16 @@ fun AllCategories (
 					val meat = categories.find { it.categoryName == "Meat" }
 
 					extras?.let {
+						val backgroundColor = if (!mainViewModel.hasEntriesForCategory(extras.id)) {
+							// No entries for the category
+							BackgroundLightBlue
+						} else if (mainViewModel.areAllEntriesChecked(extras.id)) {
+							// All entries for the category are checked
+							BackgroundLightBlue
+						} else {
+							// Some entries are not checked
+							BackgroundBlue
+						}
 						Text(
 							text = it.categoryName,
 							modifier = Modifier
@@ -466,9 +466,7 @@ fun AllCategories (
 									// Handle click action for Extras category
 								}
 								.clip(RoundedCornerShape(6.dp))
-								.background(
-									if (mainViewModel.hasEntriesInCategory(extras.id)) BackgroundBlue else BackgroundLightBlue,
-								)
+								.background(color = backgroundColor)
 								.padding(30.dp),
 							textAlign = TextAlign.Center,
 							fontSize = 20.sp,
@@ -480,6 +478,16 @@ fun AllCategories (
 					Spacer(modifier = Modifier.height(8.dp))
 
 					meat?.let {
+						val backgroundColor = if (!mainViewModel.hasEntriesForCategory(meat.id)) {
+							// No entries for the category
+							BackgroundLightBlue
+						} else if (mainViewModel.areAllEntriesChecked(meat.id)) {
+							// All entries for the category are checked
+							BackgroundLightBlue
+						} else {
+							// Some entries are not checked
+							BackgroundBlue
+						}
 						Text(
 							text = it.categoryName,
 							modifier = Modifier
@@ -498,9 +506,7 @@ fun AllCategories (
 									// Handle click action for Meat category
 								}
 								.clip(RoundedCornerShape(6.dp))
-								.background(
-									if (mainViewModel.hasEntriesInCategory(meat.id)) BackgroundBlue else BackgroundLightBlue,
-								)
+								.background(color = backgroundColor)
 								.padding(30.dp),
 							textAlign = TextAlign.Center,
 							fontSize = 20.sp,
@@ -519,6 +525,16 @@ fun AllCategories (
 						val vegetables = categories.find { it.categoryName == "Vegetables" }
 
 						fruit?.let {
+							val backgroundColor = if (!mainViewModel.hasEntriesForCategory(fruit.id)) {
+								// No entries for the category
+								BackgroundLightBlue
+							} else if (mainViewModel.areAllEntriesChecked(fruit.id)) {
+								// All entries for the category are checked
+								BackgroundLightBlue
+							} else {
+								// Some entries are not checked
+								BackgroundBlue
+							}
 							Text(
 								text = it.categoryName,
 								modifier = Modifier
@@ -537,9 +553,7 @@ fun AllCategories (
 										// Handle click action for Fruit category
 									}
 									.clip(RoundedCornerShape(6.dp))
-									.background(
-										if (mainViewModel.hasEntriesInCategory(fruit.id)) BackgroundBlue else BackgroundLightBlue,
-									)
+									.background(color = backgroundColor)
 									.padding(30.dp),
 								textAlign = TextAlign.Center,
 								fontSize = 20.sp,
@@ -549,6 +563,16 @@ fun AllCategories (
 						}
 
 						vegetables?.let {
+							val backgroundColor = if (!mainViewModel.hasEntriesForCategory(vegetables.id)) {
+								// No entries for the category
+								BackgroundLightBlue
+							} else if (mainViewModel.areAllEntriesChecked(vegetables.id)) {
+								// All entries for the category are checked
+								BackgroundLightBlue
+							} else {
+								// Some entries are not checked
+								BackgroundBlue
+							}
 							Text(
 								text = it.categoryName,
 								modifier = Modifier
@@ -567,9 +591,7 @@ fun AllCategories (
 										// Handle click action for Vegetable category
 									}
 									.clip(RoundedCornerShape(6.dp))
-									.background(
-										if (mainViewModel.hasEntriesInCategory(vegetables.id)) BackgroundBlue else BackgroundLightBlue,
-									)
+									.background(color = backgroundColor)
 									.padding(
 										start = 28.dp,
 										end = 28.dp,
@@ -620,7 +642,9 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 //			.background(FridgeBlue),
 			) {
 				items(entries.value.sortedBy { it.bbDate }) { entry ->
-					ItemUI(mainViewModel, entry = entry)
+					if(entry.isChecked == 0) {
+						ItemUI(mainViewModel, entry = entry)
+					}
 				}
 			}
 			if (state.value.openAddDialog) {
@@ -631,7 +655,17 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 }
 
 @Composable
-fun Header(mainViewModel: MainViewModel,title:String){
+fun Header(mainViewModel: MainViewModel,title:String, categoryImage: Int? = null){
+	val categoryImageMap = mapOf(
+		"Leftovers" to R.drawable.leftovers_icon,
+		"Drinks" to R.drawable.drinks_icon,
+		"Dairy" to R.drawable.dairy_icon,
+		"Extras" to R.drawable.extras_icon,
+		"Meat" to R.drawable.meat_icon,
+		"Fruit" to R.drawable.fruir_icon,
+		"Vegetables" to R.drawable.vegetables_icon
+		// Add more categories as needed
+	)
 		Row(
 			modifier = Modifier
 				.clip(shape = RoundedCornerShape(0.dp, 0.dp, 0.dp, 20.dp))
@@ -641,6 +675,16 @@ fun Header(mainViewModel: MainViewModel,title:String){
 			horizontalArrangement = Arrangement.Center,
 			verticalAlignment = Alignment.CenterVertically
 		) {
+			// Display category image if provided
+			categoryImage?.let { image ->
+				Image(
+					painter = painterResource(id = image),
+					contentDescription = null, // Provide a content description if needed
+					modifier = Modifier
+						.size(40.dp) // Adjust the size as needed
+						.padding(end = 8.dp)
+				)
+			}
 			Text(
 				text = "$title",
 				fontSize = 30.sp,
@@ -698,8 +742,11 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 				Checkbox(
 					checked = checkBoxState,
 					onCheckedChange = {
+						mainViewModel.openAskAmountDialog(entry)
 						checkBoxState = it
-						mainViewModel.openAskAmountDialog()
+						if(entry.portionAmount?.toFloatOrNull()!! >= 0) {
+							checkBoxState = false
+						}
 									  },
 					colors = CheckboxDefaults.colors(BackgroundLightBlue)
 				)
@@ -1385,10 +1432,11 @@ fun OverviewScreen(
 					.clip(RoundedCornerShape(10.dp))
 					.background(BackgroundBlue)
 					.padding(15.dp),
+				verticalArrangement = Arrangement.SpaceEvenly
 			) {
 				LazyColumn(
 					modifier = Modifier
-						.fillMaxSize()
+						.fillMaxWidth()
 						.padding(15.dp),
 				) {
 					items(
@@ -1397,6 +1445,24 @@ fun OverviewScreen(
 						val currentDate = LocalDate.now()
 						val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
 						if (storedDate != null && storedDate.isBefore(currentDate)) {
+							ItemUI(mainViewModel, entry = entry)
+						}
+					}
+				}
+
+
+					Text(text = "Your recent Items")
+
+				LazyColumn(
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(15.dp),
+				) {
+					items(
+						allEntries
+					) { entry ->
+
+						if (entry.isChecked == 1) {
 							ItemUI(mainViewModel, entry = entry)
 						}
 					}
@@ -1584,9 +1650,11 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 		mutableIntStateOf(state.value.editSingleEntry.isChecked)
 	}
 
-	var amountTaken = ""
+	var amountTaken by rememberSaveable {
+		mutableStateOf("")
+	}
 
-
+	val mContext = LocalContext.current
 
 	AlertDialog(
 		onDismissRequest = {
@@ -1625,7 +1693,7 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 				TextField(
 					value = amountTaken,
 					modifier = Modifier
-						.fillMaxWidth(0.4f)
+						.fillMaxWidth(0.6f)
 						.shadow(3.dp, RectangleShape, false),
 					keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
 					trailingIcon = {
@@ -1646,7 +1714,6 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 					),
 
 					onValueChange = {
-
 							newText: String ->
 						amountTaken = newText
 					},
@@ -1656,20 +1723,32 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 
 
 				Button(
-					onClick = {
-						mainViewModel.saveEditedEntry(
-							SingleEntry(
-								foodName,
-								bbDate,
-								categoryId,
-								portionAmount,
-								portionType,
-								isChecked,
-								state.value.editSingleEntry.id
-							)
-						)
-						Log.d(
-							"SAVINGEDIT", "${
+					onClick =   {
+						val takenAmount = amountTaken.toFloatOrNull()
+						Log.d("amountTaken","$amountTaken")
+
+						Log.d("TAKENAMOUNT","$takenAmount")
+						if (takenAmount != null) {
+							Log.d("IFSTATEMENT", "takenAmount is not null")
+							val remainingAmount = portionAmount?.toFloatOrNull()?.minus(takenAmount)
+							Log.d("IFSTATEMENT", "Remaining amount: $remainingAmount")
+
+							if ((remainingAmount != null) && (remainingAmount >= 0)) {
+								portionAmount = remainingAmount.toString()
+								Log.d("INNERIFSTATEMENT", "$portionAmount")
+							} else {
+								Toast.makeText(
+									mContext,
+									"Cannot take more than what is in the fridge!",
+									Toast.LENGTH_SHORT
+								).show()
+							}
+
+							if(remainingAmount == 0.0f){
+								isChecked = 1;
+								Log.d("ISCHECKED", "$isChecked")
+							}
+							mainViewModel.saveEditedEntry(
 								SingleEntry(
 									foodName,
 									bbDate,
@@ -1679,8 +1758,16 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 									isChecked,
 									state.value.editSingleEntry.id
 								)
-							}"
-						)
+							)
+						} else {
+							// Handle invalid input (non-numeric amount taken)
+							Toast.makeText(
+								mContext,
+								"Invalid input. Please enter a valid number.",
+								Toast.LENGTH_SHORT
+							).show()
+						}
+						mainViewModel.dismissAskAmountDialog()
 					},
 					modifier = Modifier.padding(top = 20.dp),
 					colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)

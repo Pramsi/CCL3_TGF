@@ -1,6 +1,7 @@
 package com.cc221002.ccl3_tgf.ui.view_model
 
 import android.util.Log
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -48,6 +49,9 @@ class MainViewModel (
 	private var _entriesForCategory = MutableStateFlow<List<SingleEntry>>(emptyList())
 	val entriesForCategory: StateFlow<List<SingleEntry>> = _entriesForCategory.asStateFlow()
 
+	private var _entriesForIsCheckedCheck = MutableStateFlow<List<SingleEntry>>(emptyList())
+	val entriesForIsCheckedCheck: StateFlow<List<SingleEntry>> = _entriesForIsCheckedCheck.asStateFlow()
+
 	private var _giveEntries = MutableStateFlow<List<SingleEntry>>(emptyList())
 	val giveEntries: StateFlow<List<SingleEntry>> = _entriesForCategory.asStateFlow()
 
@@ -70,7 +74,7 @@ class MainViewModel (
 	}
 
 	// this function determines whether category has entries or not (background color blue or light blue?)
-	fun hasEntriesInCategory(categoryId: Int) : Boolean {
+	fun hasEntriesInCategory(categoryId: Int): Boolean {
 		return entries.value.any { it.categoryId == categoryId }
 	}
 
@@ -93,10 +97,6 @@ class MainViewModel (
 		viewModelScope.launch {
 			dao.getEntriesByCategory(categoryId).collect { entries ->
 				_entriesForCategory.value = entries
-				Log.d("CATEGORY","$categoryId")
-				Log.d("ENTRIES","$entries")
-
-				// Handle retrieved entries by category
 
 				// call hasEntriesInCategory after updating entriesForCategory
 				_mainViewState.update {
@@ -104,6 +104,17 @@ class MainViewModel (
 				}
 			}
 		}
+	}
+
+	// Function to check if all entries for a category are checked
+	fun areAllEntriesChecked(categoryId: Int): Boolean {
+		val entriesForCategory = entries.value.filter { it.categoryId == categoryId }
+		return entriesForCategory.all { it.isChecked != 0 }
+	}
+
+	// Function to check if there are any entries for a category
+	fun hasEntriesForCategory(categoryId: Int): Boolean {
+		return entries.value.any { it.categoryId == categoryId }
 	}
 
 	fun openAddDialog(){
@@ -137,8 +148,8 @@ class MainViewModel (
 		_mainViewState.update{ it.copy(openEditDialog = false) }
 	}
 
-	fun openAskAmountDialog(){
-		_mainViewState.update{ it.copy(openAskAmountDialog = true)}
+	fun openAskAmountDialog(singleEntry: SingleEntry){
+		_mainViewState.update{ it.copy(openAskAmountDialog = true, editSingleEntry = singleEntry)}
 	}
 
 	fun dismissAskAmountDialog(){
