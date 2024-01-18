@@ -169,21 +169,24 @@ fun MainView(
 	}
 	// defining the routes to each Screen and what happens when that route is used
 	Scaffold(
-		floatingActionButton = {
-			// Add a floating button to navigate to the AddingPopup
-			FloatingActionButton(
-				containerColor = NavigationBlue,
-				onClick = {
-					mainViewModel.openAddDialog()
-				},
-				modifier = Modifier) {
-				Image(
-					painter = painterResource(id = R.drawable.add_icon),
-					contentDescription = "Fridge",
-					contentScale = ContentScale.Fit,
+		floatingActionButton ={
+			if(showBottomBar) {
+				// Add a floating button to navigate to the AddingPopup
+				FloatingActionButton(
+					containerColor = NavigationBlue,
+					onClick = {
+						mainViewModel.openAddDialog()
+					},
 					modifier = Modifier
-						.size(35.dp)
-				)
+				) {
+					Image(
+						painter = painterResource(id = R.drawable.add_icon),
+						contentDescription = "Fridge",
+						contentScale = ContentScale.Fit,
+						modifier = Modifier
+							.size(35.dp)
+					)
+				}
 			}
 		},
 		floatingActionButtonPosition = FabPosition.End,
@@ -757,7 +760,7 @@ fun Header(title:String){
 				modifier = Modifier
 					.width(100.dp)
 					.height(50.dp)
-					.clip(RoundedCornerShape(0.dp,0.dp,50.dp,50.dp))
+					.clip(RoundedCornerShape(0.dp, 0.dp, 50.dp, 50.dp))
 					.background(NavigationBlue),
 				contentAlignment = Alignment.Center
 			) {
@@ -815,7 +818,7 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					}
 				)
 				.clickable { mainViewModel.editEntry(entry) },
-			horizontalArrangement = Arrangement.Start,
+			horizontalArrangement = Arrangement.SpaceEvenly,
 			verticalAlignment = Alignment.CenterVertically
 		) {
 			Spacer(modifier = Modifier.padding(7.dp))
@@ -836,12 +839,10 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					colors = CheckboxDefaults.colors(BackgroundLightBlue)
 				)
 			}
-			Spacer(modifier = Modifier.padding(10.dp))
+			Spacer(modifier = Modifier.padding(7.dp))
 			Column(
 				modifier = Modifier
-					.padding(vertical = 12.dp)
-					,
-
+					.padding(vertical = 10.dp),
 			){
 				Text(
 					text = "${entry.foodName}",
@@ -852,7 +853,7 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					color = Color.White,
 					modifier = Modifier
 						.padding(bottom = 10.dp)
-						.width(250.dp)
+						.width(200.dp)
 				)
 				Text(
 					text = "${entry.portionAmount} ${entry.portionType}",
@@ -862,7 +863,7 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					color = Color.White,
 					modifier = Modifier
 						.padding(bottom = 7.dp)
-						.width(250.dp)
+						.width(200.dp)
 				)
 				Text(
 					text = "Best Before: ${entry.bbDate}",
@@ -876,21 +877,23 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					},
 					modifier = Modifier
 						.padding(bottom = 7.dp)
-						.width(250.dp)
+						.width(200.dp)
 				)
 			}
 			Spacer(modifier = Modifier.padding(7.dp))
 			Box(
 				modifier = Modifier
+					.padding(end = 10.dp)
 					.size(25.dp)
-					.clickable { mainViewModel.deleteTrip(entry) }
+					.clickable { mainViewModel.deleteTrip(entry) },
+				contentAlignment = Alignment.Center
 			){
 				Image(
 					painter = painterResource(id = R.drawable.delete_icon),
-					contentDescription = "Fridge",
+					contentDescription = "Delete",
 					contentScale = ContentScale.Fit,
 					modifier = Modifier
-						.size(35.dp),
+						.size(25.dp),
 					colorFilter = ColorFilter.tint(White)
 				)
 			}
@@ -1414,140 +1417,148 @@ fun OverviewScreen(
 		val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
 		storedDate != null && storedDate.isBefore(currentDate)
 	}
-
 	Column(
 		modifier = Modifier
-			.background(White)
 			.fillMaxSize(),
+		verticalArrangement = Arrangement.SpaceEvenly
+
 	) {
-		Header("Overview")
+		Header(title = "Overview")
 
 		Column(
 			modifier = Modifier
 				.fillMaxSize()
-				.background(White),
-			verticalArrangement = Arrangement.SpaceEvenly,
-			horizontalAlignment = Alignment.CenterHorizontally,
-		) {
+				.background(White)
+				.padding(15.dp)
+				.verticalScroll(rememberScrollState()),
+			verticalArrangement = Arrangement.SpaceEvenly
+		)
+		{
+			Column (
+				modifier = Modifier
+					.clip(RoundedCornerShape(10.dp, 10.dp, 0.dp, 0.dp))
+					.background(BackgroundBlue)
+					.padding(horizontal = 15.dp),
 
-			// Alert box for overdue items
-
-				Box(
-					modifier = Modifier
-						.fillMaxWidth()
-						.height(400.dp)
-						.padding(25.dp),
 				) {
-					Column(
+				if (hasOverdueItems) {
+					Text(
+						text = "Watch out!",
+						fontWeight = FontWeight.Bold,
+						fontSize = 25.sp,
+						style = TextStyle(fontFamily = FontFamily.SansSerif),
+						color = Color.White,
+						textAlign = TextAlign.Center,
 						modifier = Modifier
-							.fillMaxSize()
-							.clip(RoundedCornerShape(10.dp))
-							.background(BackgroundBlue)
-							.padding(15.dp),
-					) {
-						if (hasOverdueItems) {
-							Text(
-								text = "Watch out!",
-								fontWeight = FontWeight.Bold,
-								fontSize = 25.sp,
-								style = TextStyle(fontFamily = FontFamily.SansSerif),
-								color = Color.White,
-								textAlign = TextAlign.Center,
-								modifier = Modifier
-									.fillMaxWidth()
-									.padding(top = 20.dp, bottom = 15.dp)
-							)
-							Text(
-								text = "There are items in your fridge that need to be taken care of!",
-								color = Color.White,
-								modifier = Modifier
-									.fillMaxWidth()
-									.padding(bottom = 15.dp),
-								fontSize = 16.sp
-							)
-						} else {
-							Text(
-								text = "Great job!",
-								fontWeight = FontWeight.Bold,
-								fontSize = 25.sp,
-								style = TextStyle(fontFamily = FontFamily.SansSerif),
-								color = Color.White,
-								textAlign = TextAlign.Center,
-								modifier = Modifier
-									.fillMaxWidth()
-									.padding(10.dp),
-							)
-							Text(
-								text = "Everything in your fridge seems fine for today.",
-								color = Color.White,
-								modifier = Modifier
-									.fillMaxWidth()
-									.padding(bottom = 16.dp),
-								fontSize = 16.sp
-							)
-						}
-
-						LazyColumn(
-							modifier = Modifier
-								.fillMaxSize(),
-						) {
-							items(allEntries) { entry ->
-								val storedDate =
-									runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
-								if (storedDate != null && storedDate.isBefore(currentDate)) {
-									ItemUI(mainViewModel, entry = entry)
-								}
-							}
-						}
-					}
+							.fillMaxWidth()
+							.padding(top = 20.dp, bottom = 15.dp)
+					)
+					Text(
+						text = "There are items in your fridge that need to be taken care of!",
+						color = Color.White,
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(bottom = 15.dp),
+						fontSize = 16.sp
+					)
+				} else {
+					Text(
+						text = "Great job!",
+						fontWeight = FontWeight.Bold,
+						fontSize = 25.sp,
+						style = TextStyle(fontFamily = FontFamily.SansSerif),
+						color = Color.White,
+						textAlign = TextAlign.Center,
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(10.dp),
+					)
+					Text(
+						text = "Everything in your fridge seems fine for today.",
+						color = Color.White,
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(bottom = 16.dp),
+						fontSize = 16.sp
+					)
 				}
+			}
+			Row{
 				LazyColumn(
 					modifier = Modifier
 						.fillMaxWidth()
-						.padding(20.dp)
+						.height(400.dp)
+						.clip(RoundedCornerShape(0.dp, 0.dp, 10.dp, 10.dp))
+						.background(BackgroundBlue)
+						.padding(15.dp),
 				) {
-					item {
-						Text(
-							text = "Articles",
-							fontWeight = FontWeight.Bold,
-							fontSize = 25.sp,
-							color = Color.Black,
-							modifier = Modifier
-								.fillMaxWidth()
-								.padding(start = 15.dp, bottom = 3.dp)
-						)
-						Divider(
-							color = Color.Black,
-							thickness = 2.dp,
-							modifier = Modifier
-								.fillMaxWidth()
-								.padding(15.dp)
-						)
+					items(allEntries) { entry ->
+						val storedDate =
+							runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
+						if (storedDate != null && storedDate.isBefore(currentDate)) {
+							ItemUI(mainViewModel, entry = entry)
+						}
 					}
-
+				}
+			}
+			Column(
+				modifier = Modifier.padding(top = 12.dp)
+			) {
+				Text(
+					text = "Articles",
+					fontWeight = FontWeight.Bold,
+					fontSize = 25.sp,
+					color = Color.Black,
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(start = 15.dp, bottom = 3.dp)
+				)
+				Divider(
+						color = Color.Black,
+				thickness = 2.dp,
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(bottom = 15.dp, top = 10.dp)
+				)
+			}
+			Row{
+				LazyColumn(
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(400.dp)
+						.padding(horizontal = 20.dp)
+				) {
 					items(getDummyArticlePreviews()) { articlePreview ->
 						ArticlePreviewUI(articlePreview)
 					}
 				}
-		}
-		Text(text = "Your recent Items")
+			}
 
-		LazyColumn(
-			modifier = Modifier
-				.fillMaxWidth()
-				.padding(15.dp),
-		) {
-			items(
-				allEntries
-			) { entry ->
+			Row(){
+				LazyColumn(
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(400.dp)
+						.padding(20.dp)
+				){
+					item {
+						Text(text = "Your recent Items")
+					}
+					items(
+						allEntries
+					) { entry ->
+						if (entry.isChecked == 1) {
+							ItemUI(mainViewModel, entry = entry)
 
-				if (entry.isChecked == 1) {
-					ItemUI(mainViewModel, entry = entry)
+						}
+					}
 				}
 			}
+
 		}
 	}
 }
+
 
 
 	// A data class representing an article preview
@@ -1562,7 +1573,7 @@ fun OverviewScreen(
 		// You can replace this with your actual data
 		return listOf(
 			ArticlePreview(
-				R.drawable.article1_icon, "Fridge Organization",
+				R.drawable.article2_icon, "Fridge Organization",
 				"A well-organised fridge not only looks good, being able to glance into your fridge " +
 						"and see exactly what's in there can prevent food from going bad, can save you money and " +
 						"help to reduce the 5 million tonnes of edible food waste that households produce every year."
@@ -1640,45 +1651,6 @@ fun OverviewScreen(
 
 
 
-// custom drop shadow function
-// https://github.com/Debdutta-Panda/CustomShadow/blob/master/app/src/main/java/com/debduttapanda/customshadow/MainActivity.kt
-fun Modifier.shadow(
-	color: Color = Color.Black,
-	borderRadius: Dp = 0.dp,
-	blurRadius: Dp = 0.dp,
-	offsetY: Dp = 0.dp,
-	offsetX: Dp = 0.dp,
-	spread: Dp = 0f.dp,
-	modifier: Modifier = Modifier
-) = this.then(
-	modifier.drawBehind {
-		this.drawIntoCanvas {
-			val paint = Paint()
-			val frameworkPaint = paint.asFrameworkPaint()
-			val spreadPixel = spread.toPx()
-			val leftPixel = (0f - spreadPixel) + offsetX.toPx()
-			val topPixel = (0f - spreadPixel) + offsetY.toPx()
-			val rightPixel = (this.size.width + spreadPixel)
-			val bottomPixel = (this.size.height + spreadPixel)
-
-			if (blurRadius != 0.dp) {
-				frameworkPaint.maskFilter =
-					(BlurMaskFilter(blurRadius.toPx(), BlurMaskFilter.Blur.NORMAL))
-			}
-
-			frameworkPaint.color = color.toArgb()
-			it.drawRoundRect(
-				left = leftPixel,
-				top = topPixel,
-				right = rightPixel,
-				bottom = bottomPixel,
-				radiusX = borderRadius.toPx(),
-				radiusY = borderRadius.toPx(),
-				paint
-			)
-		}
-	}
-)
 
 // custom inner box shadow
 // https://stackoverflow.com/questions/71054138/jetpack-compose-inner-shadow
@@ -1813,12 +1785,13 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(top = 20.dp),
-				horizontalArrangement = Arrangement.SpaceBetween
+				horizontalArrangement = Arrangement.SpaceEvenly,
+				verticalAlignment = Alignment.CenterVertically
 			) {
 				TextField(
 					value = amountTaken,
 					modifier = Modifier
-						.fillMaxWidth(0.6f)
+						.fillMaxWidth(0.5f)
 						.shadow(3.dp, RectangleShape, false),
 					keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
 					trailingIcon = {
@@ -1837,69 +1810,115 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 						unfocusedContainerColor = White,
 						disabledContainerColor = White,
 					),
-
 					onValueChange = {
 							newText: String ->
 						amountTaken = newText
 					},
 					label = { Text(text = "#", color = Black) }
-
 				)
+				Text(
+					text = entry.portionType!!,
+					color = Black,
+					fontSize = 25.sp,
+					textAlign = TextAlign.Center
+				)
+			}
+			Button(
+				onClick =   {
+					val takenAmount = amountTaken.toFloatOrNull()
+					Log.d("amountTaken","$amountTaken")
 
+					Log.d("TAKENAMOUNT","$takenAmount")
+					if (takenAmount != null) {
+						Log.d("IFSTATEMENT", "takenAmount is not null")
+						val remainingAmount = portionAmount?.toFloatOrNull()?.minus(takenAmount)
+						Log.d("IFSTATEMENT", "Remaining amount: $remainingAmount")
 
-				Button(
-					onClick =   {
-						val takenAmount = amountTaken.toFloatOrNull()
-						Log.d("amountTaken","$amountTaken")
-
-						Log.d("TAKENAMOUNT","$takenAmount")
-						if (takenAmount != null) {
-							Log.d("IFSTATEMENT", "takenAmount is not null")
-							val remainingAmount = portionAmount?.toFloatOrNull()?.minus(takenAmount)
-							Log.d("IFSTATEMENT", "Remaining amount: $remainingAmount")
-
-							if ((remainingAmount != null) && (remainingAmount >= 0)) {
-								portionAmount = remainingAmount.toString()
-								Log.d("INNERIFSTATEMENT", "$portionAmount")
-							} else {
-								Toast.makeText(
-									mContext,
-									"Cannot take more than what is in the fridge!",
-									Toast.LENGTH_SHORT
-								).show()
-							}
-
-							if(remainingAmount == 0.0f){
-								isChecked = 1;
-								Log.d("ISCHECKED", "$isChecked")
-							}
-							mainViewModel.saveEditedEntry(
-								SingleEntry(
-									foodName,
-									bbDate,
-									categoryId,
-									portionAmount,
-									portionType,
-									isChecked,
-									state.value.editSingleEntry.id
-								)
-							)
+						if ((remainingAmount != null) && (remainingAmount >= 0)) {
+							portionAmount = remainingAmount.toString()
+							mainViewModel.dismissAskAmountDialog()
+							Log.d("INNERIFSTATEMENT", "$portionAmount")
 						} else {
-							// Handle invalid input (non-numeric amount taken)
 							Toast.makeText(
 								mContext,
-								"Invalid input. Please enter a valid number.",
+								"Cannot take more than what is in the fridge!",
 								Toast.LENGTH_SHORT
 							).show()
 						}
-						mainViewModel.dismissAskAmountDialog()
-					},
-					modifier = Modifier.padding(top = 20.dp),
-					colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
-				) {
-					Text(text = "Save", color = White)
-				}
+
+						if(remainingAmount == 0.0f){
+							isChecked = 1;
+							Log.d("ISCHECKED", "$isChecked")
+						}
+
+						mainViewModel.saveEditedEntry(
+							SingleEntry(
+								foodName,
+								bbDate,
+								categoryId,
+								portionAmount,
+								portionType,
+								isChecked,
+								state.value.editSingleEntry.id
+							)
+						)
+					} else {
+						// Handle invalid input (non-numeric amount taken)
+						Toast.makeText(
+							mContext,
+							"Invalid input. Please enter a valid number.",
+							Toast.LENGTH_SHORT
+						).show()
+					}
+
+				},
+				modifier = Modifier.padding(top = 20.dp),
+				colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
+			) {
+				Text(text = "Save", color = White)
 			}
 		}
 	}
 }
+
+
+
+// custom drop shadow function
+// https://github.com/Debdutta-Panda/CustomShadow/blob/master/app/src/main/java/com/debduttapanda/customshadow/MainActivity.kt
+fun Modifier.shadow(
+	color: Color = Color.Black,
+	borderRadius: Dp = 0.dp,
+	blurRadius: Dp = 0.dp,
+	offsetY: Dp = 0.dp,
+	offsetX: Dp = 0.dp,
+	spread: Dp = 0f.dp,
+	modifier: Modifier = Modifier
+) = this.then(
+	modifier.drawBehind {
+		this.drawIntoCanvas {
+			val paint = Paint()
+			val frameworkPaint = paint.asFrameworkPaint()
+			val spreadPixel = spread.toPx()
+			val leftPixel = (0f - spreadPixel) + offsetX.toPx()
+			val topPixel = (0f - spreadPixel) + offsetY.toPx()
+			val rightPixel = (this.size.width + spreadPixel)
+			val bottomPixel = (this.size.height + spreadPixel)
+
+			if (blurRadius != 0.dp) {
+				frameworkPaint.maskFilter =
+					(BlurMaskFilter(blurRadius.toPx(), BlurMaskFilter.Blur.NORMAL))
+			}
+
+			frameworkPaint.color = color.toArgb()
+			it.drawRoundRect(
+				left = leftPixel,
+				top = topPixel,
+				right = rightPixel,
+				bottom = bottomPixel,
+				radiusX = borderRadius.toPx(),
+				radiusY = borderRadius.toPx(),
+				paint
+			)
+		}
+	}
+)
