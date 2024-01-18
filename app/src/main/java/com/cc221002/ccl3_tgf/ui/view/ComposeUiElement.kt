@@ -3,12 +3,18 @@ package com.cc221002.ccl3_tgf.ui.view
 import android.annotation.SuppressLint
 import android.graphics.BlurMaskFilter
 import android.app.DatePickerDialog
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.Rect
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.camera.core.ImageCapture
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -17,6 +23,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,30 +34,51 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.Button
+import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.ExposedDropdownMenuDefaults
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme.colors
+import androidx.compose.material.Slider
+import androidx.compose.material.SnackbarDefaults.backgroundColor
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardElevation
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarItem
 
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,15 +88,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
+import androidx.compose.ui.graphics.Color.Companion.DarkGray
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.Color.Companion.Yellow
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.modifier.modifierLocalConsumer
@@ -80,6 +111,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -96,10 +128,17 @@ import com.cc221002.ccl3_tgf.ui.theme.BackgroundLightBlue
 import com.cc221002.ccl3_tgf.ui.theme.ExpiredRed
 import com.cc221002.ccl3_tgf.ui.theme.FridgeBlue
 import com.cc221002.ccl3_tgf.ui.theme.NavigationBlue
+import com.cc221002.ccl3_tgf.ui.theme.TransparentLightBlue
 import com.cc221002.ccl3_tgf.ui.view_model.MainViewModel
+import com.cc221002.ccl3_tgf.ui.view_model.MainViewState
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.update
+import java.io.File
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.util.Calendar
+import java.util.Date
+import java.util.concurrent.ExecutorService
 
 
 // creating a sealed class for the Screens to navigate between
@@ -260,9 +299,7 @@ fun AllCategories (
 ) {
 	val state by mainViewModel.mainViewState.collectAsState()
 	val categories by mainViewModel.categories.collectAsState()
-	val entriesForIsCheckedCheck by mainViewModel.entriesForIsCheckedCheck.collectAsState()
-
-
+	val entriesForCategories by mainViewModel.entriesForCategory.collectAsState()
 
 	mainViewModel.getEntries()
 
@@ -628,7 +665,6 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 		Column(
 			modifier = Modifier
 				.background(White)
-
 		) {
 			Header("$categoryName")
 			Box(
@@ -653,7 +689,6 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 					}
 				}
 			}
-
 			if (state.value.openAddDialog) {
 				AddingPopup(mainViewModel = mainViewModel)
 			}
@@ -738,9 +773,7 @@ fun Header(title:String){
 					)
 				}
 			}
-
-	}
-
+		}
 	}
 }
 
@@ -1042,7 +1075,7 @@ fun EditPopUp(
 			modifier = Modifier
 				.clip(RoundedCornerShape(20.dp))
 				.background(White)
-				.padding(10.dp)
+				.padding(20.dp)
 		) {
 			Column(
 				modifier = Modifier
@@ -1054,14 +1087,15 @@ fun EditPopUp(
 					text = "EDIT",
 					lineHeight = 45.sp,
 					fontWeight = FontWeight.Bold,
-					fontSize = 40.sp,
+					fontSize = 25.sp,
+					letterSpacing = 2.sp,
 					style = TextStyle(fontFamily = FontFamily.SansSerif),
 					color = Color.Black,
 					textAlign = TextAlign.Center,
 					modifier = Modifier
-						.fillMaxWidth(),
+						.fillMaxWidth()
+						.padding(10.dp)
 				)
-
 
 				foodName?.let {
 					TextField(
@@ -1375,199 +1409,238 @@ fun OverviewScreen(
 	mainViewModel.getEntries()
 	val allEntries by mainViewModel.entries.collectAsState()
 
+	val currentDate = LocalDate.now()
+	val hasOverdueItems = allEntries.any { entry ->
+		val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
+		storedDate != null && storedDate.isBefore(currentDate)
+	}
 
 	Column(
 		modifier = Modifier
 			.background(White)
 			.fillMaxSize(),
-		verticalArrangement = Arrangement.SpaceEvenly,
-		horizontalAlignment = Alignment.CenterHorizontally,
 	) {
-
 		Header("Overview")
 
-		// Alert box for overdue items
-		Box(
+		Column(
 			modifier = Modifier
-				.fillMaxWidth()
-				.padding(25.dp),
+				.fillMaxSize()
+				.background(White),
+			verticalArrangement = Arrangement.SpaceEvenly,
+			horizontalAlignment = Alignment.CenterHorizontally,
 		) {
 
+			// Alert box for overdue items
 
-//			val expireTodayEntries = mainViewModel.entriesForCategory.value
-//				.filter { it.bbDate == getCurrentDate() }
-//
-//			val overdueEntries = mainViewModel.entriesForCategory.value
-//				.filter { it.bbDate < getCurrentDate() }
-
-//			Column(
-//				modifier = Modifier
-//					.fillMaxSize()
-//					.clip(RoundedCornerShape(10.dp))
-//					.background(BackgroundBlue)
-//					.padding(15.dp),
-//			) {
-//				if (overdueEntries.isNotEmpty() || expireTodayEntries.isNotEmpty()) {
-//					Text(
-//						text = "Watch out!",
-//						fontWeight = FontWeight.Bold,
-//						fontSize = 25.sp,
-//						style = TextStyle(fontFamily = FontFamily.SansSerif),
-//						color = Color.White,
-//						textAlign = TextAlign.Center,
-//						modifier = Modifier
-//							.fillMaxWidth()
-//							.padding(10.dp),
-//					)
-//					Text(
-//						text = "There are items in your fridge that need to be taken care of!",
-//						color = Color.White,
-//						modifier = Modifier
-//							.fillMaxWidth()
-//							.padding(bottom = 16.dp),
-//						fontSize = 16.sp
-//					)
-//
-//					if (overdueEntries.isNotEmpty()) {
-//						Text(
-//							text = "OVERDUE:",
-//							modifier = Modifier
-//								.fillMaxWidth()
-//								.padding(bottom = 8.dp),
-//							fontWeight = FontWeight.Bold,
-//							fontSize = 20.sp,
-//							color = Color.White
-//						)
-//						overdueEntries.forEach { entry ->
-//							ItemCard(entry, true)
-//						}
-//					}
-//					if (expireTodayEntries.isNotEmpty()) {
-//						Text(
-//							text = "Expires today",
-//							modifier = Modifier
-//								.padding(8.dp),
-//							fontSize = 20.sp,
-//							fontWeight = FontWeight.Bold,
-//							color = Color.White
-//						)
-//						expireTodayEntries.forEach { entry ->
-//							ItemCard(entry, false)
-//						}
-//					}
-//				} else {
-//					Text(
-//						text = "Great job!",
-//						fontWeight = FontWeight.Bold,
-//						fontSize = 25.sp,
-//						style = TextStyle(fontFamily = FontFamily.SansSerif),
-//						color = Color.White,
-//						textAlign = TextAlign.Center,
-//						modifier = Modifier
-//							.fillMaxWidth()
-//							.padding(10.dp),
-//					)
-//					Text(
-//						text = "Everything in your fridge seems fine for today.",
-//						color = Color.White,
-//						modifier = Modifier
-//							.fillMaxWidth()
-//							.padding(bottom = 16.dp),
-//						fontSize = 16.sp
-//					)
-//				}
-//			}
-
-			Column(
-				modifier = Modifier
-					.fillMaxSize()
-					.clip(RoundedCornerShape(10.dp))
-					.background(BackgroundBlue)
-					.padding(15.dp),
-				verticalArrangement = Arrangement.SpaceEvenly
-			) {
-				LazyColumn(
+				Box(
 					modifier = Modifier
 						.fillMaxWidth()
-						.padding(15.dp),
+						.height(400.dp)
+						.padding(25.dp),
 				) {
-					items(
-						allEntries
-					) { entry ->
-						val currentDate = LocalDate.now()
-						val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
-						if (storedDate != null && storedDate.isBefore(currentDate)) {
-							ItemUI(mainViewModel, entry = entry)
+					Column(
+						modifier = Modifier
+							.fillMaxSize()
+							.clip(RoundedCornerShape(10.dp))
+							.background(BackgroundBlue)
+							.padding(15.dp),
+					) {
+						if (hasOverdueItems) {
+							Text(
+								text = "Watch out!",
+								fontWeight = FontWeight.Bold,
+								fontSize = 25.sp,
+								style = TextStyle(fontFamily = FontFamily.SansSerif),
+								color = Color.White,
+								textAlign = TextAlign.Center,
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(top = 20.dp, bottom = 15.dp)
+							)
+							Text(
+								text = "There are items in your fridge that need to be taken care of!",
+								color = Color.White,
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(bottom = 15.dp),
+								fontSize = 16.sp
+							)
+						} else {
+							Text(
+								text = "Great job!",
+								fontWeight = FontWeight.Bold,
+								fontSize = 25.sp,
+								style = TextStyle(fontFamily = FontFamily.SansSerif),
+								color = Color.White,
+								textAlign = TextAlign.Center,
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(10.dp),
+							)
+							Text(
+								text = "Everything in your fridge seems fine for today.",
+								color = Color.White,
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(bottom = 16.dp),
+								fontSize = 16.sp
+							)
+						}
+
+						LazyColumn(
+							modifier = Modifier
+								.fillMaxSize(),
+						) {
+							items(allEntries) { entry ->
+								val storedDate =
+									runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
+								if (storedDate != null && storedDate.isBefore(currentDate)) {
+									ItemUI(mainViewModel, entry = entry)
+								}
+							}
 						}
 					}
 				}
-
-
-					Text(text = "Your recent Items")
-
 				LazyColumn(
 					modifier = Modifier
 						.fillMaxWidth()
-						.padding(15.dp),
+						.padding(20.dp)
 				) {
-					items(
-						allEntries
-					) { entry ->
-
-						if (entry.isChecked == 1) {
-							ItemUI(mainViewModel, entry = entry)
-						}
+					item {
+						Text(
+							text = "Articles",
+							fontWeight = FontWeight.Bold,
+							fontSize = 25.sp,
+							color = Color.Black,
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(start = 15.dp, bottom = 3.dp)
+						)
+						Divider(
+							color = Color.Black,
+							thickness = 2.dp,
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(15.dp)
+						)
 					}
+
+					items(getDummyArticlePreviews()) { articlePreview ->
+						ArticlePreviewUI(articlePreview)
+					}
+				}
+		}
+		Text(text = "Your recent Items")
+
+		LazyColumn(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(15.dp),
+		) {
+			items(
+				allEntries
+			) { entry ->
+
+				if (entry.isChecked == 1) {
+					ItemUI(mainViewModel, entry = entry)
 				}
 			}
 		}
 	}
 }
 
-// items in list of overdue or expiring-today items in alert box in Overview
-//@Composable
-//fun ItemCard(entry: SingleEntry, isOverdue: Boolean) {
-//
-//	val bgColor = if (isOverdue) Color.Red else Color.Blue
-//
-//	Box(
-//		modifier = Modifier
-//			.fillMaxWidth()
-//			.background(bgColor)
-//			.padding(12.dp)
-//			.clip(RoundedCornerShape(8.dp)),
-//		contentAlignment = Alignment.CenterStart
-//	) {
-//		Column (
-//			modifier = Modifier.padding(16.dp)
-//		) {
-//			Text(
-//				text = entry.foodName,
-//				fontWeight = FontWeight.Bold,
-//				fontSize = 16.sp,
-//				color = Color.White
-//			)
-//			Text(
-//				text = "${entry.portionAmount} ${entry.portionType}",
-//				fontSize = 14.sp,
-//				color = Color.White
-//			)
-//			Text(
-//				text = "BB: ${entry.bbDate}",
-//				fontSize = 14.sp,
-//				color = Color.White
-//			)
-//		}
-//	}
-//}
+
+	// A data class representing an article preview
+	data class ArticlePreview(
+		val iconResId: Int, // Resource ID of the article icon
+		val heading: String,
+		val description: String
+	)
+
+	// Function to get dummy article previews
+	fun getDummyArticlePreviews(): List<ArticlePreview> {
+		// You can replace this with your actual data
+		return listOf(
+			ArticlePreview(
+				R.drawable.article1_icon, "Fridge Organization",
+				"A well-organised fridge not only looks good, being able to glance into your fridge " +
+						"and see exactly what's in there can prevent food from going bad, can save you money and " +
+						"help to reduce the 5 million tonnes of edible food waste that households produce every year."
+			),
+			ArticlePreview(
+				R.drawable.article1_icon, "Best Before?",
+				"Learn about the storage life of the most important foods! This way, " +
+						"you can better manage your fridge items."
+			),
+		)
+	}
+
+	@Composable
+	fun ArticlePreviewUI(articlePreview: ArticlePreview) {
+		Box(
+			modifier = Modifier
+				.fillMaxWidth()
+				.shadow(
+					color = Color(0x950B1418),
+					borderRadius = 6.dp,
+					blurRadius = 4.dp,
+					offsetY = 4.dp,
+					spread = 1f.dp
+				)
+				.clip(RoundedCornerShape(10.dp))
+				.background(Color.White)
+				.padding(15.dp)
+				.clickable {
+					// Handle click action for article preview
+				}
+		) {
+			Column(
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(5.dp)
+			) {
+				Row(
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(5.dp)
+				) {
+					Image(
+						painter = painterResource(id = articlePreview.iconResId),
+						contentDescription = null,
+						modifier = Modifier
+							.size(50.dp)
+					)
+					Spacer(modifier = Modifier.width(20.dp))
+
+					Text(
+						text = articlePreview.heading,
+						fontWeight = FontWeight.Bold,
+						fontSize = 20.sp,
+						color = Color.Black,
+						modifier = Modifier
+							.padding(top = 8.dp),
+						overflow = TextOverflow.Ellipsis
+					)
+				}
+				Text(
+					text = articlePreview.description,
+					fontSize = 14.sp,
+					color = Color.Black,
+					modifier = Modifier
+						.padding(top = 4.dp),
+					overflow = TextOverflow.Ellipsis
+				)
+			}
+		}
+		Spacer(modifier = Modifier.height(20.dp))
+	}
 
 
 
 
 
 
-
-			// custom drop shadow function
+// custom drop shadow function
 // https://github.com/Debdutta-Panda/CustomShadow/blob/master/app/src/main/java/com/debduttapanda/customshadow/MainActivity.kt
 fun Modifier.shadow(
 	color: Color = Color.Black,
