@@ -2,6 +2,7 @@ package com.cc221002.ccl3_tgf.ui.view_model
 
 import android.util.Log
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -51,6 +52,10 @@ class MainViewModel (
 
 	private var _entriesForIsCheckedCheck = MutableStateFlow<List<SingleEntry>>(emptyList())
 	val entriesForIsCheckedCheck: StateFlow<List<SingleEntry>> = _entriesForIsCheckedCheck.asStateFlow()
+
+	// this variable is for swipe deleting a trip (it saves for which trip the alert opens)
+	private val _openAlertDialogForEntry = mutableStateOf<String?>(null)
+	val openAlertDialogForEntry: State<String?> = _openAlertDialogForEntry
 
 	private var _giveEntries = MutableStateFlow<List<SingleEntry>>(emptyList())
 	val giveEntries: StateFlow<List<SingleEntry>> = _entriesForCategory.asStateFlow()
@@ -156,7 +161,22 @@ class MainViewModel (
 		_mainViewState.update{ it.copy(openAskAmountDialog = false)}
 	}
 
-	// this function calls the dao function to delete the trip that was passed to it
+
+	// this function opens the alertDialog
+	fun openAlertDialog(entryId: String) {
+		_mainViewState.update { it.copy(openAlertDialog = true) }
+		// and saves for which the alert is opened
+		_openAlertDialogForEntry.value = entryId
+	}
+
+	// this function closes the alertDialog
+	fun dismissAlertDialog(){
+		_mainViewState.update { it.copy(openAlertDialog = false) }
+		// and "deletes" for which trip the alert was opened
+		_openAlertDialogForEntry.value = ""
+	}
+
+	// this function calls the dao function to delete the entry that was passed to it
 	fun deleteTrip(singleEntry: SingleEntry) {
 		viewModelScope.launch() {
 			dao.deleteEntry(singleEntry)

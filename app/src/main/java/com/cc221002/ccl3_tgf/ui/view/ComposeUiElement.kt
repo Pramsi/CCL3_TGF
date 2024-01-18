@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -93,6 +94,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.DarkGray
+import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.Color.Companion.Yellow
 import androidx.compose.ui.graphics.Paint
@@ -127,6 +129,7 @@ import com.cc221002.ccl3_tgf.ui.theme.BackgroundBlue
 import com.cc221002.ccl3_tgf.ui.theme.BackgroundLightBlue
 import com.cc221002.ccl3_tgf.ui.theme.ExpiredRed
 import com.cc221002.ccl3_tgf.ui.theme.FridgeBlue
+import com.cc221002.ccl3_tgf.ui.theme.GreatJobGreen
 import com.cc221002.ccl3_tgf.ui.theme.NavigationBlue
 import com.cc221002.ccl3_tgf.ui.theme.TransparentLightBlue
 import com.cc221002.ccl3_tgf.ui.view_model.MainViewModel
@@ -792,12 +795,7 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 	val currentDate = LocalDate.now()
 	val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
 
-	if (state.value.openAskAmountDialog) {
-		AskAmountModal(mainViewModel = mainViewModel,entry = entry, checkBoxState )
-	}
-	if(state.value.openEditDialog){
-		EditPopUp(mainViewModel = mainViewModel)
-	}
+
 		Row(
 			modifier = Modifier
 //				.shadow(
@@ -885,7 +883,10 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 				modifier = Modifier
 					.padding(end = 10.dp)
 					.size(25.dp)
-					.clickable { mainViewModel.deleteTrip(entry) },
+					.clickable {
+						mainViewModel.openAlertDialog(entry.id.toString())
+//						mainViewModel.deleteTrip(entry)
+					},
 				contentAlignment = Alignment.Center
 			){
 				Image(
@@ -898,9 +899,129 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 				)
 			}
 		}
+
+	if (state.value.openAskAmountDialog) {
+		AskAmountModal(mainViewModel = mainViewModel,entry = entry, checkBoxState )
 	}
 
+	if(state.value.openEditDialog){
+		EditPopUp(mainViewModel = mainViewModel)
+	}
 
+	val openAlertDialogForEntry = mainViewModel.openAlertDialogForEntry.value
+	if (openAlertDialogForEntry == entry.id.toString()) {
+		// if the entry id from the mainViewModel is the same as the one from the entry you clicked, it shows the
+		// confirmation alert to ask if the user is sure to delete the entry
+		showDeleteConfirmationDialog(
+			mainViewModel = mainViewModel,
+			entry = entry,
+			onDeleteConfirmed = {
+				// if the user confirms, it closes the dialog and deletes the entry
+				mainViewModel.dismissAlertDialog()
+				mainViewModel.deleteTrip(entry)
+			})
+	}
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun checkedItemUI(entry:SingleEntry) {
+	Row(
+		modifier = Modifier
+			.fillMaxWidth()
+			.padding(10.dp)
+			.clip(RoundedCornerShape(10.dp))
+			.background(
+				TransparentLightBlue
+			),
+		horizontalArrangement = Arrangement.SpaceEvenly,
+		verticalAlignment = Alignment.CenterVertically
+	) {
+		Column(
+			modifier = Modifier
+				.padding(vertical = 10.dp),
+		) {
+			Text(
+				text = "${entry.foodName}",
+				fontWeight = FontWeight.Bold,
+				textAlign = TextAlign.Start,
+				fontSize = 20.sp,
+				style = TextStyle(fontFamily = FontFamily.Monospace),
+				color = Black,
+				modifier = Modifier
+					.padding(bottom = 10.dp)
+					.width(200.dp)
+			)
+			Text(
+				text = "${entry.portionAmount} ${entry.portionType}",
+				textAlign = TextAlign.Start,
+				fontSize = 12.sp,
+				style = TextStyle(fontFamily = FontFamily.Monospace),
+				color = Black,
+				modifier = Modifier
+					.padding(bottom = 7.dp)
+					.width(200.dp)
+			)
+			Text(
+				text = "Best Before: ${entry.bbDate}",
+				textAlign = TextAlign.Start,
+				fontSize = 12.sp,
+				style = TextStyle(fontFamily = FontFamily.Monospace),
+				color = Black,
+				modifier = Modifier
+					.padding(bottom = 7.dp)
+					.width(200.dp)
+			)
+		}
+	}
+}
+
+
+
+// the Composable to define the Alert to ask for confirmation of deleting an entry
+@Composable
+fun showDeleteConfirmationDialog(
+	mainViewModel: MainViewModel,
+	entry: SingleEntry,
+	onDeleteConfirmed: (SingleEntry) -> Unit
+) {
+	// It generally is just an AlertDialog which is dismissed when you tap beside the alert, when you press "Cancel" and when you press "Delete"
+	// but on Confirm the function sends back that it was confirmed to delete that entry
+	AlertDialog(
+		containerColor = White,
+		onDismissRequest = { mainViewModel.dismissAlertDialog() },
+		title = {
+			Text(
+				"Delete Entry?",
+				color = Black,
+				fontWeight = FontWeight.Bold,
+				textAlign = TextAlign.Center,
+				modifier = Modifier.fillMaxWidth()
+			)
+		},
+		text = { Text("Are you sure you want to delete this entry?", color = Black) },
+		confirmButton = {
+			androidx.compose.material3.Button(
+				onClick = {
+					onDeleteConfirmed(entry) // Perform deletion on confirmation
+				},
+				modifier = Modifier.padding(top = 20.dp),
+				colors = ButtonDefaults.buttonColors(Transparent)
+			) {
+				Text("Delete", color = ExpiredRed, fontWeight = FontWeight.Bold)
+			}
+		},
+		dismissButton = {
+			androidx.compose.material3.Button(
+				onClick = { mainViewModel.dismissAlertDialog() },
+				colors = ButtonDefaults.buttonColors(Transparent),
+				modifier = Modifier.padding(top = 20.dp)
+			) {
+				Text("Cancel", color = Black)
+			}
+		}
+	)
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1434,75 +1555,90 @@ fun OverviewScreen(
 			verticalArrangement = Arrangement.SpaceEvenly
 		)
 		{
-			Column (
-				modifier = Modifier
-					.clip(RoundedCornerShape(10.dp, 10.dp, 0.dp, 0.dp))
-					.background(BackgroundBlue)
-					.padding(horizontal = 15.dp),
-
-				) {
-				if (hasOverdueItems) {
-					Text(
-						text = "Watch out!",
-						fontWeight = FontWeight.Bold,
-						fontSize = 25.sp,
-						style = TextStyle(fontFamily = FontFamily.SansSerif),
-						color = Color.White,
-						textAlign = TextAlign.Center,
-						modifier = Modifier
-							.fillMaxWidth()
-							.padding(top = 20.dp, bottom = 15.dp)
-					)
-					Text(
-						text = "There are items in your fridge that need to be taken care of!",
-						color = Color.White,
-						modifier = Modifier
-							.fillMaxWidth()
-							.padding(bottom = 15.dp),
-						fontSize = 16.sp
-					)
-				} else {
-					Text(
-						text = "Great job!",
-						fontWeight = FontWeight.Bold,
-						fontSize = 25.sp,
-						style = TextStyle(fontFamily = FontFamily.SansSerif),
-						color = Color.White,
-						textAlign = TextAlign.Center,
-						modifier = Modifier
-							.fillMaxWidth()
-							.padding(10.dp),
-					)
-					Text(
-						text = "Everything in your fridge seems fine for today.",
-						color = Color.White,
-						modifier = Modifier
-							.fillMaxWidth()
-							.padding(bottom = 16.dp),
-						fontSize = 16.sp
-					)
-				}
-			}
-			Row{
-				LazyColumn(
+			Column(modifier = Modifier
+				.shadow(
+					color = Color(0x950B1418),
+					borderRadius = 6.dp,
+					blurRadius = 4.dp,
+					offsetY = 4.dp,
+					spread = 1f.dp
+				)
+				.clip(RoundedCornerShape(10.dp))
+				.background(FridgeBlue)
+			) {
+				Column(
 					modifier = Modifier
-						.fillMaxWidth()
-						.height(400.dp)
-						.clip(RoundedCornerShape(0.dp, 0.dp, 10.dp, 10.dp))
-						.background(BackgroundBlue)
-						.padding(15.dp),
+						.padding(horizontal = 15.dp),
+					horizontalAlignment = Alignment.CenterHorizontally
 				) {
-					items(allEntries) { entry ->
-						val storedDate =
-							runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
-						if (storedDate != null && storedDate.isBefore(currentDate)) {
-							ItemUI(mainViewModel, entry = entry)
+					if (hasOverdueItems) {
+						Text(
+							text = "Watch out!",
+							fontWeight = FontWeight.Bold,
+							fontSize = 25.sp,
+							style = TextStyle(fontFamily = FontFamily.SansSerif),
+							color = ExpiredRed,
+							textAlign = TextAlign.Center,
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(top = 20.dp, bottom = 15.dp)
+						)
+						Text(
+							text = "There are items in your fridge that need to be taken care of!",
+							color = Color.Black,
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(bottom = 15.dp),
+							fontSize = 16.sp
+						)
+					} else {
+						Text(
+							text = "Great job!",
+							fontWeight = FontWeight.Bold,
+							fontSize = 25.sp,
+							style = TextStyle(fontFamily = FontFamily.SansSerif),
+							color = GreatJobGreen,
+							textAlign = TextAlign.Center,
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(10.dp),
+						)
+						Text(
+							text = "Everything in your fridge seems fine for today.",
+							color = Color.Black,
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(bottom = 16.dp),
+							fontSize = 16.sp
+						)
+						Image(
+							painter = painterResource(id = R.drawable.celebration_icon),
+							contentDescription = "Great Job!",
+							contentScale = ContentScale.FillBounds,
+							modifier = Modifier
+								.size(100.dp)
+						)
+					}
+				}
+				Row {
+					LazyColumn(
+						modifier = Modifier
+							.fillMaxWidth()
+							.heightIn(min = 100.dp, max = 400.dp)
+							.padding(15.dp),
+					) {
+						items(allEntries.sortedBy { it.bbDate }) { entry ->
+							val storedDate =
+								runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
+							if (storedDate != null && storedDate.isBefore(currentDate)) {
+								ItemUI(mainViewModel, entry = entry)
+							}
 						}
 					}
 				}
 			}
 			Column(
-				modifier = Modifier.padding(top = 12.dp)
+				modifier = Modifier.padding(top = 20.dp)
 			) {
 				Text(
 					text = "Articles",
@@ -1534,27 +1670,43 @@ fun OverviewScreen(
 				}
 			}
 
-			Row(){
-				LazyColumn(
+			Column(
+				modifier = Modifier.padding(top = 20.dp)
+			){
+				Text(
+				text = "Your recent Items",
+				fontWeight = FontWeight.Bold,
+				fontSize = 25.sp,
+				color = Color.Black,
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(start = 15.dp, bottom = 3.dp)
+			)
+				Divider(
+					color = Color.Black,
+					thickness = 2.dp,
 					modifier = Modifier
 						.fillMaxWidth()
-						.height(400.dp)
-						.padding(20.dp)
-				){
-					item {
-						Text(text = "Your recent Items")
-					}
-					items(
-						allEntries
-					) { entry ->
-						if (entry.isChecked == 1) {
-							ItemUI(mainViewModel, entry = entry)
+						.padding(bottom = 15.dp, top = 10.dp)
+				)
+				Row {
 
+					LazyColumn(
+						modifier = Modifier
+							.fillMaxWidth()
+							.height(400.dp)
+							.padding(horizontal = 20.dp)
+					) {
+						items(
+							allEntries
+						) { entry ->
+							if (entry.isChecked == 1) {
+								checkedItemUI(entry = entry)
+							}
 						}
 					}
 				}
 			}
-
 		}
 	}
 }
