@@ -164,16 +164,23 @@ fun MainView(
 	// creating instances of the ViewModels and the NavController
 	val navController = rememberNavController()
 	var showBottomBar by rememberSaveable { mutableStateOf(true) }
+	var showFloatingButton by rememberSaveable { mutableStateOf(true) }
+
 	val navBackStackEntry by navController.currentBackStackEntryAsState()
 
 	showBottomBar = when (navBackStackEntry?.destination?.route) {
-		"splashScreen" -> false // on this screen bottom bar should be hidden
+		"splashScreen" -> false
+		else -> true // in all other cases show bottom bar
+	}
+	showFloatingButton = when (navBackStackEntry?.destination?.route) {
+		"splashScreen" -> false
+		"overview" -> false// on this screen bottom bar should be hidden
 		else -> true // in all other cases show bottom bar
 	}
 	// defining the routes to each Screen and what happens when that route is used
 	Scaffold(
 		floatingActionButton ={
-			if(showBottomBar) {
+			if(showFloatingButton) {
 				// Add a floating button to navigate to the AddingPopup
 				FloatingActionButton(
 					containerColor = NavigationBlue,
