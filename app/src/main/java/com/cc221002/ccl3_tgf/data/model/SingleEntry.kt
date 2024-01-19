@@ -21,6 +21,7 @@ data class SingleEntry(
 	val portionAmount: String?,
 	val portionType: String?,
 	val isChecked: Int,
+	val timeStampChecked: String,
 	@PrimaryKey(autoGenerate = true) val id: Int = 0,
 
 	)

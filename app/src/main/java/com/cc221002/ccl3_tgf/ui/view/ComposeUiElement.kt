@@ -1081,7 +1081,7 @@ fun AddingPopup(
 	var isChecked = 0
 	var categorySelection by remember { mutableStateOf("") }
 	var portionSelection by remember { mutableStateOf("") }
-
+	var timeStampChecked by remember { mutableStateOf("")}
 	AlertDialog(
 		onDismissRequest = {
 			mainViewModel.dismissAddDialog()
@@ -1184,7 +1184,7 @@ fun AddingPopup(
 
 			Button(
 				onClick = {
-					mainViewModel.saveButton(SingleEntry(foodName.text, bbDate, categoryId, portionAmount.text, portionSelection, isChecked))
+					mainViewModel.saveButton(SingleEntry(foodName.text, bbDate, categoryId, portionAmount.text, portionSelection, isChecked, timeStampChecked))
 						  },
 				modifier = Modifier.padding(top = 20.dp),
 				colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
@@ -1220,6 +1220,9 @@ fun EditPopUp(
 	}
 	var isChecked by rememberSaveable {
 		mutableIntStateOf(state.value.editSingleEntry.isChecked)
+	}
+	var timeStampChecked by rememberSaveable {
+		mutableStateOf("")
 	}
 
 	val categories by mainViewModel.categories.collectAsState()
@@ -1352,18 +1355,10 @@ fun EditPopUp(
 								portionAmount,
 								portionType,
 								isChecked,
+								timeStampChecked,
 								state.value.editSingleEntry.id
 							)
 						)
-					Log.d("SAVINGEDIT","${SingleEntry(
-							foodName,
-						bbDate,
-						categoryId,
-						portionAmount,
-						portionType,
-						isChecked,
-						state.value.editSingleEntry.id
-					)}")
 							  },
 					modifier = Modifier.padding(top = 20.dp),
 					colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
@@ -1740,7 +1735,7 @@ fun OverviewScreen(
 							.padding(horizontal = 20.dp)
 					) {
 						items(
-							allEntries
+							allEntries.sortedByDescending { it.timeStampChecked }
 						) { entry ->
 							if (entry.isChecked == 1) {
 								checkedItemUI(entry = entry)
@@ -1940,6 +1935,9 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 	var isChecked by rememberSaveable {
 		mutableIntStateOf(state.value.editSingleEntry.isChecked)
 	}
+	var timeStampChecked by rememberSaveable {
+		mutableStateOf(entry.timeStampChecked)
+	}
 
 	var amountTaken by rememberSaveable {
 		mutableStateOf("")
@@ -1950,7 +1948,6 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 	AlertDialog(
 		onDismissRequest = {
 			mainViewModel.dismissAskAmountDialog()
-
 		},
 		modifier = Modifier
 			.clip(RoundedCornerShape(20.dp))
@@ -2019,6 +2016,9 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 			}
 			Button(
 				onClick =   {
+
+
+
 					val takenAmount = amountTaken.toFloatOrNull()
 					Log.d("amountTaken","$amountTaken")
 
@@ -2031,6 +2031,8 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 						if ((remainingAmount != null) && (remainingAmount >= 0)) {
 							portionAmount = remainingAmount.toString()
 							mainViewModel.dismissAskAmountDialog()
+							val currentTime = LocalDate.now()
+							timeStampChecked = currentTime.toString()
 							Log.d("INNERIFSTATEMENT", "$portionAmount")
 						} else {
 							Toast.makeText(
@@ -2053,6 +2055,7 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 								portionAmount,
 								portionType,
 								isChecked,
+								timeStampChecked,
 								state.value.editSingleEntry.id
 							)
 						)
