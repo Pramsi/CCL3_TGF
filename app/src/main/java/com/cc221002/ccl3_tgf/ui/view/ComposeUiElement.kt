@@ -69,6 +69,7 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
 
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -130,6 +131,8 @@ import com.cc221002.ccl3_tgf.ui.theme.BackgroundLightBlue
 import com.cc221002.ccl3_tgf.ui.theme.ExpiredRed
 import com.cc221002.ccl3_tgf.ui.theme.FridgeBlue
 import com.cc221002.ccl3_tgf.ui.theme.GreatJobGreen
+import com.cc221002.ccl3_tgf.ui.theme.HistoryItemGray
+import com.cc221002.ccl3_tgf.ui.theme.HistoryItemGreen
 import com.cc221002.ccl3_tgf.ui.theme.NavigationBlue
 import com.cc221002.ccl3_tgf.ui.theme.TransparentLightBlue
 import com.cc221002.ccl3_tgf.ui.view_model.MainViewModel
@@ -241,6 +244,15 @@ fun BottomNavigationBar(navController: NavHostController, selectedScreen: Screen
 
 			NavigationBarItem(
 				selected = (selectedScreen == Screen.Overview),
+				colors = NavigationBarItemColors(
+					selectedIndicatorColor = FridgeBlue,
+					selectedIconColor = Black,
+					selectedTextColor = Black,
+					unselectedIconColor = Black,
+					unselectedTextColor = Black,
+					disabledIconColor = Black,
+					disabledTextColor = Black,
+				),
 				onClick = { navController.navigate(Screen.Overview.route) },
 				icon = { Image(
 					painter = painterResource(id = R.drawable.notification_icon),
@@ -252,6 +264,15 @@ fun BottomNavigationBar(navController: NavHostController, selectedScreen: Screen
 
 			NavigationBarItem(
 				selected = (selectedScreen == Screen.ShowCategories),
+				colors = NavigationBarItemColors(
+					selectedIndicatorColor = FridgeBlue,
+					selectedIconColor = Black,
+					selectedTextColor = Black,
+					unselectedIconColor = Black,
+					unselectedTextColor = Black,
+					disabledIconColor = Black,
+					disabledTextColor = Black,
+				),
 				onClick = { navController.navigate(Screen.ShowCategories.route) },
 				icon = { Image(
 					painter = painterResource(id = R.drawable.fridge_icon),
@@ -299,7 +320,7 @@ fun SplashScreen(
 
 	// if the value of the variable is true it navigates to the ShowAllTrips
 	if(loadingFinished.value) {
-		navController.navigate(Screen.ShowCategories.route)
+		navController.navigate(Screen.Overview.route)
 	}
 }
 
@@ -939,11 +960,25 @@ fun checkedItemUI(entry:SingleEntry) {
 			.padding(10.dp)
 			.clip(RoundedCornerShape(10.dp))
 			.background(
-				TransparentLightBlue
+				HistoryItemGreen
 			),
 		horizontalArrangement = Arrangement.SpaceEvenly,
 		verticalAlignment = Alignment.CenterVertically
 	) {
+		Spacer(modifier = Modifier.padding(7.dp))
+		Box(
+			modifier = Modifier
+				.size(25.dp)
+
+		){
+			Checkbox(
+				enabled = false,
+				checked = true,
+				onCheckedChange = {},
+				colors = CheckboxDefaults.colors(Transparent),
+			)
+		}
+		Spacer(modifier = Modifier.padding(7.dp))
 		Column(
 			modifier = Modifier
 				.padding(vertical = 10.dp),
@@ -954,7 +989,7 @@ fun checkedItemUI(entry:SingleEntry) {
 				textAlign = TextAlign.Start,
 				fontSize = 20.sp,
 				style = TextStyle(fontFamily = FontFamily.Monospace),
-				color = Black,
+				color = HistoryItemGray,
 				modifier = Modifier
 					.padding(bottom = 10.dp)
 					.width(200.dp)
@@ -964,7 +999,7 @@ fun checkedItemUI(entry:SingleEntry) {
 				textAlign = TextAlign.Start,
 				fontSize = 12.sp,
 				style = TextStyle(fontFamily = FontFamily.Monospace),
-				color = Black,
+				color = HistoryItemGray,
 				modifier = Modifier
 					.padding(bottom = 7.dp)
 					.width(200.dp)
@@ -974,7 +1009,7 @@ fun checkedItemUI(entry:SingleEntry) {
 				textAlign = TextAlign.Start,
 				fontSize = 12.sp,
 				style = TextStyle(fontFamily = FontFamily.Monospace),
-				color = Black,
+				color = HistoryItemGray,
 				modifier = Modifier
 					.padding(bottom = 7.dp)
 					.width(200.dp)
@@ -1547,7 +1582,8 @@ fun OverviewScreen(
 	}
 	Column(
 		modifier = Modifier
-			.fillMaxSize(),
+			.fillMaxSize()
+			.background(White),
 		verticalArrangement = Arrangement.SpaceEvenly
 
 	) {
@@ -1556,7 +1592,6 @@ fun OverviewScreen(
 		Column(
 			modifier = Modifier
 				.fillMaxSize()
-				.background(White)
 				.padding(15.dp)
 				.verticalScroll(rememberScrollState()),
 			verticalArrangement = Arrangement.SpaceEvenly
@@ -1637,7 +1672,7 @@ fun OverviewScreen(
 						items(allEntries.sortedBy { it.bbDate }) { entry ->
 							val storedDate =
 								runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
-							if (storedDate != null && storedDate.isBefore(currentDate)) {
+							if (storedDate != null && storedDate.isBefore(currentDate) && entry.isChecked == 0) {
 								ItemUI(mainViewModel, entry = entry)
 							}
 						}
