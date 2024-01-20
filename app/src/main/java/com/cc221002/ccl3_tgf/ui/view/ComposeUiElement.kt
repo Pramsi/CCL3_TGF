@@ -752,6 +752,14 @@ fun Header(title:String){
 				.background(NavigationBlue),
 			contentAlignment = Alignment.Center
 		) {
+			Image(
+				painter = painterResource(id = R.drawable.tgf_logo_small),
+				contentDescription = null,
+				modifier = Modifier
+					.size(45.dp)
+					.padding(start = 15.dp)
+					.align(Alignment.CenterStart)
+			)
 			Text(
 				text = title,
 				fontSize = 30.sp,
@@ -775,7 +783,16 @@ fun Header(title:String){
 					.background(NavigationBlue),
 				contentAlignment = Alignment.Center
 			) {
+				Image(
+				painter = painterResource(id = R.drawable.tgf_logo_small),
+				contentDescription = null,
+				modifier = Modifier
+					.size(45.dp)
+					.padding(start = 15.dp)
+					.align(Alignment.CenterStart)
+			)
 				Row {
+
 					Text(
 						text = title,
 						fontSize = 30.sp,
