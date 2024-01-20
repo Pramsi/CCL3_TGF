@@ -59,6 +59,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardElevation
 import androidx.compose.material3.Checkbox
@@ -1090,7 +1091,8 @@ fun AddingPopup(
 		modifier = Modifier
 			.clip(RoundedCornerShape(20.dp))
 			.background(White)
-			.padding(20.dp)
+			.padding(20.dp),
+
 	) {
 		Column(
 			modifier = Modifier
@@ -1182,16 +1184,33 @@ fun AddingPopup(
 				}
 			}
 
-
-			Button(
-				onClick = {
-					mainViewModel.saveButton(SingleEntry(foodName.text, bbDate, categoryId, portionAmount.text, portionSelection, isChecked, timeStampChecked))
-						  },
-				modifier = Modifier.padding(top = 20.dp),
-				colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
+			Row(
+				horizontalArrangement = Arrangement.Center,
+				verticalAlignment = Alignment.CenterVertically
 			) {
-				Text(text = "Add", color = White )
+				Button(
+					elevation = androidx.compose.material.ButtonDefaults.elevation(0.dp),
+					onClick = {
+						mainViewModel.dismissAddDialog()
+							  },
+					modifier = Modifier.padding(top = 20.dp),
+					colors = androidx.compose.material.ButtonDefaults.buttonColors(Transparent)
+				) {
+					Text(text = "Cancel", color = Black )
+				}
+
+				Button(
+					onClick = {
+						mainViewModel.saveButton(SingleEntry(foodName.text, bbDate, categoryId, portionAmount.text, portionSelection, isChecked, timeStampChecked))
+					},
+					modifier = Modifier.padding(top = 20.dp),
+					colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
+				) {
+					Text(text = "Add", color = White )
+				}
+
 			}
+
 		}
 	}
 }
@@ -1345,26 +1364,43 @@ fun EditPopUp(
 						}
 					}
 				}
-
-				Button(
-					onClick = {
-						mainViewModel.saveEditedEntry(
-							SingleEntry(
-								foodName,
-								bbDate,
-								categoryId,
-								portionAmount,
-								portionType,
-								isChecked,
-								timeStampChecked,
-								state.value.editSingleEntry.id
-							)
-						)
-							  },
-					modifier = Modifier.padding(top = 20.dp),
-					colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
+				Row(
+					horizontalArrangement = Arrangement.Center,
+					verticalAlignment = Alignment.CenterVertically
 				) {
-					Text(text = "Save", color = White)
+					Button(
+						elevation = androidx.compose.material.ButtonDefaults.elevation(0.dp),
+						onClick = {
+							mainViewModel.dismissEditDialog()
+						},
+						modifier = Modifier.padding(top = 20.dp),
+						colors = androidx.compose.material.ButtonDefaults.buttonColors(Transparent)
+					) {
+						Text(text = "Cancel", color = Black)
+					}
+
+					Button(
+						onClick = {
+							mainViewModel.saveEditedEntry(
+								SingleEntry(
+									foodName,
+									bbDate,
+									categoryId,
+									portionAmount,
+									portionType,
+									isChecked,
+									timeStampChecked,
+									state.value.editSingleEntry.id
+								)
+							)
+						},
+						modifier = Modifier.padding(top = 20.dp),
+						colors = androidx.compose.material.ButtonDefaults.buttonColors(
+							BackgroundBlue
+						)
+					) {
+						Text(text = "Save", color = White)
+					}
 				}
 			}
 		}
@@ -2017,66 +2053,81 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 					textAlign = TextAlign.Center
 				)
 			}
-			Button(
-				onClick =   {
+
+			Row(
+				horizontalArrangement = Arrangement.Center,
+				verticalAlignment = Alignment.CenterVertically
+			) {
+				Button(
+					elevation = androidx.compose.material.ButtonDefaults.elevation(0.dp),
+					onClick = {
+						mainViewModel.dismissAskAmountDialog()
+					},
+					modifier = Modifier.padding(top = 20.dp),
+					colors = androidx.compose.material.ButtonDefaults.buttonColors(Transparent)
+				) {
+					Text(text = "Cancel", color = Black)
+				}
+				Button(
+					onClick = {
 
 
+						val takenAmount = amountTaken.toFloatOrNull()
+						Log.d("amountTaken", "$amountTaken")
 
-					val takenAmount = amountTaken.toFloatOrNull()
-					Log.d("amountTaken","$amountTaken")
+						Log.d("TAKENAMOUNT", "$takenAmount")
+						if (takenAmount != null) {
+							Log.d("IFSTATEMENT", "takenAmount is not null")
+							val remainingAmount = portionAmount?.toFloatOrNull()?.minus(takenAmount)
+							Log.d("IFSTATEMENT", "Remaining amount: $remainingAmount")
 
-					Log.d("TAKENAMOUNT","$takenAmount")
-					if (takenAmount != null) {
-						Log.d("IFSTATEMENT", "takenAmount is not null")
-						val remainingAmount = portionAmount?.toFloatOrNull()?.minus(takenAmount)
-						Log.d("IFSTATEMENT", "Remaining amount: $remainingAmount")
+							if ((remainingAmount != null) && (remainingAmount >= 0)) {
+								portionAmount = remainingAmount.toString()
+								mainViewModel.dismissAskAmountDialog()
 
-						if ((remainingAmount != null) && (remainingAmount >= 0)) {
-							portionAmount = remainingAmount.toString()
-							mainViewModel.dismissAskAmountDialog()
+								Log.d("INNERIFSTATEMENT", "$portionAmount")
+							} else {
+								Toast.makeText(
+									mContext,
+									"Cannot take more than what is in the fridge!",
+									Toast.LENGTH_SHORT
+								).show()
+							}
 
-							Log.d("INNERIFSTATEMENT", "$portionAmount")
+							if (remainingAmount == 0.0f) {
+								isChecked = 1;
+								val currentTime = LocalTime.now()
+								timeStampChecked = currentTime.toString()
+								Log.d("ISCHECKED", "$isChecked")
+							}
+
+							mainViewModel.saveEditedEntry(
+								SingleEntry(
+									foodName,
+									bbDate,
+									categoryId,
+									portionAmount,
+									portionType,
+									isChecked,
+									timeStampChecked,
+									state.value.editSingleEntry.id
+								)
+							)
 						} else {
+							// Handle invalid input (non-numeric amount taken)
 							Toast.makeText(
 								mContext,
-								"Cannot take more than what is in the fridge!",
+								"Invalid input. Please enter a valid number.",
 								Toast.LENGTH_SHORT
 							).show()
 						}
 
-						if(remainingAmount == 0.0f){
-							isChecked = 1;
-							val currentTime = LocalTime.now()
-							timeStampChecked = currentTime.toString()
-							Log.d("ISCHECKED", "$isChecked")
-						}
-
-						mainViewModel.saveEditedEntry(
-							SingleEntry(
-								foodName,
-								bbDate,
-								categoryId,
-								portionAmount,
-								portionType,
-								isChecked,
-								timeStampChecked,
-								state.value.editSingleEntry.id
-							)
-						)
-					} else {
-						// Handle invalid input (non-numeric amount taken)
-						Toast.makeText(
-							mContext,
-							"Invalid input. Please enter a valid number.",
-							Toast.LENGTH_SHORT
-						).show()
-					}
-
-				},
-				modifier = Modifier.padding(top = 20.dp),
-				colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
-			) {
-				Text(text = "Save", color = White)
+					},
+					modifier = Modifier.padding(top = 20.dp),
+					colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
+				) {
+					Text(text = "Save", color = White)
+				}
 			}
 		}
 	}
