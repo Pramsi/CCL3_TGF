@@ -1129,7 +1129,7 @@ fun AddingPopup(
 					newText-> foodName = newText
 				},
 				label = {
-					Text(text ="Food Name", color = Black)}
+					Text(text ="Food Name", color = Color.Gray)}
 			)
 
 			DatePickerField(selectedDate = bbDate , onDateSelected = {bbDate = it.toString()})
@@ -1174,7 +1174,7 @@ fun AddingPopup(
 							newText-> portionAmount = newText
 					},
 					label = {
-						Text(text ="#", color = Black  )}
+						Text(text ="#", color = Color.Gray)}
 				)
 
 				PortionsDropDownMenu(mainViewModel = mainViewModel, selectedPortion = portionSelection){selectedCategory->
@@ -1395,7 +1395,7 @@ fun CategoryDropDownMenu(mainViewModel: MainViewModel, selectedCategory:String,o
 					.fillMaxWidth()
 					.padding(top = 20.dp)
 					.shadow(3.dp, RectangleShape, false),
-				label= { Text(text = "Categories", color = Black)},
+				label= { Text(text = "Categories", color = Color.Gray)},
 				value = selectedCategory,
 				onValueChange = {},
 				readOnly = true,
@@ -1446,7 +1446,7 @@ fun PortionsDropDownMenu(mainViewModel: MainViewModel,selectedPortion:String,onP
 				modifier = Modifier
 					.fillMaxWidth(0.95f)
 					.shadow(3.dp, RectangleShape, false),
-				label= { Text(text = "Portion(s)", color = Black)},
+				label= { Text(text = "Unit(s)", color = Color.Gray)},
 				value = selectedPortion,
 				onValueChange = {},
 				readOnly = true,
@@ -1470,6 +1470,8 @@ fun PortionsDropDownMenu(mainViewModel: MainViewModel,selectedPortion:String,onP
 					"Portion(s)",
 					"Glass(es)",
 					"Bottle(s)",
+					"Can(s)",
+					"Pack(s)",
 					"g",
 					"dag",
 					"kg",
@@ -1541,7 +1543,7 @@ fun DatePickerField(
 					.size(35.dp)
 			)},
 			onValueChange = {},
-			label = { Text(text = "Best-Before Date", color = Black) },
+			label = { Text(text = "Best-Before Date", color = Color.Gray) },
 			readOnly = true,
 
 			modifier = Modifier
