@@ -59,6 +59,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardElevation
 import androidx.compose.material3.Checkbox
@@ -69,6 +70,7 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
 
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -130,6 +132,8 @@ import com.cc221002.ccl3_tgf.ui.theme.BackgroundLightBlue
 import com.cc221002.ccl3_tgf.ui.theme.ExpiredRed
 import com.cc221002.ccl3_tgf.ui.theme.FridgeBlue
 import com.cc221002.ccl3_tgf.ui.theme.GreatJobGreen
+import com.cc221002.ccl3_tgf.ui.theme.HistoryItemGray
+import com.cc221002.ccl3_tgf.ui.theme.HistoryItemGreen
 import com.cc221002.ccl3_tgf.ui.theme.NavigationBlue
 import com.cc221002.ccl3_tgf.ui.theme.TransparentLightBlue
 import com.cc221002.ccl3_tgf.ui.view_model.MainViewModel
@@ -139,6 +143,7 @@ import kotlinx.coroutines.flow.update
 import java.io.File
 import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.time.LocalTime
 import java.util.Calendar
 import java.util.Date
 import java.util.concurrent.ExecutorService
@@ -241,6 +246,15 @@ fun BottomNavigationBar(navController: NavHostController, selectedScreen: Screen
 
 			NavigationBarItem(
 				selected = (selectedScreen == Screen.Overview),
+				colors = NavigationBarItemColors(
+					selectedIndicatorColor = FridgeBlue,
+					selectedIconColor = Black,
+					selectedTextColor = Black,
+					unselectedIconColor = Black,
+					unselectedTextColor = Black,
+					disabledIconColor = Black,
+					disabledTextColor = Black,
+				),
 				onClick = { navController.navigate(Screen.Overview.route) },
 				icon = { Image(
 					painter = painterResource(id = R.drawable.notification_icon),
@@ -252,6 +266,15 @@ fun BottomNavigationBar(navController: NavHostController, selectedScreen: Screen
 
 			NavigationBarItem(
 				selected = (selectedScreen == Screen.ShowCategories),
+				colors = NavigationBarItemColors(
+					selectedIndicatorColor = FridgeBlue,
+					selectedIconColor = Black,
+					selectedTextColor = Black,
+					unselectedIconColor = Black,
+					unselectedTextColor = Black,
+					disabledIconColor = Black,
+					disabledTextColor = Black,
+				),
 				onClick = { navController.navigate(Screen.ShowCategories.route) },
 				icon = { Image(
 					painter = painterResource(id = R.drawable.fridge_icon),
@@ -299,7 +322,7 @@ fun SplashScreen(
 
 	// if the value of the variable is true it navigates to the ShowAllTrips
 	if(loadingFinished.value) {
-		navController.navigate(Screen.ShowCategories.route)
+		navController.navigate(Screen.Overview.route)
 	}
 }
 
@@ -669,9 +692,6 @@ fun AllCategories (
 fun categoryEntries(navController: NavHostController,mainViewModel: MainViewModel){
 	val state = mainViewModel.mainViewState.collectAsState()
 	val entries = mainViewModel.entriesForCategory.collectAsState()
-	val categories by mainViewModel.categories.collectAsState()
-	Log.d("CategoryEntries", entries.value.toString())
-	Log.d("CategoryEntries", categories.toString())
 
 	val categoryName = mainViewModel.currentCategory
 
@@ -932,18 +952,46 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun checkedItemUI(entry:SingleEntry) {
+fun checkedItemUI(mainViewModel: MainViewModel, entry: SingleEntry) {
+	mainViewModel.getAllCategories()
+	val categories by mainViewModel.categories.collectAsState()
+
+	var categorySelection by remember { mutableStateOf("") }
+
+	for (category in categories) {
+		if (entry.categoryId == category.id) {
+			categorySelection = category.categoryName
+		}
+	}
+
+
+
+
 	Row(
 		modifier = Modifier
 			.fillMaxWidth()
 			.padding(10.dp)
 			.clip(RoundedCornerShape(10.dp))
 			.background(
-				TransparentLightBlue
+				HistoryItemGreen
 			),
 		horizontalArrangement = Arrangement.SpaceEvenly,
 		verticalAlignment = Alignment.CenterVertically
 	) {
+		Spacer(modifier = Modifier.padding(7.dp))
+		Box(
+			modifier = Modifier
+				.size(25.dp)
+
+		){
+			Checkbox(
+				enabled = false,
+				checked = true,
+				onCheckedChange = {},
+				colors = CheckboxDefaults.colors(Transparent),
+			)
+		}
+		Spacer(modifier = Modifier.padding(7.dp))
 		Column(
 			modifier = Modifier
 				.padding(vertical = 10.dp),
@@ -954,17 +1002,18 @@ fun checkedItemUI(entry:SingleEntry) {
 				textAlign = TextAlign.Start,
 				fontSize = 20.sp,
 				style = TextStyle(fontFamily = FontFamily.Monospace),
-				color = Black,
+				color = HistoryItemGray,
 				modifier = Modifier
 					.padding(bottom = 10.dp)
 					.width(200.dp)
 			)
+
 			Text(
-				text = "${entry.portionAmount} ${entry.portionType}",
+				text =  categorySelection,
 				textAlign = TextAlign.Start,
 				fontSize = 12.sp,
 				style = TextStyle(fontFamily = FontFamily.Monospace),
-				color = Black,
+				color = HistoryItemGray,
 				modifier = Modifier
 					.padding(bottom = 7.dp)
 					.width(200.dp)
@@ -974,7 +1023,7 @@ fun checkedItemUI(entry:SingleEntry) {
 				textAlign = TextAlign.Start,
 				fontSize = 12.sp,
 				style = TextStyle(fontFamily = FontFamily.Monospace),
-				color = Black,
+				color = HistoryItemGray,
 				modifier = Modifier
 					.padding(bottom = 7.dp)
 					.width(200.dp)
@@ -1046,7 +1095,7 @@ fun AddingPopup(
 	var isChecked = 0
 	var categorySelection by remember { mutableStateOf("") }
 	var portionSelection by remember { mutableStateOf("") }
-
+	var timeStampChecked by remember { mutableStateOf("")}
 	AlertDialog(
 		onDismissRequest = {
 			mainViewModel.dismissAddDialog()
@@ -1054,7 +1103,8 @@ fun AddingPopup(
 		modifier = Modifier
 			.clip(RoundedCornerShape(20.dp))
 			.background(White)
-			.padding(20.dp)
+			.padding(20.dp),
+
 	) {
 		Column(
 			modifier = Modifier
@@ -1093,7 +1143,7 @@ fun AddingPopup(
 					newText-> foodName = newText
 				},
 				label = {
-					Text(text ="Food Name", color = Black)}
+					Text(text ="Food Name", color = Color.Gray)}
 			)
 
 			DatePickerField(selectedDate = bbDate , onDateSelected = {bbDate = it.toString()})
@@ -1138,7 +1188,7 @@ fun AddingPopup(
 							newText-> portionAmount = newText
 					},
 					label = {
-						Text(text ="#", color = Black  )}
+						Text(text ="#", color = Color.Gray)}
 				)
 
 				PortionsDropDownMenu(mainViewModel = mainViewModel, selectedPortion = portionSelection){selectedCategory->
@@ -1146,16 +1196,33 @@ fun AddingPopup(
 				}
 			}
 
-
-			Button(
-				onClick = {
-					mainViewModel.saveButton(SingleEntry(foodName.text, bbDate, categoryId, portionAmount.text, portionSelection, isChecked))
-						  },
-				modifier = Modifier.padding(top = 20.dp),
-				colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
+			Row(
+				horizontalArrangement = Arrangement.Center,
+				verticalAlignment = Alignment.CenterVertically
 			) {
-				Text(text = "Add", color = White )
+				Button(
+					elevation = androidx.compose.material.ButtonDefaults.elevation(0.dp),
+					onClick = {
+						mainViewModel.dismissAddDialog()
+							  },
+					modifier = Modifier.padding(top = 20.dp),
+					colors = androidx.compose.material.ButtonDefaults.buttonColors(Transparent)
+				) {
+					Text(text = "Cancel", color = Black )
+				}
+
+				Button(
+					onClick = {
+						mainViewModel.saveButton(SingleEntry(foodName.text, bbDate, categoryId, portionAmount.text, portionSelection, isChecked, timeStampChecked))
+					},
+					modifier = Modifier.padding(top = 20.dp),
+					colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
+				) {
+					Text(text = "Add", color = White )
+				}
+
 			}
+
 		}
 	}
 }
@@ -1186,6 +1253,9 @@ fun EditPopUp(
 	var isChecked by rememberSaveable {
 		mutableIntStateOf(state.value.editSingleEntry.isChecked)
 	}
+	var timeStampChecked by rememberSaveable {
+		mutableStateOf("")
+	}
 
 	val categories by mainViewModel.categories.collectAsState()
 
@@ -1194,7 +1264,6 @@ fun EditPopUp(
 	for (category in categories) {
 		if (categoryId == category.id) {
 			categorySelection = category.categoryName
-			Log.d("IDTOCATEGORY", categorySelection)
 		}
 	}
 
@@ -1260,7 +1329,6 @@ fun EditPopUp(
 							categoryId = category.id
 						}
 					}
-					Log.d("Categoryselected", "$categorySelection $categoryId")
 				}
 
 				Row(
@@ -1306,34 +1374,43 @@ fun EditPopUp(
 						}
 					}
 				}
-
-				Button(
-					onClick = {
-						mainViewModel.saveEditedEntry(
-							SingleEntry(
-								foodName,
-								bbDate,
-								categoryId,
-								portionAmount,
-								portionType,
-								isChecked,
-								state.value.editSingleEntry.id
-							)
-						)
-					Log.d("SAVINGEDIT","${SingleEntry(
-							foodName,
-						bbDate,
-						categoryId,
-						portionAmount,
-						portionType,
-						isChecked,
-						state.value.editSingleEntry.id
-					)}")
-							  },
-					modifier = Modifier.padding(top = 20.dp),
-					colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
+				Row(
+					horizontalArrangement = Arrangement.Center,
+					verticalAlignment = Alignment.CenterVertically
 				) {
-					Text(text = "Save", color = White)
+					Button(
+						elevation = androidx.compose.material.ButtonDefaults.elevation(0.dp),
+						onClick = {
+							mainViewModel.dismissEditDialog()
+						},
+						modifier = Modifier.padding(top = 20.dp),
+						colors = androidx.compose.material.ButtonDefaults.buttonColors(Transparent)
+					) {
+						Text(text = "Cancel", color = Black)
+					}
+
+					Button(
+						onClick = {
+							mainViewModel.saveEditedEntry(
+								SingleEntry(
+									foodName,
+									bbDate,
+									categoryId,
+									portionAmount,
+									portionType,
+									isChecked,
+									timeStampChecked,
+									state.value.editSingleEntry.id
+								)
+							)
+						},
+						modifier = Modifier.padding(top = 20.dp),
+						colors = androidx.compose.material.ButtonDefaults.buttonColors(
+							BackgroundBlue
+						)
+					) {
+						Text(text = "Save", color = White)
+					}
 				}
 			}
 		}
@@ -1364,7 +1441,7 @@ fun CategoryDropDownMenu(mainViewModel: MainViewModel, selectedCategory:String,o
 					.fillMaxWidth()
 					.padding(top = 20.dp)
 					.shadow(3.dp, RectangleShape, false),
-				label= { Text(text = "Categories", color = Black)},
+				label= { Text(text = "Categories", color = Color.Gray)},
 				value = selectedCategory,
 				onValueChange = {},
 				readOnly = true,
@@ -1404,9 +1481,6 @@ fun PortionsDropDownMenu(mainViewModel: MainViewModel,selectedPortion:String,onP
 	var isExpanded by remember {
 		mutableStateOf(false)
 	}
-
-
-
 		ExposedDropdownMenuBox(
 			expanded = isExpanded,
 			onExpandedChange = { isExpanded = it }
@@ -1415,7 +1489,7 @@ fun PortionsDropDownMenu(mainViewModel: MainViewModel,selectedPortion:String,onP
 				modifier = Modifier
 					.fillMaxWidth(0.95f)
 					.shadow(3.dp, RectangleShape, false),
-				label= { Text(text = "Portion(s)", color = Black)},
+				label= { Text(text = "Unit(s)", color = Color.Gray)},
 				value = selectedPortion,
 				onValueChange = {},
 				readOnly = true,
@@ -1439,6 +1513,8 @@ fun PortionsDropDownMenu(mainViewModel: MainViewModel,selectedPortion:String,onP
 					"Portion(s)",
 					"Glass(es)",
 					"Bottle(s)",
+					"Can(s)",
+					"Pack(s)",
 					"g",
 					"dag",
 					"kg",
@@ -1510,7 +1586,7 @@ fun DatePickerField(
 					.size(35.dp)
 			)},
 			onValueChange = {},
-			label = { Text(text = "Best-Before Date", color = Black) },
+			label = { Text(text = "Best-Before Date", color = Color.Gray) },
 			readOnly = true,
 
 			modifier = Modifier
@@ -1547,7 +1623,8 @@ fun OverviewScreen(
 	}
 	Column(
 		modifier = Modifier
-			.fillMaxSize(),
+			.fillMaxSize()
+			.background(White),
 		verticalArrangement = Arrangement.SpaceEvenly
 
 	) {
@@ -1556,7 +1633,6 @@ fun OverviewScreen(
 		Column(
 			modifier = Modifier
 				.fillMaxSize()
-				.background(White)
 				.padding(15.dp)
 				.verticalScroll(rememberScrollState()),
 			verticalArrangement = Arrangement.SpaceEvenly
@@ -1637,7 +1713,7 @@ fun OverviewScreen(
 						items(allEntries.sortedBy { it.bbDate }) { entry ->
 							val storedDate =
 								runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
-							if (storedDate != null && storedDate.isBefore(currentDate)) {
+							if (storedDate != null && storedDate.isBefore(currentDate) && entry.isChecked == 0) {
 								ItemUI(mainViewModel, entry = entry)
 							}
 						}
@@ -1705,10 +1781,10 @@ fun OverviewScreen(
 							.padding(horizontal = 20.dp)
 					) {
 						items(
-							allEntries
+							allEntries.sortedByDescending { it.timeStampChecked }
 						) { entry ->
 							if (entry.isChecked == 1) {
-								checkedItemUI(entry = entry)
+								checkedItemUI(mainViewModel, entry = entry)
 							}
 						}
 					}
@@ -1905,6 +1981,9 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 	var isChecked by rememberSaveable {
 		mutableIntStateOf(state.value.editSingleEntry.isChecked)
 	}
+	var timeStampChecked by rememberSaveable {
+		mutableStateOf(entry.timeStampChecked)
+	}
 
 	var amountTaken by rememberSaveable {
 		mutableStateOf("")
@@ -1915,7 +1994,6 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 	AlertDialog(
 		onDismissRequest = {
 			mainViewModel.dismissAskAmountDialog()
-
 		},
 		modifier = Modifier
 			.clip(RoundedCornerShape(20.dp))
@@ -1982,59 +2060,75 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 					textAlign = TextAlign.Center
 				)
 			}
-			Button(
-				onClick =   {
-					val takenAmount = amountTaken.toFloatOrNull()
-					Log.d("amountTaken","$amountTaken")
 
-					Log.d("TAKENAMOUNT","$takenAmount")
-					if (takenAmount != null) {
-						Log.d("IFSTATEMENT", "takenAmount is not null")
-						val remainingAmount = portionAmount?.toFloatOrNull()?.minus(takenAmount)
-						Log.d("IFSTATEMENT", "Remaining amount: $remainingAmount")
+			Row(
+				horizontalArrangement = Arrangement.Center,
+				verticalAlignment = Alignment.CenterVertically
+			) {
+				Button(
+					elevation = androidx.compose.material.ButtonDefaults.elevation(0.dp),
+					onClick = {
+						mainViewModel.dismissAskAmountDialog()
+					},
+					modifier = Modifier.padding(top = 20.dp),
+					colors = androidx.compose.material.ButtonDefaults.buttonColors(Transparent)
+				) {
+					Text(text = "Cancel", color = Black)
+				}
+				Button(
+					onClick = {
 
-						if ((remainingAmount != null) && (remainingAmount >= 0)) {
-							portionAmount = remainingAmount.toString()
-							mainViewModel.dismissAskAmountDialog()
-							Log.d("INNERIFSTATEMENT", "$portionAmount")
+
+						val takenAmount = amountTaken.toFloatOrNull()
+
+						if (takenAmount != null) {
+							val remainingAmount = portionAmount?.toFloatOrNull()?.minus(takenAmount)
+
+							if ((remainingAmount != null) && (remainingAmount >= 0)) {
+								portionAmount = remainingAmount.toString()
+								mainViewModel.dismissAskAmountDialog()
+
+							} else {
+								Toast.makeText(
+									mContext,
+									"Cannot take more than what is in the fridge!",
+									Toast.LENGTH_SHORT
+								).show()
+							}
+
+							if (remainingAmount == 0.0f) {
+								isChecked = 1;
+								val currentTime = LocalTime.now()
+								timeStampChecked = currentTime.toString()
+							}
+
+							mainViewModel.saveEditedEntry(
+								SingleEntry(
+									foodName,
+									bbDate,
+									categoryId,
+									portionAmount,
+									portionType,
+									isChecked,
+									timeStampChecked,
+									state.value.editSingleEntry.id
+								)
+							)
 						} else {
+							// Handle invalid input (non-numeric amount taken)
 							Toast.makeText(
 								mContext,
-								"Cannot take more than what is in the fridge!",
+								"Invalid input. Please enter a valid number.",
 								Toast.LENGTH_SHORT
 							).show()
 						}
 
-						if(remainingAmount == 0.0f){
-							isChecked = 1;
-							Log.d("ISCHECKED", "$isChecked")
-						}
-
-						mainViewModel.saveEditedEntry(
-							SingleEntry(
-								foodName,
-								bbDate,
-								categoryId,
-								portionAmount,
-								portionType,
-								isChecked,
-								state.value.editSingleEntry.id
-							)
-						)
-					} else {
-						// Handle invalid input (non-numeric amount taken)
-						Toast.makeText(
-							mContext,
-							"Invalid input. Please enter a valid number.",
-							Toast.LENGTH_SHORT
-						).show()
-					}
-
-				},
-				modifier = Modifier.padding(top = 20.dp),
-				colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
-			) {
-				Text(text = "Save", color = White)
+					},
+					modifier = Modifier.padding(top = 20.dp),
+					colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
+				) {
+					Text(text = "Save", color = White)
+				}
 			}
 		}
 	}
