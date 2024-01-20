@@ -745,7 +745,6 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 							.clip(RoundedCornerShape(4.dp))
 							.background(FridgeBlue)
 					)
-//					Spacer(modifier = Modifier.width(80.dp))
 					Box(
 						modifier = Modifier
 							.width(40.dp)
@@ -753,7 +752,6 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 							.clip(RoundedCornerShape(4.dp))
 							.background(FridgeBlue)
 					)
-//				}
 			}
 	}
 }
@@ -1665,7 +1663,7 @@ fun OverviewScreen(
 	val currentDate = LocalDate.now()
 	val hasOverdueItems = allEntries.any { entry ->
 		val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
-		storedDate != null && storedDate.isBefore(currentDate)
+		storedDate != null && storedDate.isBefore(currentDate) && !mainViewModel.areAllEntriesChecked(entry.categoryId)
 	}
 	Column(
 		modifier = Modifier
