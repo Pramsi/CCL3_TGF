@@ -698,34 +698,63 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 		Column(
 			modifier = Modifier
 				.background(White)
+				.fillMaxSize()
 		) {
 			Header("$categoryName")
-			Box(
-				modifier = Modifier
-					.offset(y = (-15).dp)
-					.fillMaxWidth()
-					.padding(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 45.dp)
-					.clip(RoundedCornerShape(16.dp))
-					.background(FridgeBlue),
-				contentAlignment = Alignment.Center
-			) {
-				LazyColumn(
-				verticalArrangement = Arrangement.Top,
-				horizontalAlignment = Alignment.CenterHorizontally,
-				modifier = Modifier
-					.fillMaxSize()
+			Row  {
+				Box(
+					modifier = Modifier
+						.offset(y = (-15).dp)
+						.fillMaxWidth()
+						.padding(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 0.dp)
+						.clip(RoundedCornerShape(16.dp))
+						.background(FridgeBlue),
+					contentAlignment = Alignment.Center
+				) {
+					LazyColumn(
+						verticalArrangement = Arrangement.Top,
+						horizontalAlignment = Alignment.CenterHorizontally,
+						modifier = Modifier
+							.fillMaxHeight(0.9f)
 //			.background(FridgeBlue),
-			) {
-				items(entries.value.sortedBy { it.bbDate }) { entry ->
-					if(entry.isChecked == 0) {
-						ItemUI(mainViewModel, entry = entry)
+					) {
+						items(entries.value.sortedBy { it.bbDate }) { entry ->
+							if(entry.isChecked == 0) {
+								ItemUI(mainViewModel, entry = entry)
+							}
+						}
+					}
+
+					if (state.value.openAddDialog) {
+						AddingPopup(mainViewModel = mainViewModel)
 					}
 				}
 			}
-			if (state.value.openAddDialog) {
-				AddingPopup(mainViewModel = mainViewModel)
+
+				Row(
+					modifier = Modifier
+						.fillMaxWidth()
+						.offset(y = (-15).dp)
+						.height(45.dp),
+					horizontalArrangement = Arrangement.SpaceEvenly
+				) {
+					Box(
+						modifier = Modifier
+							.width(40.dp)
+							.height(20.dp)
+							.clip(RoundedCornerShape(4.dp))
+							.background(FridgeBlue)
+					)
+//					Spacer(modifier = Modifier.width(80.dp))
+					Box(
+						modifier = Modifier
+							.width(40.dp)
+							.height(20.dp)
+							.clip(RoundedCornerShape(4.dp))
+							.background(FridgeBlue)
+					)
+//				}
 			}
-		}
 	}
 }
 
