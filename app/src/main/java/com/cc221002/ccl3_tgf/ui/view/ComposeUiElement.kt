@@ -142,6 +142,7 @@ import kotlinx.coroutines.flow.update
 import java.io.File
 import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.time.LocalTime
 import java.util.Calendar
 import java.util.Date
 import java.util.concurrent.ExecutorService
@@ -2031,8 +2032,7 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 						if ((remainingAmount != null) && (remainingAmount >= 0)) {
 							portionAmount = remainingAmount.toString()
 							mainViewModel.dismissAskAmountDialog()
-							val currentTime = LocalDate.now()
-							timeStampChecked = currentTime.toString()
+
 							Log.d("INNERIFSTATEMENT", "$portionAmount")
 						} else {
 							Toast.makeText(
@@ -2044,6 +2044,8 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 
 						if(remainingAmount == 0.0f){
 							isChecked = 1;
+							val currentTime = LocalTime.now()
+							timeStampChecked = currentTime.toString()
 							Log.d("ISCHECKED", "$isChecked")
 						}
 
