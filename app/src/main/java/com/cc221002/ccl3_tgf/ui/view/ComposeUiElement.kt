@@ -692,9 +692,6 @@ fun AllCategories (
 fun categoryEntries(navController: NavHostController,mainViewModel: MainViewModel){
 	val state = mainViewModel.mainViewState.collectAsState()
 	val entries = mainViewModel.entriesForCategory.collectAsState()
-	val categories by mainViewModel.categories.collectAsState()
-	Log.d("CategoryEntries", entries.value.toString())
-	Log.d("CategoryEntries", categories.toString())
 
 	val categoryName = mainViewModel.currentCategory
 
@@ -955,7 +952,21 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun checkedItemUI(entry:SingleEntry) {
+fun checkedItemUI(mainViewModel: MainViewModel, entry: SingleEntry) {
+	mainViewModel.getAllCategories()
+	val categories by mainViewModel.categories.collectAsState()
+
+	var categorySelection by remember { mutableStateOf("") }
+
+	for (category in categories) {
+		if (entry.categoryId == category.id) {
+			categorySelection = category.categoryName
+		}
+	}
+
+
+
+
 	Row(
 		modifier = Modifier
 			.fillMaxWidth()
@@ -996,8 +1007,9 @@ fun checkedItemUI(entry:SingleEntry) {
 					.padding(bottom = 10.dp)
 					.width(200.dp)
 			)
+
 			Text(
-				text = "${entry.portionAmount} ${entry.portionType}",
+				text =  categorySelection,
 				textAlign = TextAlign.Start,
 				fontSize = 12.sp,
 				style = TextStyle(fontFamily = FontFamily.Monospace),
@@ -1252,7 +1264,6 @@ fun EditPopUp(
 	for (category in categories) {
 		if (categoryId == category.id) {
 			categorySelection = category.categoryName
-			Log.d("IDTOCATEGORY", categorySelection)
 		}
 	}
 
@@ -1318,7 +1329,6 @@ fun EditPopUp(
 							categoryId = category.id
 						}
 					}
-					Log.d("Categoryselected", "$categorySelection $categoryId")
 				}
 
 				Row(
@@ -1471,9 +1481,6 @@ fun PortionsDropDownMenu(mainViewModel: MainViewModel,selectedPortion:String,onP
 	var isExpanded by remember {
 		mutableStateOf(false)
 	}
-
-
-
 		ExposedDropdownMenuBox(
 			expanded = isExpanded,
 			onExpandedChange = { isExpanded = it }
@@ -1777,7 +1784,7 @@ fun OverviewScreen(
 							allEntries.sortedByDescending { it.timeStampChecked }
 						) { entry ->
 							if (entry.isChecked == 1) {
-								checkedItemUI(entry = entry)
+								checkedItemUI(mainViewModel, entry = entry)
 							}
 						}
 					}
@@ -2073,19 +2080,14 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 
 
 						val takenAmount = amountTaken.toFloatOrNull()
-						Log.d("amountTaken", "$amountTaken")
 
-						Log.d("TAKENAMOUNT", "$takenAmount")
 						if (takenAmount != null) {
-							Log.d("IFSTATEMENT", "takenAmount is not null")
 							val remainingAmount = portionAmount?.toFloatOrNull()?.minus(takenAmount)
-							Log.d("IFSTATEMENT", "Remaining amount: $remainingAmount")
 
 							if ((remainingAmount != null) && (remainingAmount >= 0)) {
 								portionAmount = remainingAmount.toString()
 								mainViewModel.dismissAskAmountDialog()
 
-								Log.d("INNERIFSTATEMENT", "$portionAmount")
 							} else {
 								Toast.makeText(
 									mContext,
@@ -2098,7 +2100,6 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 								isChecked = 1;
 								val currentTime = LocalTime.now()
 								timeStampChecked = currentTime.toString()
-								Log.d("ISCHECKED", "$isChecked")
 							}
 
 							mainViewModel.saveEditedEntry(
