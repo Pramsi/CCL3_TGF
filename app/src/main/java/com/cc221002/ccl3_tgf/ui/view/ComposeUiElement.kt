@@ -696,78 +696,64 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 
 	val categoryName = mainViewModel.currentCategory
 
-	Column(
-		modifier = Modifier
-			.background(White)
-	) {
-		Header("$categoryName")
-		Box(
+		Column(
 			modifier = Modifier
-				.offset(y = (-15).dp)
-				.fillMaxWidth()
-				.padding(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 0.dp)
-				.clip(RoundedCornerShape(16.dp))
-				.background(FridgeBlue),
-			contentAlignment = Alignment.Center
+				.background(White)
+				.fillMaxSize()
 		) {
-			LazyColumn(
-				verticalArrangement = Arrangement.Top,
-				horizontalAlignment = Alignment.CenterHorizontally,
-				modifier = Modifier
-					.fillMaxSize()
-			) {
-				if (entries.value.isEmpty()) {
-					item {
-						Text(
-							text = "This category is empty. You can add an item with the '+' button at the bottom right.",
-							color = SecondaryGray,
-							fontSize = 16.sp,
-							textAlign = TextAlign.Center,
-							modifier = Modifier
-								.padding(30.dp)
-						)
-					}
-				} else {
-					items(entries.value.sortedBy { it.bbDate }) { entry ->
-						if (entry.isChecked == 0) {
-							ItemUI(mainViewModel, entry = entry)
+			Header("$categoryName")
+			Row  {
+				Box(
+					modifier = Modifier
+						.offset(y = (-15).dp)
+						.fillMaxWidth()
+						.padding(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 0.dp)
+						.clip(RoundedCornerShape(16.dp))
+						.background(FridgeBlue),
+					contentAlignment = Alignment.Center
+				) {
+					LazyColumn(
+						verticalArrangement = Arrangement.Top,
+						horizontalAlignment = Alignment.CenterHorizontally,
+						modifier = Modifier
+							.fillMaxHeight(0.9f)
+//			.background(FridgeBlue),
+					) {
+						items(entries.value.sortedBy { it.bbDate }) { entry ->
+							if(entry.isChecked == 0) {
+								ItemUI(mainViewModel, entry = entry)
+							}
 						}
+					}
+
+					if (state.value.openAddDialog) {
+						AddingPopup(mainViewModel = mainViewModel)
 					}
 				}
 			}
 
-			if (state.value.openAddDialog) {
-				AddingPopup(mainViewModel = mainViewModel)
-			}
-		}
-		Box(
-			modifier = Modifier
-				.fillMaxWidth()
-				.height(45.dp)
-				.padding(top = 0.dp, bottom = 45.dp)
-				.background(Color.Red), // to test where tf this box is??
-			contentAlignment = Alignment.Center
-		) {
-			Row(
-				modifier = Modifier
-					.fillMaxWidth(),
-				horizontalArrangement = Arrangement.Center
-			) {
-				Box(
+				Row(
 					modifier = Modifier
-						.size(20.dp)
-						.clip(RoundedCornerShape(4.dp))
-						.background(FridgeBlue)
-				)
-				Spacer(modifier = Modifier.width(50.dp))
-				Box(
-					modifier = Modifier
-						.size(20.dp)
-						.clip(RoundedCornerShape(4.dp))
-						.background(FridgeBlue)
-				)
+						.fillMaxWidth()
+						.offset(y = (-15).dp)
+						.height(45.dp),
+					horizontalArrangement = Arrangement.SpaceEvenly
+				) {
+					Box(
+						modifier = Modifier
+							.width(40.dp)
+							.height(20.dp)
+							.clip(RoundedCornerShape(4.dp))
+							.background(FridgeBlue)
+					)
+					Box(
+						modifier = Modifier
+							.width(40.dp)
+							.height(20.dp)
+							.clip(RoundedCornerShape(4.dp))
+							.background(FridgeBlue)
+					)
 			}
-		}
 	}
 }
 
@@ -794,6 +780,14 @@ fun Header(title:String){
 				.background(NavigationBlue),
 			contentAlignment = Alignment.Center
 		) {
+			Image(
+				painter = painterResource(id = R.drawable.tgf_logo_small),
+				contentDescription = null,
+				modifier = Modifier
+					.size(45.dp)
+					.padding(start = 15.dp)
+					.align(Alignment.CenterStart)
+			)
 			Text(
 				text = title,
 				fontSize = 30.sp,
@@ -817,6 +811,14 @@ fun Header(title:String){
 					.background(NavigationBlue),
 				contentAlignment = Alignment.Center
 			) {
+				Image(
+				painter = painterResource(id = R.drawable.tgf_logo_small),
+				contentDescription = null,
+				modifier = Modifier
+					.size(45.dp)
+					.padding(start = 15.dp)
+					.align(Alignment.CenterStart)
+			)
 				Row {
 					Text(
 						text = title,
