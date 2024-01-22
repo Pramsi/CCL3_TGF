@@ -349,7 +349,7 @@ fun AllCategories (
 
 	Header(title = "Your Fridge")
 		if(state.openAddDialog){
-			AddingPopup(mainViewModel = mainViewModel)
+			AddingPopup(mainViewModel = mainViewModel, categoryName = "")
 		}
 
 		// fridge box containing all the categories
@@ -726,7 +726,7 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 					}
 
 					if (state.value.openAddDialog) {
-						AddingPopup(mainViewModel = mainViewModel)
+						AddingPopup(mainViewModel = mainViewModel, categoryName)
 					}
 				}
 			}
@@ -1128,6 +1128,7 @@ fun showDeleteConfirmationDialog(
 @Composable
 fun AddingPopup(
 	mainViewModel: MainViewModel,
+	categoryName : String?
 ){
 	val categories by mainViewModel.categories.collectAsState()
 
@@ -1192,15 +1193,15 @@ fun AddingPopup(
 
 			DatePickerField(selectedDate = bbDate , onDateSelected = {bbDate = it.toString()})
 
-			CategoryDropDownMenu(mainViewModel, categorySelection){ selectedCategory->
-				 categorySelection = selectedCategory
-				for(category in categories){
-					if(categorySelection == category.categoryName){
-						categoryId = category.id
-					}
+			CategoryDropDownMenu(categoryName, mainViewModel, categorySelection, ){ selectedCategory->
+
+				if(categoryName == "") {
+					categorySelection = selectedCategory
+					Log.d("PREFILLEDCATEGORY", "categorySelection: $categorySelection")
+					Log.d("PREFILLEDCATEGORY", "categoryName: $categoryName")
 				}
-				Log.d("Categoryselected","$categorySelection $categoryId")
 			}
+
 
 			Row (
 				modifier = Modifier
@@ -1257,6 +1258,19 @@ fun AddingPopup(
 
 				Button(
 					onClick = {
+						if(categorySelection == "") {
+							categorySelection = categoryName!!
+
+						}
+						for(category in categories){
+							if(categorySelection == category.categoryName){
+								categoryId = category.id
+							}
+						}
+						Log.d("Saving prefilled", "categoryname: $categoryName")
+						Log.d("Saving prefilled", "categorySelection: $categorySelection")
+
+
 						mainViewModel.saveButton(SingleEntry(foodName.text, bbDate, categoryId, portionAmount.text, portionSelection, isChecked, timeStampChecked))
 					},
 					modifier = Modifier.padding(top = 20.dp),
@@ -1366,7 +1380,7 @@ fun EditPopUp(
 
 				bbDate?.let { DatePickerField(selectedDate = it, onDateSelected = { bbDate = it.toString() }) }
 
-				CategoryDropDownMenu(mainViewModel, categorySelection) { selectedCategory ->
+				CategoryDropDownMenu(categoryName = categorySelection, mainViewModel, categorySelection) { selectedCategory ->
 					categorySelection = selectedCategory
 					for (category in categories) {
 						if (categorySelection == category.categoryName) {
@@ -1464,12 +1478,13 @@ fun EditPopUp(
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun CategoryDropDownMenu(mainViewModel: MainViewModel, selectedCategory:String,onCategorySelected: (String) -> Unit){
+fun CategoryDropDownMenu(categoryName: String?,mainViewModel: MainViewModel, selectedCategory:String, onCategorySelected: (String) -> Unit){
 	var isExpanded by remember {
 		mutableStateOf(false)
 	}
 
 	val distinctCategories = mainViewModel.getDistinctCategories()
+	Log.d("PREFILLEDCATEGORY", "categoryName: $categoryName")
 
 	Row(
 		modifier = Modifier
@@ -1486,8 +1501,13 @@ fun CategoryDropDownMenu(mainViewModel: MainViewModel, selectedCategory:String,o
 					.padding(top = 20.dp)
 					.shadow(3.dp, RectangleShape, false),
 				label= { Text(text = "Categories", color = Color.Gray)},
-				value = selectedCategory,
-				onValueChange = {},
+				value = if(categoryName != "") { categoryName!! } else { selectedCategory }
+				,
+				onValueChange = {
+								categoryName.let { selectedCategory }
+					Log.d("PREFILLEDCATEGORY", "categoryName: $categoryName")
+
+				},
 				readOnly = true,
 				trailingIcon = {
 					ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded)
