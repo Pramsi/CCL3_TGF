@@ -2053,6 +2053,8 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 		mutableStateOf("")
 	}
 
+	amountTaken = portionAmount!!
+
 	val mContext = LocalContext.current
 
 	AlertDialog(
