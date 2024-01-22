@@ -186,6 +186,7 @@ fun MainView(
 	showFloatingButton = when (navBackStackEntry?.destination?.route) {
 		"splashScreen" -> false
 		"overview" -> false// on this screen bottom bar should be hidden
+		"article/{articleId}" -> false
 		else -> true // in all other cases show bottom bar
 	}
 	// defining the routes to each Screen and what happens when that route is used
@@ -1713,8 +1714,9 @@ fun OverviewScreen(
 	val currentDate = LocalDate.now()
 	val hasOverdueItems = allEntries.any { entry ->
 		val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
-		storedDate != null && storedDate.isBefore(currentDate)
+		storedDate != null && !storedDate.isAfter(currentDate)&& !mainViewModel.areAllEntriesChecked(entry.categoryId)
 	}
+
 	Column(
 		modifier = Modifier
 			.fillMaxSize()
@@ -1801,13 +1803,13 @@ fun OverviewScreen(
 					LazyColumn(
 						modifier = Modifier
 							.fillMaxWidth()
-							.heightIn(min = 100.dp, max = 400.dp)
+							.heightIn(min = 80.dp, max = 400.dp)
 							.padding(15.dp),
 					) {
 						items(allEntries.sortedBy { it.bbDate }) { entry ->
 							val storedDate =
 								runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
-							if (storedDate != null && storedDate.isBefore(currentDate) && entry.isChecked == 0) {
+							if (storedDate != null && !storedDate.isAfter(currentDate) && entry.isChecked == 0 && !mainViewModel.areAllEntriesChecked(entry.categoryId)) {
 								ItemUI(mainViewModel, entry = entry)
 							}
 						}
@@ -1824,14 +1826,14 @@ fun OverviewScreen(
 					color = Color.Black,
 					modifier = Modifier
 						.fillMaxWidth()
-						.padding(start = 15.dp, bottom = 3.dp)
+						.padding(start = 15.dp, bottom = 3.dp, top = 18.dp)
 				)
 				Divider(
 						color = Color.Black,
-				thickness = 2.dp,
+				thickness = 1.dp,
 				modifier = Modifier
 					.fillMaxWidth()
-					.padding(bottom = 15.dp, top = 10.dp)
+					.padding(bottom = 28.dp, top = 6.dp, start = 18.dp, end = 18.dp)
 				)
 			}
 			Row{
@@ -1857,14 +1859,14 @@ fun OverviewScreen(
 				color = Color.Black,
 				modifier = Modifier
 					.fillMaxWidth()
-					.padding(start = 15.dp, bottom = 3.dp)
+					.padding(start = 15.dp, bottom = 3.dp, top = 5.dp)
 			)
 				Divider(
 					color = Color.Black,
-					thickness = 2.dp,
+					thickness = 1.dp,
 					modifier = Modifier
 						.fillMaxWidth()
-						.padding(bottom = 15.dp, top = 10.dp)
+						.padding(bottom = 22.dp, top = 6.dp, start = 18.dp, end = 18.dp)
 				)
 				Row {
 
@@ -1904,22 +1906,57 @@ data class ArticlePreview(
 	val paragraph2: String,
 	val paragraph3: String,
 	val paragraph4: String,
-	val contentPicture: Int
+	val contentPicture1: Int,
+	val picHeight1: Int,
+	val contentPicture2: Int,
+	val picHeight2: Int
 )
 
 // Function to get article previews
 fun getDummyArticlePreviews(): List<ArticlePreview> {
 	return listOf(
 		ArticlePreview(
+			// https://blog.secondharvest.ca/2022/02/19/everything-you-need-to-know-about-best-before-dates/
 			articleId = 1,
 			R.drawable.article1_icon,
 			"Best Before?",
 			"Learn about the storage life of the most important foods! This way, " +
 					"you can better manage your fridge items.",
-			"id",
-			"Top Shelf", "Middle Shelf", "Bottom Shelf", "H4",
-			"Text", "Text", "Text", "Text",
-			R.drawable.article1_icon,
+			"There's no standardized system for food dating in this country. So is it really any wonder why dates on" +
+					"packaged foods are a bit, baffling? But spoiler alert (pun intended): Food products are safe to consume past the date on the label.",
+			"What's Shelf Life?", "After Best Before", "Simple Checks For Overdue Foods", "Why is understanding the Best Before date important?",
+			"Shelf-life is the period of time during which a food maintains its acceptable or desirable characteristics " +
+					"under specified storage and handling conditions. These acceptable or desirable characteristics can be related " +
+					"to the safety or quality of the product and can be microbiological, chemical or physical in nature.",
+			"When packaged correctly and stored or frozen at the correct temperature, the following best before date timelines are generally true:\n" +
+					"\n" +
+					"Canned goods: Last up to one year past the best before date.\n" +
+					"Dairy (and eggs): Lasts up to two weeks past the best before date.\n" +
+					"Poultry pieces: Last up to six months in the freezer.\n" +
+					"Meats (incl. beef, lamb, pork and whole poultry): Last up to one year in the freezer.\n" +
+					"Dry cereals: Last up to one year past the best before date.\n" +
+					"Packaged snacks (incl. popcorn, granola bars and bagged snacks): Last up to one year past the best before date.\n" +
+					"Prepared and frozen meals: Last up to one year past the best before date in the freezer.\n" +
+					"Unopened, shelf-stable condiments: Last up to one year past the best before date.\n" +
+					"Unopened drinks (incl. juice or coconut water): Last up to one year past the best before date.",
+			"1) What temperature was the food stored at?\n" +
+					"Regardless of the best before date, perishable food items must be stored at the correct temperature. Two to four hours " +
+					"in a bad temperature zone (4-60 degrees celsius) is enough to spoil the food.\n" +
+					"\n" +
+					"2) How does the packaging look, feel and smell?\n" +
+					"Check canned goods and food packaging for bulging, tears, rips, water damage or signs of insects. Look for " +
+					"mould, foul smells or discolouration. All of these may be signs that the food has gone bad and " +
+					"is not safe to eat, regardless of what the best before date says.\n" +
+					"\n" +
+					"3) Was the food frozen properly and how is the packaging?\n" +
+					"If the frozen items have freezer burn or icicles formed on them — or if the packaging " +
+					"is ripped — they may not be safe to eat.",
+			"Too much food goes to waste because of a lack of awareness and education. Consumers throw out or avoid purchasing good " +
+					"food because it was too close to the best before date. Grocers dump milk and dairy products (that we " +
+					"now know are good for another two weeks!) for this very same reason.\n" +
+					"But if we all made the commitment to understanding best before dates, think of the food that we could divert from landfills.",
+			R.drawable.bb_milk, picHeight1 = 300,
+			R.drawable.after_bb_dates, picHeight2 = 480,
 		),
 		ArticlePreview(
 			// https://www.thespruce.com/how-to-organize-a-fridge-5085366
@@ -1954,7 +1991,52 @@ fun getDummyArticlePreviews(): List<ArticlePreview> {
 					"\n" +
 					"Keeping your refrigerator organized may take a little effort, but it's worth the time it takes upfront to save money and brain space later. " +
 					"A few key steps can help your food last longer and get dinner on the table quicker.",
-			R.drawable.fridge_org,
+			R.drawable.fridge_org, picHeight1 = 300,
+			R.drawable.fridge_org_figma, picHeight2 = 450,
+		),
+		ArticlePreview(
+			// https://www.bafu.admin.ch/bafu/en/home/topics/waste/guide-to-waste-a-z/biodegradable-waste/types-of-waste/lebensmittelabfaelle.html
+			// https://www.eufic.org/en/food-safety/article/food-waste-in-europe-statistics-and-facts-about-the-problem
+			articleId = 3,
+			R.drawable.trash_can,
+			"Food Waste in Europe",
+			"Would you go into a supermarket, buy three shopping bags of food, and then immediately throw one away? " +
+					"Statistically, that’s what’s happening to our food today.",
+			"One third of all the food that is produced for human consumption is wasted. When we waste food, " +
+					"we waste all the resources that go into producing and transporting the food, such as land, water and fuel use, " +
+					"without gaining any of the benefits of feeding people. When food ends up in landfill it also contributes to greenhouse gas emissions. " +
+					"Food waste remains a problem in Europe and around the world.",
+			"Food Waste vs Loss", "Some Statistics", "Environmental Impact", "Reducing Food Waste at Home",
+			"In order to tackle food waste, understanding the problem is key to finding good solutions. A first step is to measure the amount of food that goes to " +
+					"waste and to understand where along the supply chain the waste is happening. Depending on where it happens along the supply chain, we use the terms food loss or food waste.\n" +
+					"\n" +
+					"Food loss refers to any food that is discarded, incinerated or otherwise disposed of along the food supply chain from harvest/slaughter/catch up to, but excluding, the retail level, " +
+					"and is not used for any other productive use, such as animal feed or seed.\n" +
+					"\n" +
+					"Food waste refers to food that is discarded at the level of retailers, food service providers and consumers.",
+			"Below, we list some of key statistics and facts about food waste and loss based on current estimates:\n" +
+					"\n" +
+					"Roughly 1/3 of the food produced in the world for human consumption is lost or wasted.\n" +
+					"Food waste alone generates about 8% - 10% of global greenhouse gas emissions.\n" +
+					"Latest estimates suggest that around 931 million tonnes of food waste were generated in 2019, out of which 61% came from households.\n" +
+					"Around 88 million tonnes of food waste are generated annually in the EU.4 This is equal to 174 kg per person, 143 billion euros or 170 000 000 tonnes of CO2.\n" +
+					"Estimates show that up to 10% of the 88 million tonnes of food waste that is generated in the EU every year are somehow linked to date labelling - " +
+					"53% of consumers don’t know the meaning of “best before” labelling.\n",
+			"Different foods have different environmental impacts. For example, the volume of meat that is wasted and lost is not very high compared to foods such as " +
+					"cereals and vegetables. However, meat requires much more resources to produce, so wasting meat still has a significant impact on climate change (estimated " +
+					"to contribute to 20% of the carbon footprint of total food waste and loss).",
+			"Here are 5 ways you can reduce food waste in your kitchen:\n" +
+					"\n" +
+					"1) Take an inventory\nTake stock of your pantry, refrigerator and freezer before going to the store to prevent overbuying\n" +
+					"2) Create a meal plan\nPlanning at least a few meals for each week is a great way to ensure you have healthy meals. It also prevents you from buying too " +
+					"much food because you feel like you need to be prepared for anything.\n" +
+					"3) Save and eat leftovers safely\nIf you don't think you will be able to eat your leftovers within three days, store them in the freezer and label them. Keep your freezer " +
+					"organized so food doesn't get lost and then thrown out due to freezer burn.\n" +
+					"4) Buy \"ugly\" foods.\nPurchasing imperfect food refers to misshaped or oddly shaped fruits or vegetables. They are just as fine to eat as normal-looking food. And " +
+					"if you don't eat them, nobody else will, so they'll end up being thrown away by the supermarket.\n" +
+					"5) Compost\nEven vegetable peels don't have to go to waste. Backyard composting is a great way to keep food waste out of the landfill and provide nutrition for your garden.",
+			R.drawable.food_waste, picHeight1 = 300,
+			R.drawable.food_waste_impact, picHeight2 = 550,
 		),
 	)
 }
@@ -2043,6 +2125,7 @@ fun ArticleScreen(articleId: Int) {
 				text = selectedArticle!!.heading,
 				fontWeight = FontWeight.Bold,
 				fontSize = 27.sp,
+				color = Color.Black,
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(top = 4.dp, bottom = 15.dp)
@@ -2050,13 +2133,23 @@ fun ArticleScreen(articleId: Int) {
 			Text(
 				text = selectedArticle.introduction,
 				fontSize = 16.sp,
+				color = Color.Black,
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(bottom = 20.dp)
 			)
+			Image(
+				painter = painterResource(id = selectedArticle.contentPicture1),
+				contentDescription = null,
+				modifier = Modifier
+					.fillMaxWidth()
+					.height((selectedArticle.picHeight1).dp)
+					.padding(top = 15.dp, bottom = 20.dp)
+			)
 			Text(
 				text = selectedArticle.subHeader1,
 				fontSize = 20.sp,
+				color = Color.Black,
 				fontWeight = FontWeight.Bold,
 				modifier = Modifier
 					.fillMaxWidth()
@@ -2065,6 +2158,7 @@ fun ArticleScreen(articleId: Int) {
 			Text(
 				text = selectedArticle.paragraph1,
 				fontSize = 16.sp,
+				color = Color.Black,
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(bottom = 20.dp)
@@ -2072,6 +2166,7 @@ fun ArticleScreen(articleId: Int) {
 			Text(
 				text = selectedArticle.subHeader2,
 				fontSize = 20.sp,
+				color = Color.Black,
 				fontWeight = FontWeight.Bold,
 				modifier = Modifier
 					.fillMaxWidth()
@@ -2080,6 +2175,7 @@ fun ArticleScreen(articleId: Int) {
 			Text(
 				text = selectedArticle.paragraph2,
 				fontSize = 16.sp,
+				color = Color.Black,
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(bottom = 20.dp)
@@ -2087,6 +2183,7 @@ fun ArticleScreen(articleId: Int) {
 			Text(
 				text = selectedArticle.subHeader3,
 				fontSize = 20.sp,
+				color = Color.Black,
 				fontWeight = FontWeight.Bold,
 				modifier = Modifier
 					.fillMaxWidth()
@@ -2095,6 +2192,7 @@ fun ArticleScreen(articleId: Int) {
 			Text(
 				text = selectedArticle.paragraph3,
 				fontSize = 16.sp,
+				color = Color.Black,
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(bottom = 20.dp)
@@ -2102,6 +2200,7 @@ fun ArticleScreen(articleId: Int) {
 			Text(
 				text = selectedArticle.subHeader4,
 				fontSize = 20.sp,
+				color = Color.Black,
 				fontWeight = FontWeight.Bold,
 				modifier = Modifier
 					.fillMaxWidth()
@@ -2110,17 +2209,18 @@ fun ArticleScreen(articleId: Int) {
 			Text(
 				text = selectedArticle.paragraph4,
 				fontSize = 16.sp,
+				color = Color.Black,
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(bottom = 20.dp)
 			)
 			Image(
-				painter = painterResource(id = selectedArticle.contentPicture),
+				painter = painterResource(id = selectedArticle.contentPicture2),
 				contentDescription = null,
 				modifier = Modifier
 					.fillMaxWidth()
-					.height(300.dp)
-					.padding(top = 15.dp)
+					.height((selectedArticle.picHeight2).dp)
+					.padding(top = 15.dp, bottom = 20.dp)
 			)
 		}
 	}
