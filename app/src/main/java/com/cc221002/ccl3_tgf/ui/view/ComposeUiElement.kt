@@ -246,7 +246,7 @@ fun MainView(
 			) { backStackEntry ->
 				val arguments = requireNotNull(backStackEntry.arguments)
 				val articleId = arguments.getInt("articleId")
-				ArticleScreen(articleId)
+				ArticleScreen(articleId, navController)
 			}
 		}
 	}
@@ -364,7 +364,7 @@ fun AllCategories (
 		horizontalAlignment = Alignment.CenterHorizontally,
 	) {
 
-	Header(title = "Your Fridge")
+	Header(title = "Your Fridge", navController)
 
 		Row{
 		if(state.openAddDialog){
@@ -755,7 +755,7 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 			.background(White)
 			.fillMaxSize()
 	) {
-		Header("$categoryName")
+		Header("$categoryName",navController)
 		Row  {
 			Box(
 				modifier = Modifier
@@ -824,7 +824,7 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 }
 
 @Composable
-fun Header(title:String){
+fun Header(title:String, navController: NavHostController){
 
 	val categoryImageMap = mapOf(
 		"Leftovers" to R.drawable.leftovers_icon,
@@ -846,21 +846,22 @@ fun Header(title:String){
 				.background(NavigationBlue),
 			contentAlignment = Alignment.Center
 		) {
+			Text(
+			text = title,
+			fontSize = 30.sp,
+			fontWeight = FontWeight.Bold,
+			color = Color.White,
+			modifier = Modifier.padding(start = 8.dp) // Adjust padding as needed
+		)
 			Image(
 				painter = painterResource(id = R.drawable.tgf_logo_small),
 				contentDescription = null,
 				modifier = Modifier
 					.size(45.dp)
-					.padding(start = 15.dp)
-					.align(Alignment.CenterStart)
+					.padding(end = 15.dp)
+					.align(Alignment.CenterEnd)
 			)
-			Text(
-				text = title,
-				fontSize = 30.sp,
-				fontWeight = FontWeight.Bold,
-				color = Color.White,
-				modifier = Modifier.padding(start = 8.dp) // Adjust padding as needed
-			)
+
 		}
 	} else {
 		Column(
@@ -878,12 +879,18 @@ fun Header(title:String){
 				contentAlignment = Alignment.Center
 			) {
 				Image(
-				painter = painterResource(id = R.drawable.tgf_logo_small),
+				painter = painterResource(id = R.drawable.go_back_icon),
 				contentDescription = null,
 				modifier = Modifier
 					.size(45.dp)
 					.padding(start = 15.dp)
 					.align(Alignment.CenterStart)
+					.clickable { if(title == "Leftovers" ||title == "Drinks" ||title == "Dairy" ||title == "Extras" ||title == "Meat" ||title == "Fruit" ||title == "Vegetables"){
+						navController.navigate(Screen.ShowCategories.route)
+					} else {
+						navController.navigate(Screen.Overview.route)
+					}
+					}
 			)
 				Row {
 					Text(
@@ -894,6 +901,14 @@ fun Header(title:String){
 						modifier = Modifier.padding(start = 8.dp) // Adjust padding as needed
 					)
 				}
+				Image(
+					painter = painterResource(id = R.drawable.tgf_logo_small),
+					contentDescription = null,
+					modifier = Modifier
+						.size(45.dp)
+						.padding(end = 15.dp)
+						.align(Alignment.CenterEnd)
+				)
 
 			}
 			Box(
@@ -1290,7 +1305,7 @@ fun AddingPopup(
 							newText-> portionAmount = newText
 					},
 					label = {
-						Text(text ="Nr.", color = Color.Gray)}
+						Text(text ="Amount", color = Color.Gray)}
 				)
 
 				PortionsDropDownMenu(mainViewModel = mainViewModel, selectedPortion = portionSelection){selectedCategory->
@@ -1770,7 +1785,7 @@ fun OverviewScreen(
 		verticalArrangement = Arrangement.SpaceEvenly
 
 	) {
-		Header(title = "Overview")
+		Header(title = "Overview",navController)
 
 		Column(
 			modifier = Modifier
@@ -2153,7 +2168,7 @@ fun ArticlePreviewUI(articlePreview: ArticlePreview, navController: NavControlle
 }
 
 @Composable
-fun ArticleScreen(articleId: Int) {
+fun ArticleScreen(articleId: Int, navController: NavHostController) {
 
 	val selectedArticle = getDummyArticlePreviews().find { it.articleId == articleId }
 
@@ -2163,7 +2178,7 @@ fun ArticleScreen(articleId: Int) {
 			.background(White),
 
 	) {
-		Header(title = "Overview")
+		Header(title = "${selectedArticle!!.heading}", navController)
 
 		Column(
 			modifier = Modifier
