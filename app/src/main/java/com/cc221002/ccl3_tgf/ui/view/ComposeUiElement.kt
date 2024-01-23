@@ -142,6 +142,8 @@ import com.cc221002.ccl3_tgf.ui.theme.SecondaryGray
 import com.cc221002.ccl3_tgf.ui.theme.TransparentLightBlue
 import com.cc221002.ccl3_tgf.ui.view_model.MainViewModel
 import com.cc221002.ccl3_tgf.ui.view_model.MainViewState
+import com.chillibits.composenumberpicker.PickerButton
+import com.chillibits.composenumberpicker.VerticalNumberPicker
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 import java.io.File
@@ -1187,11 +1189,12 @@ fun AddingPopup(
 	categoryName : String?
 ){
 	val categories by mainViewModel.categories.collectAsState()
+	val mContext = LocalContext.current
 
 	var foodName by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
 	var bbDate by remember { mutableStateOf("") }
 	var categoryId by remember { mutableIntStateOf(0) }
-	var portionAmount by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("1")) }
+	var portionAmount by rememberSaveable { mutableStateOf("1") }
 //	var portionType by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
 	var isChecked = 0
 	var categorySelection by remember { mutableStateOf("") }
@@ -1250,12 +1253,16 @@ fun AddingPopup(
 			DatePickerField(selectedDate = bbDate , onDateSelected = {bbDate = it.toString()})
 
 			CategoryDropDownMenu(categoryName, mainViewModel, categorySelection, ){ selectedCategory->
-
+				Log.d("PREFILLEDCATEGORY", "IF selectedCategory: $selectedCategory")
+				Log.d("PREFILLEDCATEGORY", categoryName!!)
 				if(categoryName == "") {
 					categorySelection = selectedCategory
-					Log.d("PREFILLEDCATEGORY", "categorySelection: $categorySelection")
-					Log.d("PREFILLEDCATEGORY", "categoryName: $categoryName")
+				} else {
+					categorySelection = categoryName
 				}
+					Log.d("PREFILLEDCATEGORY", "IF categorySelection: $categorySelection")
+					Log.d("PREFILLEDCATEGORY", "IF categoryName: $categoryName")
+
 			}
 
 
@@ -1270,13 +1277,7 @@ fun AddingPopup(
 						.fillMaxWidth(0.4f)
 						.shadow(3.dp, RectangleShape, false),
 					keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-					trailingIcon ={Image(
-						painter = painterResource(id = R.drawable.arrows_up_down_icon),
-						contentDescription = "Amount",
-						contentScale = ContentScale.Fit,
-						modifier = Modifier
-							.size(25.dp)
-					)} ,
+
 					colors = TextFieldDefaults.colors(
 						focusedTextColor = Black,
 						unfocusedTextColor = Black,
@@ -1289,7 +1290,7 @@ fun AddingPopup(
 							newText-> portionAmount = newText
 					},
 					label = {
-						Text(text ="#", color = Color.Gray)}
+						Text(text ="Nr.", color = Color.Gray)}
 				)
 
 				PortionsDropDownMenu(mainViewModel = mainViewModel, selectedPortion = portionSelection){selectedCategory->
@@ -1314,20 +1315,37 @@ fun AddingPopup(
 
 				Button(
 					onClick = {
-						if(categorySelection == "") {
-							categorySelection = categoryName!!
+							if (categorySelection == "") {
+								categorySelection = categoryName!!
 
-						}
-						for(category in categories){
-							if(categorySelection == category.categoryName){
-								categoryId = category.id
 							}
+							for (category in categories) {
+								if (categorySelection == category.categoryName) {
+									categoryId = category.id
+								}
+							}
+							Log.d("Saving prefilled", "categoryname: $categoryName")
+							Log.d("Saving prefilled", "categorySelection: $categorySelection")
+
+							if (foodName.text.isBlank() || bbDate.isBlank() || categorySelection.isBlank() || portionAmount.isBlank() || portionSelection.isBlank()) {
+								Toast.makeText(
+									mContext,
+									"You forgot something! Please fill everything out!",
+									Toast.LENGTH_SHORT
+								).show()
+							}else {
+							mainViewModel.saveButton(
+								SingleEntry(
+									foodName.text,
+									bbDate,
+									categoryId,
+									portionAmount,
+									portionSelection,
+									isChecked,
+									timeStampChecked
+								)
+							)
 						}
-						Log.d("Saving prefilled", "categoryname: $categoryName")
-						Log.d("Saving prefilled", "categorySelection: $categorySelection")
-
-
-						mainViewModel.saveButton(SingleEntry(foodName.text, bbDate, categoryId, portionAmount.text, portionSelection, isChecked, timeStampChecked))
 					},
 					modifier = Modifier.padding(top = 20.dp),
 					colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
@@ -1348,6 +1366,7 @@ fun EditPopUp(
 	mainViewModel: MainViewModel
 ){
 	val state = mainViewModel.mainViewState.collectAsState()
+	val mContext = LocalContext.current
 
 	var foodName by rememberSaveable {
 		mutableStateOf(state.value.editSingleEntry.foodName)
@@ -1457,13 +1476,6 @@ fun EditPopUp(
 							.fillMaxWidth(0.4f)
 							.shadow(3.dp, RectangleShape, false),
 						keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-						trailingIcon ={Image(
-							painter = painterResource(id = R.drawable.arrows_up_down_icon),
-							contentDescription = "Amount",
-							contentScale = ContentScale.Fit,
-							modifier = Modifier
-								.size(25.dp)
-						) },
 						colors = TextFieldDefaults.colors(
 							focusedTextColor = Black,
 							unfocusedTextColor = Black,
@@ -1475,7 +1487,7 @@ fun EditPopUp(
 						onValueChange = {
 								newText:String-> portionAmount = newText
 						},
-						label ={Text(text ="#", color = Black  )}
+						label ={Text(text ="Nr.", color = Black  )}
 
 					)
 
@@ -1505,18 +1517,26 @@ fun EditPopUp(
 
 					Button(
 						onClick = {
-							mainViewModel.saveEditedEntry(
-								SingleEntry(
-									foodName,
-									bbDate,
-									categoryId,
-									portionAmount,
-									portionType,
-									isChecked,
-									timeStampChecked,
-									state.value.editSingleEntry.id
+							if (foodName!!.isBlank() || bbDate!!.isBlank() || categorySelection.isBlank() || portionAmount!!.isBlank() || portionType!!.isBlank()) {
+								Toast.makeText(
+									mContext,
+									"You forgot something! Please fill everything out!",
+									Toast.LENGTH_SHORT
+								).show()
+							} else {
+								mainViewModel.saveEditedEntry(
+									SingleEntry(
+										foodName,
+										bbDate,
+										categoryId,
+										portionAmount,
+										portionType,
+										isChecked,
+										timeStampChecked,
+										state.value.editSingleEntry.id
+									)
 								)
-							)
+							}
 						},
 						modifier = Modifier.padding(top = 20.dp),
 						colors = androidx.compose.material.ButtonDefaults.buttonColors(
@@ -1540,7 +1560,7 @@ fun CategoryDropDownMenu(categoryName: String?,mainViewModel: MainViewModel, sel
 	}
 
 	val distinctCategories = mainViewModel.getDistinctCategories()
-	Log.d("PREFILLEDCATEGORY", "categoryName: $categoryName")
+	Log.d("PREFILLEDCATEGORY", "getting passed categoryName: $categoryName")
 
 	Row(
 		modifier = Modifier
@@ -1561,7 +1581,7 @@ fun CategoryDropDownMenu(categoryName: String?,mainViewModel: MainViewModel, sel
 				,
 				onValueChange = {
 								categoryName.let { selectedCategory }
-					Log.d("PREFILLEDCATEGORY", "categoryName: $categoryName")
+					Log.d("PREFILLEDCATEGORY", "OnValue Change categoryName: $categoryName")
 
 				},
 				readOnly = true,

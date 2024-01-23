@@ -80,4 +80,7 @@ dependencies {
 	implementation("androidx.room:room-ktx:2.5.2")
 	implementation("androidx.camera:camera-core:1.3.1")
 	ksp("androidx.room:room-compiler:2.5.0")
+
+	// NumberPicker
+	implementation("com.chillibits:composenumberpicker:1.1.0")
 }
