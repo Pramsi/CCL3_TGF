@@ -739,9 +739,15 @@ fun AllCategories (
 fun categoryEntries(navController: NavHostController,mainViewModel: MainViewModel){
 	val state = mainViewModel.mainViewState.collectAsState()
 	val entries = mainViewModel.entriesForCategory.collectAsState()
+	val categories by mainViewModel.categories.collectAsState()
 
 	val categoryName = mainViewModel.currentCategory
-
+	var categoryId by remember { mutableIntStateOf(0) }
+	for(category in categories){
+		if (category.categoryName == categoryName){
+			categoryId = category.id
+		}
+	}
 	Column(
 		modifier = Modifier
 			.background(White)
@@ -764,7 +770,7 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 					modifier = Modifier
 						.fillMaxHeight(0.9f)
 				) {
-					if (entries.value.isEmpty()) {
+					if (entries.value.isEmpty() || mainViewModel.areAllEntriesChecked(categoryId)) {
 						item {
 							Text(
 								text = "This category is empty. You can add an item with the '+' button in the bottom left.",
