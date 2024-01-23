@@ -1192,7 +1192,7 @@ fun AddingPopup(
 	var foodName by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
 	var bbDate by remember { mutableStateOf("") }
 	var categoryId by remember { mutableIntStateOf(0) }
-	var portionAmount by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
+	var portionAmount by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("1")) }
 //	var portionType by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
 	var isChecked = 0
 	var categorySelection by remember { mutableStateOf("") }
