@@ -1,6 +1,8 @@
 package com.cc221002.ccl3_tgf.ui.view_model
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
@@ -24,6 +26,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 class MainViewModel (
 	private val dao: EntriesDao,
@@ -57,9 +60,22 @@ class MainViewModel (
 	private val _openAlertDialogForEntry = mutableStateOf<String?>(null)
 	val openAlertDialogForEntry: State<String?> = _openAlertDialogForEntry
 
+	private val _openEditDialogForEntry = mutableStateOf<String?>(null)
+	val openEditDialogForEntry: State<String?> = _openEditDialogForEntry
+
+	private val _openAskAmountDialogForEntry = mutableStateOf<String?>(null)
+	val openAskAmountDialogForEntry: State<String?> = _openAskAmountDialogForEntry
+
 	private var _giveEntries = MutableStateFlow<List<SingleEntry>>(emptyList())
 	val giveEntries: StateFlow<List<SingleEntry>> = _entriesForCategory.asStateFlow()
 
+	// State for expired items
+	private val _expiredItems = MutableStateFlow<List<SingleEntry>>(emptyList())
+	val expiredItems: StateFlow<List<SingleEntry>> = _expiredItems.asStateFlow()
+
+	// State for non-expired items
+	private val _nonExpiredItems = MutableStateFlow<List<SingleEntry>>(emptyList())
+	val nonExpiredItems: StateFlow<List<SingleEntry>> = _nonExpiredItems.asStateFlow()
 
 
 	// this function updates on which screen the user currently is
@@ -111,10 +127,36 @@ class MainViewModel (
 		}
 	}
 
+	@RequiresApi(Build.VERSION_CODES.O)
+	fun getExpiredItems() {
+		val currentDate = LocalDate.now()
+		val expiredItemsList = entries.value.filter { entry ->
+			val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
+			storedDate != null && storedDate.isBefore(currentDate) && entry.isChecked == 0
+		}
+		_expiredItems.value = expiredItemsList
+	}
+
+	@RequiresApi(Build.VERSION_CODES.O)
+	fun getNonExpiredItems() {
+		val currentDate = LocalDate.now()
+		val nonExpiredItemsList = entries.value.filter { entry ->
+			val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
+			storedDate != null && !storedDate.isBefore(currentDate) && entry.isChecked == 0
+		}
+		_nonExpiredItems.value = nonExpiredItemsList
+	}
+
+
 	// Function to check if all entries for a category are checked
 	fun areAllEntriesChecked(categoryId: Int): Boolean {
-		val entriesForCategory = entries.value.filter { it.categoryId == categoryId }
-		return entriesForCategory.all { it.isChecked != 0 }
+		if(categoryId == 0){
+			val allEntries = entries.value
+			return allEntries.all { it.isChecked != 0 }
+		} else {
+			val entriesForCategory = entries.value.filter { it.categoryId == categoryId }
+			return entriesForCategory.all { it.isChecked != 0 }
+		}
 	}
 
 	// Function to check if there are any entries for a category
@@ -137,8 +179,10 @@ class MainViewModel (
 		}
 	}
 
-	fun editEntry(singleEntry: SingleEntry){
+	fun openEditDialog(singleEntry: SingleEntry){
 		_mainViewState.update{ it.copy(openEditDialog = true, editSingleEntry = singleEntry) }
+		_openEditDialogForEntry.value = singleEntry.id.toString()
+
 	}
 
 	fun saveEditedEntry(singleEntry: SingleEntry){
@@ -151,14 +195,22 @@ class MainViewModel (
 
 	fun dismissEditDialog(){
 		_mainViewState.update{ it.copy(openEditDialog = false) }
+		_openEditDialogForEntry.value = ""
+
 	}
 
 	fun openAskAmountDialog(singleEntry: SingleEntry){
 		_mainViewState.update{ it.copy(openAskAmountDialog = true, editSingleEntry = singleEntry)}
+		_openAskAmountDialogForEntry.value = singleEntry.id.toString()
+
 	}
 
+	@RequiresApi(Build.VERSION_CODES.O)
 	fun dismissAskAmountDialog(){
 		_mainViewState.update{ it.copy(openAskAmountDialog = false)}
+		_openAskAmountDialogForEntry.value = ""
+
+		getExpiredItems()
 	}
 
 

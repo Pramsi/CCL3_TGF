@@ -943,7 +943,7 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 						ExpiredRed
 					}
 				)
-				.clickable { mainViewModel.editEntry(entry) },
+				.clickable { mainViewModel.openEditDialog(entry) },
 			horizontalArrangement = Arrangement.SpaceEvenly,
 			verticalAlignment = Alignment.CenterVertically
 		) {
@@ -951,7 +951,6 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 			Box(
 				modifier = Modifier
 					.size(25.dp)
-					.clickable { mainViewModel }
 			){
 				Checkbox(
 					checked = checkBoxState,
@@ -1028,12 +1027,15 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 			}
 		}
 
-	if (state.value.openAskAmountDialog) {
-		AskAmountModal(mainViewModel = mainViewModel,entry = entry, checkBoxState )
+	val openAskAmountDialogForEntry = mainViewModel.openAskAmountDialogForEntry.value
+	if(openAskAmountDialogForEntry == entry.id.toString()) {
+		AskAmountModal(mainViewModel = mainViewModel, entry = entry, checkBoxState)
 	}
-
-	if(state.value.openEditDialog){
-		EditPopUp(mainViewModel = mainViewModel)
+	val openEditDialogForEntry = mainViewModel.openEditDialogForEntry.value
+	if (openEditDialogForEntry == entry.id.toString()) {
+//		if (state.value.openEditDialog) {
+			EditPopUp(mainViewModel = mainViewModel)
+//		}
 	}
 
 	val openAlertDialogForEntry = mainViewModel.openAlertDialogForEntry.value
@@ -1064,9 +1066,6 @@ fun checkedItemUI(mainViewModel: MainViewModel, entry: SingleEntry) {
 			categorySelection = category.categoryName
 		}
 	}
-
-
-
 
 	Row(
 		modifier = Modifier
@@ -1733,15 +1732,17 @@ fun OverviewScreen(
 	mainViewModel: MainViewModel,
 	navController: NavHostController
 ) {
+	mainViewModel.getExpiredItems()
+	mainViewModel.getNonExpiredItems()
 	val state by mainViewModel.mainViewState.collectAsState()
 	mainViewModel.getEntries()
 	val allEntries by mainViewModel.entries.collectAsState()
 
+	val expiredItems by mainViewModel.expiredItems.collectAsState()
+	val nonExpiredItems by mainViewModel.nonExpiredItems.collectAsState()
+
 	val currentDate = LocalDate.now()
-	val hasOverdueItems = allEntries.any { entry ->
-		val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
-		storedDate != null && !storedDate.isAfter(currentDate)&& !mainViewModel.areAllEntriesChecked(entry.categoryId)
-	}
+	val hasOverdueItems = expiredItems.isNotEmpty()
 
 	Column(
 		modifier = Modifier
@@ -1776,6 +1777,7 @@ fun OverviewScreen(
 						.padding(horizontal = 15.dp),
 					horizontalAlignment = Alignment.CenterHorizontally
 				) {
+
 					if (hasOverdueItems) {
 						Text(
 							text = "Watch out!",
@@ -2291,150 +2293,153 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 
 	val mContext = LocalContext.current
 
-	AlertDialog(
-		onDismissRequest = {
-			mainViewModel.dismissAskAmountDialog()
-		},
-		modifier = Modifier
-			.clip(RoundedCornerShape(20.dp))
-			.background(White)
-			.padding(10.dp)
-	) {
-		Column(
+		AlertDialog(
+			onDismissRequest = {
+				mainViewModel.dismissAskAmountDialog()
+			},
 			modifier = Modifier
-				.fillMaxWidth()
-				.padding(7.dp),
-			horizontalAlignment = Alignment.CenterHorizontally
-
+				.clip(RoundedCornerShape(20.dp))
+				.background(White)
+				.padding(10.dp)
 		) {
-			Text(
-				text = "How much did you take?",
-				lineHeight = 45.sp,
-				fontWeight = FontWeight.Bold,
-				fontSize = 25.sp,
-				style = TextStyle(fontFamily = FontFamily.SansSerif),
-				color = Color.Black,
-				textAlign = TextAlign.Center,
+			Column(
 				modifier = Modifier
 					.fillMaxWidth()
-					.padding(top = 15.dp),
-			)
+					.padding(7.dp),
+				horizontalAlignment = Alignment.CenterHorizontally
 
-			Row(
-				modifier = Modifier
-					.fillMaxWidth()
-					.padding(top = 20.dp),
-				horizontalArrangement = Arrangement.SpaceEvenly,
-				verticalAlignment = Alignment.CenterVertically
 			) {
-				TextField(
-					value = amountTaken,
-					modifier = Modifier
-						.fillMaxWidth(0.5f)
-						.shadow(3.dp, RectangleShape, false),
-					keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-					trailingIcon = {
-						Image(
-							painter = painterResource(id = R.drawable.arrows_up_down_icon),
-							contentDescription = "Amount",
-							contentScale = ContentScale.Fit,
-							modifier = Modifier
-								.size(25.dp)
-						)
-					},
-					colors = TextFieldDefaults.colors(
-						focusedTextColor = Black,
-						unfocusedTextColor = Black,
-						focusedContainerColor = White,
-						unfocusedContainerColor = White,
-						disabledContainerColor = White,
-					),
-					onValueChange = {
-							newText: String ->
-						amountTaken = newText
-					},
-					label = { Text(text = "#", color = Black) }
-				)
 				Text(
-					text = entry.portionType!!,
-					color = Black,
-					fontSize = 20.sp,
-					textAlign = TextAlign.Center
+					text = "How much did you take?",
+					lineHeight = 45.sp,
+					fontWeight = FontWeight.Bold,
+					fontSize = 25.sp,
+					style = TextStyle(fontFamily = FontFamily.SansSerif),
+					color = Color.Black,
+					textAlign = TextAlign.Center,
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(top = 15.dp),
 				)
-			}
 
-			Row(
-				horizontalArrangement = Arrangement.Center,
-				verticalAlignment = Alignment.CenterVertically
-			) {
-				Button(
-					elevation = androidx.compose.material.ButtonDefaults.elevation(0.dp),
-					onClick = {
-						mainViewModel.dismissAskAmountDialog()
-					},
-					modifier = Modifier.padding(top = 20.dp),
-					colors = androidx.compose.material.ButtonDefaults.buttonColors(Transparent)
+				Row(
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(top = 20.dp),
+					horizontalArrangement = Arrangement.SpaceEvenly,
+					verticalAlignment = Alignment.CenterVertically
 				) {
-					Text(text = "Cancel", color = Black)
+					TextField(
+						value = amountTaken,
+						modifier = Modifier
+							.fillMaxWidth(0.5f)
+							.shadow(3.dp, RectangleShape, false),
+						keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+						trailingIcon = {
+							Image(
+								painter = painterResource(id = R.drawable.arrows_up_down_icon),
+								contentDescription = "Amount",
+								contentScale = ContentScale.Fit,
+								modifier = Modifier
+									.size(25.dp)
+							)
+						},
+						colors = TextFieldDefaults.colors(
+							focusedTextColor = Black,
+							unfocusedTextColor = Black,
+							focusedContainerColor = White,
+							unfocusedContainerColor = White,
+							disabledContainerColor = White,
+						),
+						onValueChange = { newText: String ->
+							amountTaken = newText
+						},
+						label = { Text(text = "#", color = Black) }
+					)
+					Text(
+						text = entry.portionType!!,
+						color = Black,
+						fontSize = 20.sp,
+						textAlign = TextAlign.Center
+					)
 				}
-				Button(
-					onClick = {
 
+				Row(
+					horizontalArrangement = Arrangement.Center,
+					verticalAlignment = Alignment.CenterVertically
+				) {
+					Button(
+						elevation = androidx.compose.material.ButtonDefaults.elevation(0.dp),
+						onClick = {
+							mainViewModel.dismissAskAmountDialog()
+						},
+						modifier = Modifier.padding(top = 20.dp),
+						colors = androidx.compose.material.ButtonDefaults.buttonColors(Transparent)
+					) {
+						Text(text = "Cancel", color = Black)
+					}
+					Button(
+						onClick = {
 
-						val takenAmount = amountTaken.toFloatOrNull()
+							val takenAmount = amountTaken.toFloatOrNull()
 
-						if (takenAmount != null) {
-							val remainingAmount = portionAmount?.toFloatOrNull()?.minus(takenAmount)
+							if (takenAmount != null) {
+								val remainingAmount =
+									portionAmount?.toFloatOrNull()?.minus(takenAmount)
 
-							if ((remainingAmount != null) && (remainingAmount >= 0)) {
-								portionAmount = remainingAmount.toString()
-								mainViewModel.dismissAskAmountDialog()
+								if ((remainingAmount != null) && (remainingAmount >= 0)) {
+									portionAmount = remainingAmount.toString()
+									mainViewModel.dismissAskAmountDialog()
 
+								} else {
+									Toast.makeText(
+										mContext,
+										"Cannot take more than what is in the fridge!",
+										Toast.LENGTH_SHORT
+									).show()
+								}
+
+								if (remainingAmount == 0.0f) {
+									mainViewModel.getExpiredItems()
+									isChecked = 1;
+									val currentTime = LocalTime.now()
+									timeStampChecked = currentTime.toString()
+								}
+
+								mainViewModel.saveEditedEntry(
+									SingleEntry(
+										foodName,
+										bbDate,
+										categoryId,
+										portionAmount,
+										portionType,
+										isChecked,
+										timeStampChecked,
+										state.value.editSingleEntry.id
+									)
+								)
 							} else {
+								// Handle invalid input (non-numeric amount taken)
 								Toast.makeText(
 									mContext,
-									"Cannot take more than what is in the fridge!",
+									"Invalid input. Please enter a valid number.",
 									Toast.LENGTH_SHORT
 								).show()
 							}
 
-							if (remainingAmount == 0.0f) {
-								isChecked = 1;
-								val currentTime = LocalTime.now()
-								timeStampChecked = currentTime.toString()
-							}
-
-							mainViewModel.saveEditedEntry(
-								SingleEntry(
-									foodName,
-									bbDate,
-									categoryId,
-									portionAmount,
-									portionType,
-									isChecked,
-									timeStampChecked,
-									state.value.editSingleEntry.id
-								)
-							)
-						} else {
-							// Handle invalid input (non-numeric amount taken)
-							Toast.makeText(
-								mContext,
-								"Invalid input. Please enter a valid number.",
-								Toast.LENGTH_SHORT
-							).show()
-						}
-
-					},
-					modifier = Modifier.padding(top = 20.dp),
-					colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
-				) {
-					Text(text = "Save", color = White)
+						},
+						modifier = Modifier.padding(top = 20.dp),
+						colors = androidx.compose.material.ButtonDefaults.buttonColors(
+							BackgroundBlue
+						)
+					) {
+						Text(text = "Save", color = White)
+					}
 				}
 			}
 		}
 	}
-}
+
 
 
 
