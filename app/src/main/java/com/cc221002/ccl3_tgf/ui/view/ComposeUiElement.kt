@@ -1732,17 +1732,16 @@ fun OverviewScreen(
 	mainViewModel: MainViewModel,
 	navController: NavHostController
 ) {
-	mainViewModel.getExpiredItems()
-	mainViewModel.getNonExpiredItems()
-	val state by mainViewModel.mainViewState.collectAsState()
 	mainViewModel.getEntries()
+
 	val allEntries by mainViewModel.entries.collectAsState()
-
-	val expiredItems by mainViewModel.expiredItems.collectAsState()
-	val nonExpiredItems by mainViewModel.nonExpiredItems.collectAsState()
-
+	val state by mainViewModel.mainViewState.collectAsState()
 	val currentDate = LocalDate.now()
-	val hasOverdueItems = expiredItems.isNotEmpty()
+	val expiredItemsList = allEntries.filter { entry ->
+		val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
+		storedDate != null && storedDate.isBefore(currentDate) && entry.isChecked == 0
+	}
+	var hasOverdueItems = expiredItemsList.isNotEmpty()
 
 	Column(
 		modifier = Modifier
@@ -1841,6 +1840,10 @@ fun OverviewScreen(
 								ItemUI(mainViewModel, entry = entry)
 							}
 						}
+//						items(expiredItems.sortedBy { it.bbDate }){entry->
+//							ItemUI(mainViewModel = mainViewModel, entry = entry)
+//
+//						}
 					}
 				}
 			}
@@ -2380,7 +2383,6 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 					}
 					Button(
 						onClick = {
-
 							val takenAmount = amountTaken.toFloatOrNull()
 
 							if (takenAmount != null) {
@@ -2400,10 +2402,10 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 								}
 
 								if (remainingAmount == 0.0f) {
-									mainViewModel.getExpiredItems()
 									isChecked = 1;
 									val currentTime = LocalTime.now()
 									timeStampChecked = currentTime.toString()
+									mainViewModel.dismissAskAmountDialog()
 								}
 
 								mainViewModel.saveEditedEntry(

@@ -69,15 +69,6 @@ class MainViewModel (
 	private var _giveEntries = MutableStateFlow<List<SingleEntry>>(emptyList())
 	val giveEntries: StateFlow<List<SingleEntry>> = _entriesForCategory.asStateFlow()
 
-	// State for expired items
-	private val _expiredItems = MutableStateFlow<List<SingleEntry>>(emptyList())
-	val expiredItems: StateFlow<List<SingleEntry>> = _expiredItems.asStateFlow()
-
-	// State for non-expired items
-	private val _nonExpiredItems = MutableStateFlow<List<SingleEntry>>(emptyList())
-	val nonExpiredItems: StateFlow<List<SingleEntry>> = _nonExpiredItems.asStateFlow()
-
-
 	// this function updates on which screen the user currently is
 	fun selectScreen(screen: Screen){
 		_mainViewState.update { it.copy(selectedScreen = screen) }
@@ -127,25 +118,6 @@ class MainViewModel (
 		}
 	}
 
-	@RequiresApi(Build.VERSION_CODES.O)
-	fun getExpiredItems() {
-		val currentDate = LocalDate.now()
-		val expiredItemsList = entries.value.filter { entry ->
-			val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
-			storedDate != null && storedDate.isBefore(currentDate) && entry.isChecked == 0
-		}
-		_expiredItems.value = expiredItemsList
-	}
-
-	@RequiresApi(Build.VERSION_CODES.O)
-	fun getNonExpiredItems() {
-		val currentDate = LocalDate.now()
-		val nonExpiredItemsList = entries.value.filter { entry ->
-			val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
-			storedDate != null && !storedDate.isBefore(currentDate) && entry.isChecked == 0
-		}
-		_nonExpiredItems.value = nonExpiredItemsList
-	}
 
 
 	// Function to check if all entries for a category are checked
@@ -202,15 +174,11 @@ class MainViewModel (
 	fun openAskAmountDialog(singleEntry: SingleEntry){
 		_mainViewState.update{ it.copy(openAskAmountDialog = true, editSingleEntry = singleEntry)}
 		_openAskAmountDialogForEntry.value = singleEntry.id.toString()
-
 	}
 
-	@RequiresApi(Build.VERSION_CODES.O)
 	fun dismissAskAmountDialog(){
 		_mainViewState.update{ it.copy(openAskAmountDialog = false)}
 		_openAskAmountDialogForEntry.value = ""
-
-		getExpiredItems()
 	}
 
 
