@@ -1272,8 +1272,10 @@ fun AddingPopup(
 				Log.d("PREFILLEDCATEGORY", categoryName!!)
 				if(categoryName == "") {
 					categorySelection = selectedCategory
-				} else {
+				} else if(selectedCategory == null) {
 					categorySelection = categoryName
+				} else{
+					categorySelection = selectedCategory
 				}
 					Log.d("PREFILLEDCATEGORY", "IF categorySelection: $categorySelection")
 					Log.d("PREFILLEDCATEGORY", "IF categoryName: $categoryName")
@@ -1577,6 +1579,7 @@ fun CategoryDropDownMenu(categoryName: String?,mainViewModel: MainViewModel, sel
 	val distinctCategories = mainViewModel.getDistinctCategories()
 	Log.d("PREFILLEDCATEGORY", "getting passed categoryName: $categoryName")
 
+
 	Row(
 		modifier = Modifier
 			.fillMaxWidth(),
@@ -1586,16 +1589,19 @@ fun CategoryDropDownMenu(categoryName: String?,mainViewModel: MainViewModel, sel
 			expanded = isExpanded,
 			onExpandedChange = { isExpanded = it }
 		){
+			val textFieldValue = remember { mutableStateOf(TextFieldValue(categoryName ?: "")) }
+
 			TextField(
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(top = 20.dp)
 					.shadow(3.dp, RectangleShape, false),
 				label= { Text(text = "Categories", color = Color.Gray)},
-				value = if(categoryName != "") { categoryName!! } else { selectedCategory }
-				,
+				value = textFieldValue.value,
 				onValueChange = {
-								categoryName.let { selectedCategory }
+								textFieldValue.value = it
+                    // Update the selected category when the text changes
+                    onCategorySelected(it.toString())
 					Log.d("PREFILLEDCATEGORY", "OnValue Change categoryName: $categoryName")
 
 				},
@@ -1619,6 +1625,7 @@ fun CategoryDropDownMenu(categoryName: String?,mainViewModel: MainViewModel, sel
 					DropdownMenuItem(
 						text = { Text(text = category, color = Black, textAlign = TextAlign.Center) },
 						onClick = {
+							textFieldValue.value = TextFieldValue(category)
 						onCategorySelected(category)
 						isExpanded = false;
 					},
