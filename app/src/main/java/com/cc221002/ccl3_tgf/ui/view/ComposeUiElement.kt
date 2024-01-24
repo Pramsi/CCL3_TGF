@@ -1781,7 +1781,7 @@ fun OverviewScreen(
 	val currentDate = LocalDate.now()
 	val expiredItemsList = allEntries.filter { entry ->
 		val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
-		storedDate != null && storedDate.isBefore(currentDate) && entry.isChecked == 0
+		storedDate != null && !storedDate.isAfter(currentDate) && entry.isChecked == 0
 	}
 	var hasOverdueItems = expiredItemsList.isNotEmpty()
 
