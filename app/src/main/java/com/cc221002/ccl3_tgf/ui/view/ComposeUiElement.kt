@@ -2185,7 +2185,7 @@ fun ArticleScreen(articleId: Int, navController: NavHostController) {
 			.background(White),
 
 	) {
-		Header(title = "${selectedArticle!!.heading}", navController)
+		Header(title = "Article", navController)
 
 		Column(
 			modifier = Modifier
