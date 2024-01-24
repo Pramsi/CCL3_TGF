@@ -62,6 +62,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardElevation
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -106,6 +107,7 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -119,6 +121,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -142,8 +145,6 @@ import com.cc221002.ccl3_tgf.ui.theme.SecondaryGray
 import com.cc221002.ccl3_tgf.ui.theme.TransparentLightBlue
 import com.cc221002.ccl3_tgf.ui.view_model.MainViewModel
 import com.cc221002.ccl3_tgf.ui.view_model.MainViewState
-import com.chillibits.composenumberpicker.PickerButton
-import com.chillibits.composenumberpicker.VerticalNumberPicker
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 import java.io.File
@@ -885,11 +886,12 @@ fun Header(title:String, navController: NavHostController){
 					.size(45.dp)
 					.padding(start = 15.dp)
 					.align(Alignment.CenterStart)
-					.clickable { if(title == "Leftovers" ||title == "Drinks" ||title == "Dairy" ||title == "Extras" ||title == "Meat" ||title == "Fruit" ||title == "Vegetables"){
-						navController.navigate(Screen.ShowCategories.route)
-					} else {
-						navController.navigate(Screen.Overview.route)
-					}
+					.clickable {
+						if (title == "Leftovers" || title == "Drinks" || title == "Dairy" || title == "Extras" || title == "Meat" || title == "Fruit" || title == "Vegetables") {
+							navController.navigate(Screen.ShowCategories.route)
+						} else {
+							navController.navigate(Screen.Overview.route)
+						}
 					}
 			)
 				Row {
@@ -950,8 +952,16 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 
 		Row(
 			modifier = Modifier
-				.fillMaxWidth()
 				.padding(10.dp)
+				.shadow(
+					color = Color(0xFF1C404E),
+					borderRadius = 10.dp,
+					blurRadius = 4.dp,
+					offsetY = 5.dp,
+					offsetX = 85.dp,
+					spread = 2f.dp
+				)
+				.fillMaxWidth()
 				.clip(RoundedCornerShape(10.dp))
 				.background(
 					if (storedDate != null && storedDate.isAfter(currentDate)) {
@@ -1797,25 +1807,83 @@ fun OverviewScreen(
 		Column(
 			modifier = Modifier
 				.fillMaxSize()
-				.padding(15.dp)
+				.padding(20.dp)
 				.verticalScroll(rememberScrollState()),
-			verticalArrangement = Arrangement.SpaceEvenly
+			verticalArrangement = Arrangement.SpaceEvenly,
+			horizontalAlignment = Alignment.CenterHorizontally
 		)
 		{
-			Column(modifier = Modifier
-				.shadow(
-					color = Color(0x950B1418),
-					borderRadius = 6.dp,
-					blurRadius = 4.dp,
-					offsetY = 4.dp,
-					spread = 1f.dp
-				)
-				.clip(RoundedCornerShape(10.dp))
-				.background(FridgeBlue)
+			Box(
+				modifier = Modifier
+					.clip(shape = RoundedCornerShape(topStart = 68.dp, topEnd = 68.dp))
+					.background(FridgeBlue)
+					.height(70.dp)
+					.width(140.dp)
+					.padding(0.dp)
 			) {
+				Image(
+					painter = painterResource(id = R.drawable.tgf_logo_small),
+					contentDescription = "Logo",
+					contentScale = ContentScale.FillBounds,
+					modifier = Modifier
+						.width(60.dp)
+						.height(75.dp)
+						.align(Alignment.Center)
+						.padding(top = 5.dp, bottom = 0.dp)
+						.graphicsLayer(
+							translationY = 80.dp.value
+						)
+				)
+			}
+			Column(
+				modifier = Modifier
+					.shadow(
+						color = Color(0x950B1418),
+						borderRadius = 6.dp,
+						blurRadius = 4.dp,
+						offsetY = 6.dp,
+						spread = 1f.dp
+					)
+					.clip(RoundedCornerShape(10.dp))
+					.background(FridgeBlue)
+					.padding(top = 0.dp),
+				horizontalAlignment = Alignment.CenterHorizontally
+			) {
+				Box(
+					modifier = Modifier
+						.shadow(
+							color = Color(0x430B1418),
+							borderRadius = 200.dp,
+							blurRadius = 30.dp,
+							offsetY = 0.dp,
+							spread = 0f.dp
+						)
+						.clip(shape = RoundedCornerShape(bottomStart = 68.dp, bottomEnd = 68.dp))
+						.background(FridgeBlue)
+						.height(70.dp)
+						.width(140.dp)
+						.padding(0.dp)
+				) {
+					Image(
+						painter = painterResource(id = R.drawable.tgf_logo_small),
+						contentDescription = "Logo",
+						contentScale = ContentScale.FillBounds,
+						modifier = Modifier
+							.width(60.dp)
+							.height(75.dp)
+							.align(Alignment.Center)
+							.padding(top = 0.dp)
+							.graphicsLayer(
+								translationY = (-100).dp.value
+							)
+					)
+				}
+
+
+
 				Column(
 					modifier = Modifier
-						.padding(horizontal = 15.dp),
+						.padding(horizontal = 30.dp),
 					horizontalAlignment = Alignment.CenterHorizontally
 				) {
 
@@ -1823,7 +1891,7 @@ fun OverviewScreen(
 						Text(
 							text = "Watch out!",
 							fontWeight = FontWeight.Bold,
-							fontSize = 25.sp,
+							fontSize = 30.sp,
 							style = TextStyle(fontFamily = FontFamily.SansSerif),
 							color = ExpiredRed,
 							textAlign = TextAlign.Center,
@@ -1833,7 +1901,7 @@ fun OverviewScreen(
 						)
 						Text(
 							text = "There are items in your fridge that need to be taken care of!",
-							color = Color.Black,
+							color = Black,
 							modifier = Modifier
 								.fillMaxWidth()
 								.padding(bottom = 15.dp),
@@ -1843,17 +1911,17 @@ fun OverviewScreen(
 						Text(
 							text = "Great job!",
 							fontWeight = FontWeight.Bold,
-							fontSize = 25.sp,
+							fontSize = 30.sp,
 							style = TextStyle(fontFamily = FontFamily.SansSerif),
 							color = GreatJobGreen,
 							textAlign = TextAlign.Center,
 							modifier = Modifier
 								.fillMaxWidth()
-								.padding(10.dp),
+								.padding(top = 20.dp, bottom = 10.dp),
 						)
 						Text(
 							text = "Everything in your fridge seems fine for today.",
-							color = Color.Black,
+							color = Black,
 							modifier = Modifier
 								.fillMaxWidth()
 								.padding(bottom = 16.dp),
@@ -1872,7 +1940,7 @@ fun OverviewScreen(
 					LazyColumn(
 						modifier = Modifier
 							.fillMaxWidth()
-							.heightIn(min = 80.dp, max = 400.dp)
+							.heightIn(min = 20.dp, max = 400.dp)
 							.padding(15.dp),
 					) {
 						items(allEntries.sortedBy { it.bbDate }) { entry ->
@@ -1882,13 +1950,10 @@ fun OverviewScreen(
 								ItemUI(mainViewModel, entry = entry)
 							}
 						}
-//						items(expiredItems.sortedBy { it.bbDate }){entry->
-//							ItemUI(mainViewModel = mainViewModel, entry = entry)
-//
-//						}
 					}
 				}
 			}
+
 			Column(
 				modifier = Modifier.padding(top = 20.dp)
 			) {
@@ -1896,13 +1961,13 @@ fun OverviewScreen(
 					text = "Articles",
 					fontWeight = FontWeight.Bold,
 					fontSize = 25.sp,
-					color = Color.Black,
+					color = Black,
 					modifier = Modifier
 						.fillMaxWidth()
 						.padding(start = 15.dp, bottom = 3.dp, top = 18.dp)
 				)
 				Divider(
-						color = Color.Black,
+						color = Black,
 				thickness = 1.dp,
 				modifier = Modifier
 					.fillMaxWidth()
@@ -1926,16 +1991,16 @@ fun OverviewScreen(
 				modifier = Modifier.padding(top = 20.dp)
 			){
 				Text(
-				text = "Your recent Items",
+				text = "Used Up Items",
 				fontWeight = FontWeight.Bold,
 				fontSize = 25.sp,
-				color = Color.Black,
+				color = Black,
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(start = 15.dp, bottom = 3.dp, top = 5.dp)
 			)
 				Divider(
-					color = Color.Black,
+					color = Black,
 					thickness = 1.dp,
 					modifier = Modifier
 						.fillMaxWidth()
