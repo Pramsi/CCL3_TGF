@@ -630,7 +630,7 @@ fun AllCategories (
 							Row(
 								modifier = Modifier
 									.fillMaxWidth()
-									.padding(bottom=5.dp),
+									.padding(bottom = 5.dp),
 								horizontalArrangement = Arrangement.spacedBy(8.dp)
 							) {
 								val fruit = categories.find { it.categoryName == "Fruit" }
@@ -1960,6 +1960,50 @@ fun OverviewScreen(
 				modifier = Modifier.padding(top = 20.dp)
 			) {
 				Text(
+					text = "Quick Adding",
+					fontWeight = FontWeight.Bold,
+					fontSize = 25.sp,
+					color = Black,
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(start = 15.dp, bottom = 3.dp, top = 18.dp)
+				)
+				Divider(
+					color = Black,
+					thickness = 1.dp,
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(bottom = 28.dp, top = 6.dp, start = 18.dp, end = 18.dp)
+				)
+				Row(
+					modifier = Modifier
+						.padding(bottom = 15.dp)
+						.fillMaxWidth(),
+					horizontalArrangement = Arrangement.SpaceEvenly
+				) {
+					quickAddItemUI(mainViewModel,"10", "Pieces","Eggs", "Extras")
+					quickAddItemUI(mainViewModel,"500", "g","Beef", "Meat")
+					quickAddItemUI(mainViewModel,"1", "Pack","Milk", "Dairy")
+				}
+				Row(
+					modifier = Modifier
+						.padding(bottom = 15.dp)
+						.fillMaxWidth(),
+					horizontalArrangement = Arrangement.SpaceEvenly
+				) {
+					quickAddItemUI(mainViewModel,"2", "Cans","Beer", "Drinks")
+					quickAddItemUI(mainViewModel,"6", "Pieces","Apples", "Fruit")
+					quickAddItemUI(mainViewModel,"500", "g","Carrots", "Vegetables")
+				}
+			}
+
+
+
+
+			Column(
+				modifier = Modifier.padding(top = 20.dp)
+			) {
+				Text(
 					text = "Articles",
 					fontWeight = FontWeight.Bold,
 					fontSize = 25.sp,
@@ -2030,7 +2074,182 @@ fun OverviewScreen(
 	}
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun quickAddItemUI(mainViewModel: MainViewModel,amount: String, portion: String, foodName: String, categoryName: String?){
+	val state = mainViewModel.mainViewState.collectAsState()
+	Box(modifier = Modifier
+		.border(1.dp, Black, RoundedCornerShape(10.dp))
+//		.shadow(
+//			color = Color(0x430B1418),
+//			borderRadius = 75.dp,
+//			blurRadius = 15.dp,
+//			offsetY = 0.dp,
+//			spread = 0f.dp
+//		)
+		.size(100.dp)
+		.background(White)
+		.clip(RoundedCornerShape(10.dp))
+		.clickable { mainViewModel.openQuickAddDialog(foodName) }
 
+	){
+		Column(
+			modifier = Modifier.fillMaxSize(),
+			verticalArrangement = Arrangement.Center,
+			horizontalAlignment = Alignment.CenterHorizontally
+		) {
+			Text(
+				text = "$amount $portion",
+				color = Black,
+				modifier = Modifier
+					.fillMaxWidth(),
+				fontSize = 16.sp,
+				textAlign = TextAlign.Center
+			)
+			Text(
+				text = "$foodName",
+				color = Black,
+				modifier = Modifier
+					.fillMaxWidth(),
+				fontSize = 16.sp,
+				textAlign = TextAlign.Center
+			)
+		}
+		val openQuickAddDialogForEntry = mainViewModel.openQuickAddingDialogFor.value
+		if (openQuickAddDialogForEntry == foodName) {
+			QuickAddingPopup(mainViewModel, categoryName, amount, portion, foodName)
+		}
+	}
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun QuickAddingPopup(
+	mainViewModel: MainViewModel,
+	categoryName : String?,
+	amount: String,
+	portion: String,
+	foodName: String
+
+) {
+
+	val categories by mainViewModel.categories.collectAsState()
+	val mContext = LocalContext.current
+	var categoryId by remember { mutableIntStateOf(0) }
+	var timeStampChecked by remember { mutableStateOf("")}
+
+
+	var bbDate by remember { mutableStateOf("") }
+
+//	var portionType by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
+	var isChecked = 0
+
+	AlertDialog(
+		onDismissRequest = {
+			mainViewModel.dismissQuickAddDialog()
+		},
+		modifier = Modifier
+			.clip(RoundedCornerShape(20.dp))
+			.background(White)
+			.padding(20.dp),
+
+		) {
+		Column(
+			modifier = Modifier
+				.fillMaxWidth(),
+			horizontalAlignment = Alignment.CenterHorizontally
+
+		) {
+			Text(
+				text = "ADD ITEM",
+				lineHeight = 45.sp,
+				fontWeight = FontWeight.Bold,
+				fontSize = 25.sp,
+				letterSpacing = 2.sp,
+				style = TextStyle(fontFamily = FontFamily.SansSerif),
+				color = Color.Black,
+				textAlign = TextAlign.Center,
+				modifier = Modifier
+					.padding(10.dp)
+					.fillMaxWidth(),
+			)
+
+			Text(
+				text = "When does it expire?",
+				lineHeight = 45.sp,
+				fontWeight = FontWeight.Bold,
+				fontSize = 25.sp,
+				style = TextStyle(fontFamily = FontFamily.SansSerif),
+				color = Color.Black,
+				textAlign = TextAlign.Center,
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(top = 15.dp),
+			)
+			Text(
+				text = "$foodName $amount $categoryName",
+				lineHeight = 45.sp,
+				fontWeight = FontWeight.Bold,
+				fontSize = 25.sp,
+				style = TextStyle(fontFamily = FontFamily.SansSerif),
+				color = Color.Black,
+				textAlign = TextAlign.Center,
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(top = 15.dp),
+			)
+
+
+			DatePickerField(selectedDate = bbDate, onDateSelected = { bbDate = it.toString() })
+
+			Row(
+				horizontalArrangement = Arrangement.Center,
+				verticalAlignment = Alignment.CenterVertically
+			) {
+				Button(
+					elevation = androidx.compose.material.ButtonDefaults.elevation(0.dp),
+					onClick = {
+						mainViewModel.dismissQuickAddDialog()
+					},
+					modifier = Modifier.padding(top = 20.dp),
+					colors = androidx.compose.material.ButtonDefaults.buttonColors(Transparent)
+				) {
+					Text(text = "Cancel", color = Black )
+				}
+
+				Button(
+					onClick = {
+
+						for (category in categories) {
+							if (categoryName == category.categoryName) {
+								categoryId = category.id
+							}
+						}
+
+							mainViewModel.saveButton(
+								SingleEntry(
+									foodName,
+									bbDate,
+									categoryId,
+									amount,
+									portion,
+									isChecked,
+									timeStampChecked
+								)
+							)
+
+					},
+					modifier = Modifier.padding(top = 20.dp),
+					colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
+				) {
+					Text(text = "Add", color = White )
+				}
+
+			}
+		}
+	}
+}
 
 data class ArticlePreview(
 	val articleId: Int,
