@@ -628,7 +628,9 @@ fun AllCategories (
 
 						item {
 							Row(
-								modifier = Modifier.fillMaxWidth(),
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(bottom=5.dp),
 								horizontalArrangement = Arrangement.spacedBy(8.dp)
 							) {
 								val fruit = categories.find { it.categoryName == "Fruit" }
@@ -767,41 +769,48 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 			.fillMaxSize()
 	) {
 		Header("$categoryName",navController)
-		Row  {
-			Box(
-				modifier = Modifier
-					.offset(y = (-15).dp)
-					.fillMaxWidth()
-					.padding(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 0.dp)
-					.clip(RoundedCornerShape(16.dp))
-					.background(FridgeBlue),
-				contentAlignment = Alignment.Center
-			) {
-				LazyColumn(
-					verticalArrangement = Arrangement.Top,
-					horizontalAlignment = Alignment.CenterHorizontally,
+		Column(
+			modifier = Modifier
+				.fillMaxSize(),
+			verticalArrangement = Arrangement.Center,
+			horizontalAlignment = Alignment.CenterHorizontally,
+		) {
+			Row {
+				Box(
 					modifier = Modifier
-						.fillMaxHeight(0.9f)
+						.offset(y = (-15).dp)
+						.fillMaxWidth()
+						.height(550.dp)
+						.padding(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 0.dp)
+						.clip(RoundedCornerShape(16.dp))
+						.background(FridgeBlue),
+					contentAlignment = Alignment.Center
 				) {
-					if (entries.value.isEmpty() || mainViewModel.areAllEntriesChecked(categoryId)) {
-						item {
-							Text(
-								text = "This category is empty. You can add an item with the '+' button in the bottom left.",
-								color = SecondaryGray,
-								fontSize = 16.sp,
-								textAlign = TextAlign.Center,
-								modifier = Modifier
-									.padding(30.dp),
-							)
-						}
-					} else {
-						items(entries.value.sortedBy { it.bbDate }) { entry ->
-							if (entry.isChecked == 0) {
-								ItemUI(mainViewModel, entry = entry)
+					LazyColumn(
+						verticalArrangement = Arrangement.Top,
+						horizontalAlignment = Alignment.CenterHorizontally,
+						modifier = Modifier
+							.height(550.dp)
+					) {
+						if (entries.value.isEmpty() || mainViewModel.areAllEntriesChecked(categoryId)) {
+							item {
+								Text(
+									text = "This category is empty. You can add an item with the '+' button in the bottom left.",
+									color = SecondaryGray,
+									fontSize = 16.sp,
+									textAlign = TextAlign.Center,
+									modifier = Modifier
+										.padding(30.dp),
+								)
+							}
+						} else {
+							items(entries.value.sortedBy { it.bbDate }) { entry ->
+								if (entry.isChecked == 0) {
+									ItemUI(mainViewModel, entry = entry)
+								}
 							}
 						}
 					}
-				}
 
 					if (state.value.openAddDialog) {
 						AddingPopup(mainViewModel = mainViewModel, categoryName)
@@ -809,27 +818,28 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 				}
 			}
 
-		Row(
-			modifier = Modifier
-				.fillMaxWidth()
-				.offset(y = (-15).dp)
-				.height(45.dp),
-			horizontalArrangement = Arrangement.SpaceEvenly
-		) {
-			Box(
+			Row(
 				modifier = Modifier
-					.width(40.dp)
-					.height(20.dp)
-					.clip(RoundedCornerShape(4.dp))
-					.background(FridgeBlue)
-			)
-			Box(
-				modifier = Modifier
-					.width(40.dp)
-					.height(20.dp)
-					.clip(RoundedCornerShape(4.dp))
-					.background(FridgeBlue)
-			)
+					.fillMaxWidth()
+					.offset(y = (-15).dp)
+					.height(45.dp),
+				horizontalArrangement = Arrangement.SpaceEvenly
+			) {
+				Box(
+					modifier = Modifier
+						.width(40.dp)
+						.height(20.dp)
+						.clip(RoundedCornerShape(4.dp))
+						.background(FridgeBlue)
+				)
+				Box(
+					modifier = Modifier
+						.width(40.dp)
+						.height(20.dp)
+						.clip(RoundedCornerShape(4.dp))
+						.background(FridgeBlue)
+				)
+			}
 		}
 	}
 }
@@ -1601,7 +1611,7 @@ fun CategoryDropDownMenu(categoryName: String?,mainViewModel: MainViewModel, sel
 				label= { Text(text = "Categories", color = Color.Gray)},
 				value = textFieldValue.value,
 				onValueChange = {
-								textFieldValue.value = it
+					textFieldValue.value = it
                     // Update the selected category when the text changes
                     onCategorySelected(it.toString())
 					Log.d("PREFILLEDCATEGORY", "OnValue Change categoryName: $categoryName")
