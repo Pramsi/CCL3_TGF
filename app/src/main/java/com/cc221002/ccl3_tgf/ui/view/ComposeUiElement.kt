@@ -140,6 +140,8 @@ import com.cc221002.ccl3_tgf.ui.theme.AlertBoxBlue
 import com.cc221002.ccl3_tgf.ui.theme.AlertBoxGrey
 import com.cc221002.ccl3_tgf.ui.theme.BackgroundBlue
 import com.cc221002.ccl3_tgf.ui.theme.BackgroundLightBlue
+import com.cc221002.ccl3_tgf.ui.theme.ButtonBlue
+import com.cc221002.ccl3_tgf.ui.theme.ButtonRed
 import com.cc221002.ccl3_tgf.ui.theme.ExpiredRed
 import com.cc221002.ccl3_tgf.ui.theme.FridgeBlue
 import com.cc221002.ccl3_tgf.ui.theme.FridgeBorder
@@ -381,7 +383,8 @@ fun AllCategories (
 
 		Column(
 			modifier = Modifier
-				.fillMaxSize(),
+				.fillMaxSize()
+				.padding(start = 10.dp, end = 10.dp),
 			verticalArrangement = Arrangement.Center,
 			horizontalAlignment = Alignment.CenterHorizontally,
 		) {
@@ -396,7 +399,7 @@ fun AllCategories (
 				Box(
 					modifier = Modifier
 						.fillMaxWidth()
-						.height(550.dp)
+						.height(585.dp)
 						.padding(start = 18.dp, top = 10.dp, end = 18.dp, bottom = 0.dp)
 						.clip(RoundedCornerShape(5))
 						.border(width = 3.dp, FridgeBorder, shape = RoundedCornerShape(5))
@@ -450,9 +453,8 @@ fun AllCategories (
 											mainViewModel.setCurrentCategory(it.categoryName)
 											mainViewModel.getEntriesByCategory(it.id)
 											navController.navigate(Screen.ShowCategoryEntries.route)
-											// Handle click action for Leftovers category
 										}
-										.padding(30.dp),
+										.padding(34.dp),
 									textAlign = TextAlign.Center,
 									fontSize = 20.sp,
 									fontWeight = FontWeight.Bold,
@@ -506,7 +508,7 @@ fun AllCategories (
 											}
 											.clip(RoundedCornerShape(6.dp))
 											.background(color = backgroundColor)
-											.padding(30.dp),
+											.padding(34.dp),
 										textAlign = TextAlign.Center,
 										fontSize = 20.sp,
 										fontWeight = FontWeight.Bold,
@@ -546,7 +548,7 @@ fun AllCategories (
 											}
 											.clip(RoundedCornerShape(6.dp))
 											.background(color = backgroundColor)
-											.padding(30.dp),
+											.padding(34.dp),
 										textAlign = TextAlign.Center,
 										fontSize = 20.sp,
 										fontWeight = FontWeight.Bold,
@@ -593,7 +595,7 @@ fun AllCategories (
 									}
 									.clip(RoundedCornerShape(6.dp))
 									.background(color = backgroundColor)
-									.padding(30.dp),
+									.padding(34.dp),
 								textAlign = TextAlign.Center,
 								fontSize = 20.sp,
 								fontWeight = FontWeight.Bold,
@@ -635,7 +637,7 @@ fun AllCategories (
 									}
 									.clip(RoundedCornerShape(6.dp))
 									.background(color = backgroundColor)
-									.padding(30.dp),
+									.padding(34.dp),
 								textAlign = TextAlign.Center,
 								fontSize = 20.sp,
 								fontWeight = FontWeight.Bold,
@@ -686,7 +688,7 @@ fun AllCategories (
 										}
 										.clip(RoundedCornerShape(6.dp))
 										.background(color = backgroundColor)
-										.padding(30.dp),
+										.padding(34.dp),
 									textAlign = TextAlign.Center,
 									fontSize = 20.sp,
 									fontWeight = FontWeight.Bold,
@@ -727,10 +729,10 @@ fun AllCategories (
 										.clip(RoundedCornerShape(6.dp))
 										.background(color = backgroundColor)
 										.padding(
-											start = 26.dp,
-											end = 26.dp,
-											top = 30.dp,
-											bottom = 30.dp
+											start = 23.dp,
+											end = 23.dp,
+											top = 34.dp,
+											bottom = 34.dp
 										),
 									textAlign = TextAlign.Center,
 									fontSize = 20.sp,
@@ -790,7 +792,8 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 		Header("$categoryName", navController)
 		Column(
 			modifier = Modifier
-				.fillMaxSize(),
+				.fillMaxSize()
+				.padding(start = 10.dp, end = 10.dp),
 			verticalArrangement = Arrangement.Center,
 			horizontalAlignment = Alignment.CenterHorizontally,
 		) {
@@ -811,7 +814,7 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 					horizontalAlignment = Alignment.CenterHorizontally,
 					modifier = Modifier
 						.height(550.dp)
-						.padding(top = 20.dp, bottom = 20.dp)
+						.padding(top = 30.dp, bottom = 30.dp)
 				) {
 					if (entries.value.isEmpty() || mainViewModel.areAllEntriesChecked(categoryId)) {
 						item {
@@ -977,7 +980,7 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 
 		Row(
 			modifier = Modifier
-				.padding(10.dp)
+				.padding(top = 5.dp, start = 10.dp, end = 10.dp, bottom = 5.dp)
 				.shadow(
 					color = Color(0xFF1C404E),
 					borderRadius = 10.dp,
@@ -1002,19 +1005,40 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 			Spacer(modifier = Modifier.padding(7.dp))
 			Box(
 				modifier = Modifier
-					.size(25.dp)
+					.size(40.dp)
+					.padding(start = 0.dp)
 			){
-				Checkbox(
-					checked = checkBoxState,
-					onCheckedChange = {
-						mainViewModel.openAskAmountDialog(entry)
-						checkBoxState = it
-						if(entry.portionAmount?.toFloatOrNull()!! >= 0) {
-							checkBoxState = false
-						}
-									  },
-					colors = CheckboxDefaults.colors(BackgroundLightBlue)
-				)
+				Box(
+					modifier = Modifier
+						.size(37.dp)
+						.shadow(
+							color = Color(0x25000000),
+							borderRadius = 20.dp,
+							blurRadius = 0.dp,
+							offsetY = 5.dp,
+							offsetX = 3.dp,
+							spread = 3f.dp
+						)
+						.clip(RoundedCornerShape(20.dp))
+						.background(
+							if (storedDate != null && storedDate.isAfter(currentDate)) {
+								ButtonBlue
+							} else {
+								ButtonRed
+							}
+						)
+						.padding(start = 7.dp, top = 7.dp, end = 4.dp, bottom = 7.dp)
+						.clickable { mainViewModel.openAskAmountDialog(entry) }
+				) {
+					Image(
+						painter = painterResource(id = R.drawable.pan_icon),
+						contentDescription = "Use item",
+						contentScale = ContentScale.Fit,
+						modifier = Modifier
+							.size(37.dp),
+						colorFilter = ColorFilter.tint(Color.White)
+					)
+				}
 			}
 			Spacer(modifier = Modifier.padding(7.dp))
 			Column(
@@ -1029,8 +1053,8 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					style = TextStyle(fontFamily = FontFamily.Monospace),
 					color = Color.White,
 					modifier = Modifier
-						.padding(bottom = 10.dp)
-						.width(200.dp)
+						.padding(bottom = 8.dp)
+						.width(193.dp)
 				)
 				Text(
 					text = "${entry.portionAmount} ${entry.portionType}",
@@ -1039,8 +1063,8 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					style = TextStyle(fontFamily = FontFamily.Monospace),
 					color = Color.White,
 					modifier = Modifier
-						.padding(bottom = 7.dp)
-						.width(200.dp)
+						.padding(bottom = 6.dp)
+						.width(193.dp)
 				)
 				Text(
 					text = "Best Before: ${entry.bbDate}",
@@ -1054,10 +1078,10 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					},
 					modifier = Modifier
 						.padding(bottom = 7.dp)
-						.width(200.dp)
+						.width(193.dp)
 				)
 			}
-			Spacer(modifier = Modifier.padding(7.dp))
+			Spacer(modifier = Modifier.padding(5.dp))
 			Box(
 				modifier = Modifier
 					.padding(end = 10.dp)
@@ -2723,7 +2747,7 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 
 			) {
 				Text(
-					text = "How much did you take?",
+					text = "How much did you use?",
 					lineHeight = 45.sp,
 					fontWeight = FontWeight.Bold,
 					fontSize = 25.sp,
