@@ -29,7 +29,7 @@ interface EntriesDao {
 	@Query("SELECT * FROM EntriesList")
 	fun getEntries(): Flow<List<SingleEntry>>
 
-
+	// this function selects all the Entries from one category
 	@Query("SELECT * FROM EntriesList WHERE categoryId = :categoryId")
 	fun getEntriesByCategory(categoryId: Int): Flow<List<SingleEntry>>
 
