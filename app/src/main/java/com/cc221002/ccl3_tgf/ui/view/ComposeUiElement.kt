@@ -98,6 +98,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.DarkGray
+import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.Color.Companion.Yellow
@@ -372,50 +373,59 @@ fun AllCategories (
 		modifier = Modifier
 			.background(White)
 			.fillMaxSize(),
-		verticalArrangement = Arrangement.SpaceEvenly,
+		verticalArrangement = Arrangement.Top,
 		horizontalAlignment = Alignment.CenterHorizontally,
 	) {
 
-	Header(title = "Your Fridge", navController)
+		Header(title = "Your Fridge", navController)
 
-		Row{
-		if(state.openAddDialog){
-			AddingPopup(mainViewModel = mainViewModel, categoryName = "")
-		}
+		Column(
+			modifier = Modifier
+				.fillMaxSize(),
+			verticalArrangement = Arrangement.Center,
+			horizontalAlignment = Alignment.CenterHorizontally,
+		) {
 
-			// fridge box containing all the categories
-			Box(
-				modifier = Modifier
-					.fillMaxWidth()
-					.padding(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 30.dp)
-					.clip(RoundedCornerShape(5))
-					.border(width = 3.dp, FridgeBorder, shape = RoundedCornerShape(5))
-					.background(FridgeBlue),
-				contentAlignment = Alignment.Center
-			) {
-				LazyColumn(
+
+			Row {
+				if (state.openAddDialog) {
+					AddingPopup(mainViewModel = mainViewModel, categoryName = "")
+				}
+
+				// fridge box containing all the categories
+				Box(
 					modifier = Modifier
-						.fillMaxSize()
-						.padding(start = 15.dp, top = 45.dp, end = 15.dp),
-					verticalArrangement = Arrangement.spacedBy(8.dp),
-					horizontalAlignment = Alignment.CenterHorizontally
+						.fillMaxWidth()
+						.height(550.dp)
+						.padding(start = 18.dp, top = 10.dp, end = 18.dp, bottom = 0.dp)
+						.clip(RoundedCornerShape(5))
+						.border(width = 3.dp, FridgeBorder, shape = RoundedCornerShape(5))
+						.background(FridgeBlue),
+					contentAlignment = Alignment.Center
 				) {
-					item {
-						val leftovers = categories.find { it.categoryName == "Leftovers" }
+					LazyColumn(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(start = 10.dp, top = 0.dp, end = 10.dp, bottom = 0.dp),
+						verticalArrangement = Arrangement.spacedBy(8.dp),
+						horizontalAlignment = Alignment.CenterHorizontally
+					) {
+						item {
+							val leftovers = categories.find { it.categoryName == "Leftovers" }
 
-						leftovers?.let {
-							// Determine background color based on conditions
-							val backgroundColor =
-								if (!mainViewModel.hasEntriesForCategory(leftovers.id)) {
-									// No entries for the category
-									BackgroundLightBlue
-								} else if (mainViewModel.areAllEntriesChecked(leftovers.id)) {
-									// All entries for the category are checked
-									BackgroundLightBlue
-								} else {
-									// Some entries are not checked
-									BackgroundBlue
-								}
+							leftovers?.let {
+								// Determine background color based on conditions
+								val backgroundColor =
+									if (!mainViewModel.hasEntriesForCategory(leftovers.id)) {
+										// No entries for the category
+										BackgroundLightBlue
+									} else if (mainViewModel.areAllEntriesChecked(leftovers.id)) {
+										// All entries for the category are checked
+										BackgroundLightBlue
+									} else {
+										// Some entries are not checked
+										BackgroundBlue
+									}
 
 							Box(
 								modifier = Modifier
@@ -452,17 +462,17 @@ fun AllCategories (
 						}
 					}
 
-					item {
-						Box(
-							modifier = Modifier.fillMaxWidth(),
-							contentAlignment = Alignment.Center
-						) {
-							Row(
+						item {
+							Box(
 								modifier = Modifier.fillMaxWidth(),
-								horizontalArrangement = Arrangement.spacedBy(8.dp)
+								contentAlignment = Alignment.Center
 							) {
-								val drinks = categories.find { it.categoryName == "Drinks" }
-								val dairy = categories.find { it.categoryName == "Dairy" }
+								Row(
+									modifier = Modifier.fillMaxWidth(),
+									horizontalArrangement = Arrangement.spacedBy(8.dp)
+								) {
+									val drinks = categories.find { it.categoryName == "Drinks" }
+									val dairy = categories.find { it.categoryName == "Dairy" }
 
 								drinks?.let {
 									val backgroundColor =
@@ -547,9 +557,9 @@ fun AllCategories (
 						}
 					}
 
-					item {
-						val extras = categories.find { it.categoryName == "Extras" }
-						val meat = categories.find { it.categoryName == "Meat" }
+						item {
+							val extras = categories.find { it.categoryName == "Extras" }
+							val meat = categories.find { it.categoryName == "Meat" }
 
 						extras?.let {
 							val backgroundColor =
@@ -591,7 +601,7 @@ fun AllCategories (
 							)
 						}
 
-						Spacer(modifier = Modifier.height(8.dp))
+							Spacer(modifier = Modifier.height(8.dp))
 
 						meat?.let {
 							val backgroundColor =
@@ -634,13 +644,15 @@ fun AllCategories (
 						}
 					}
 
-					item {
-						Row(
-							modifier = Modifier.fillMaxWidth(),
-							horizontalArrangement = Arrangement.spacedBy(8.dp)
-						) {
-							val fruit = categories.find { it.categoryName == "Fruit" }
-							val vegetables = categories.find { it.categoryName == "Vegetables" }
+						item {
+							Row(
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(bottom = 5.dp),
+								horizontalArrangement = Arrangement.spacedBy(8.dp)
+							) {
+								val fruit = categories.find { it.categoryName == "Fruit" }
+								val vegetables = categories.find { it.categoryName == "Vegetables" }
 
 							fruit?.let {
 								val backgroundColor =
@@ -734,7 +746,7 @@ fun AllCategories (
 		Row(
 			modifier = Modifier
 				.fillMaxWidth()
-				.offset(y = (-15).dp)
+//				.offset(y = (-15).dp)
 				.height(45.dp),
 			horizontalArrangement = Arrangement.SpaceEvenly
 		) {
@@ -743,30 +755,31 @@ fun AllCategories (
 					.width(40.dp)
 					.height(20.dp)
 					.clip(RoundedCornerShape(4.dp))
-					.background(FridgeBlue)
+					.background(FridgeBorder)
 			)
 			Box(
 				modifier = Modifier
 					.width(40.dp)
 					.height(20.dp)
 					.clip(RoundedCornerShape(4.dp))
-					.background(FridgeBlue)
+					.background(FridgeBorder)
 			)
+			}
 		}
 	}
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun categoryEntries(navController: NavHostController,mainViewModel: MainViewModel){
+fun categoryEntries(navController: NavHostController,mainViewModel: MainViewModel) {
 	val state = mainViewModel.mainViewState.collectAsState()
 	val entries = mainViewModel.entriesForCategory.collectAsState()
 	val categories by mainViewModel.categories.collectAsState()
 
 	val categoryName = mainViewModel.currentCategory
 	var categoryId by remember { mutableIntStateOf(0) }
-	for(category in categories){
-		if (category.categoryName == categoryName){
+	for (category in categories) {
+		if (category.categoryName == categoryName) {
 			categoryId = category.id
 		}
 	}
@@ -775,12 +788,19 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 			.background(White)
 			.fillMaxSize()
 	) {
-		Header("$categoryName",navController)
+		Header("$categoryName", navController)
+		Column(
+			modifier = Modifier
+				.fillMaxSize(),
+			verticalArrangement = Arrangement.Center,
+			horizontalAlignment = Alignment.CenterHorizontally,
+		) {
 		Row  {
 			Box(
 				modifier = Modifier
 					.offset(y = (-15).dp)
 					.fillMaxWidth()
+					.height(550.dp)
 					.padding(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 0.dp)
 					.clip(RoundedCornerShape(16.dp))
 					.background(FridgeBlue)
@@ -791,7 +811,7 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 					verticalArrangement = Arrangement.Top,
 					horizontalAlignment = Alignment.CenterHorizontally,
 					modifier = Modifier
-						.fillMaxHeight(0.9f)
+						.height(550.dp)
 						.padding(top = 20.dp, bottom = 20.dp)
 				) {
 					if (entries.value.isEmpty() || mainViewModel.areAllEntriesChecked(categoryId)) {
@@ -841,6 +861,7 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 					.clip(RoundedCornerShape(bottomStart = 6.dp, bottomEnd = 6.dp))
 					.background(FridgeBorder)
 			)
+			}
 		}
 	}
 }
@@ -918,7 +939,6 @@ fun Header(title:String, navController: NavHostController){
 						modifier = Modifier.padding(start = 8.dp)
 					)
 				}
-
 			}
 			Box(
 				modifier = Modifier
@@ -1284,16 +1304,13 @@ fun AddingPopup(
 			DatePickerField(selectedDate = bbDate , onDateSelected = {bbDate = it.toString()})
 
 			CategoryDropDownMenu(categoryName, mainViewModel, categorySelection, ){ selectedCategory->
-				Log.d("PREFILLEDCATEGORY", "IF selectedCategory: $selectedCategory")
-				Log.d("PREFILLEDCATEGORY", categoryName!!)
 				if(categoryName == "") {
 					categorySelection = selectedCategory
-				} else {
-					categorySelection = categoryName
+				} else if(selectedCategory == null) {
+					categorySelection = categoryName!!
+				} else{
+					categorySelection = selectedCategory
 				}
-					Log.d("PREFILLEDCATEGORY", "IF categorySelection: $categorySelection")
-					Log.d("PREFILLEDCATEGORY", "IF categoryName: $categoryName")
-
 			}
 
 
@@ -1602,16 +1619,19 @@ fun CategoryDropDownMenu(categoryName: String?,mainViewModel: MainViewModel, sel
 			expanded = isExpanded,
 			onExpandedChange = { isExpanded = it }
 		){
+			val textFieldValue = remember { mutableStateOf(TextFieldValue(categoryName ?: "")) }
+
 			TextField(
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(top = 20.dp)
 					.shadow(3.dp, RectangleShape, false),
 				label= { Text(text = "Categories", color = Color.Gray)},
-				value = if(categoryName != "") { categoryName!! } else { selectedCategory }
-				,
+				value = textFieldValue.value,
 				onValueChange = {
-								categoryName.let { selectedCategory }
+					textFieldValue.value = it
+                    // Update the selected category when the text changes
+                    onCategorySelected(it.toString())
 					Log.d("PREFILLEDCATEGORY", "OnValue Change categoryName: $categoryName")
 
 				},
@@ -1635,6 +1655,7 @@ fun CategoryDropDownMenu(categoryName: String?,mainViewModel: MainViewModel, sel
 					DropdownMenuItem(
 						text = { Text(text = category, color = Black, textAlign = TextAlign.Center) },
 						onClick = {
+							textFieldValue.value = TextFieldValue(category)
 						onCategorySelected(category)
 						isExpanded = false;
 					},
@@ -1969,6 +1990,50 @@ fun OverviewScreen(
 				modifier = Modifier.padding(top = 20.dp)
 			) {
 				Text(
+					text = "Quick Adding",
+					fontWeight = FontWeight.Bold,
+					fontSize = 25.sp,
+					color = Black,
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(start = 15.dp, bottom = 3.dp, top = 18.dp)
+				)
+				Divider(
+					color = Black,
+					thickness = 1.dp,
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(bottom = 28.dp, top = 6.dp, start = 18.dp, end = 18.dp)
+				)
+				Row(
+					modifier = Modifier
+						.padding(bottom = 15.dp)
+						.fillMaxWidth(),
+					horizontalArrangement = Arrangement.SpaceEvenly
+				) {
+					quickAddItemUI(mainViewModel,"10", "Piece(s)","Eggs", "Extras")
+					quickAddItemUI(mainViewModel,"500", "g","Beef", "Meat")
+					quickAddItemUI(mainViewModel,"1", "Pack(s)","Milk", "Dairy")
+				}
+				Row(
+					modifier = Modifier
+						.padding(bottom = 15.dp)
+						.fillMaxWidth(),
+					horizontalArrangement = Arrangement.SpaceEvenly
+				) {
+					quickAddItemUI(mainViewModel,"6", "Bottle(s)","Beer", "Drinks")
+					quickAddItemUI(mainViewModel,"6", "Piece(s)","Apples", "Fruit")
+					quickAddItemUI(mainViewModel,"500", "g","Carrots", "Vegetables")
+				}
+			}
+
+
+
+
+			Column(
+				modifier = Modifier.padding(top = 20.dp)
+			) {
+				Text(
 					text = "Articles",
 					fontWeight = FontWeight.Bold,
 					fontSize = 25.sp,
@@ -2039,7 +2104,235 @@ fun OverviewScreen(
 	}
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun quickAddItemUI(mainViewModel: MainViewModel,amount: String, portion: String, foodName: String, categoryName: String?){
+	val state = mainViewModel.mainViewState.collectAsState()
 
+	val QuickAddImageMap = mapOf(
+		"Eggs" to R.drawable.eggs_icon,
+		"Beef" to R.drawable.beef_icon,
+		"Milk" to R.drawable.dairy_icon,
+		"Beer" to R.drawable.beer_icon,
+		"Apples" to R.drawable.apple_icon,
+		"Carrots" to R.drawable.carrot_icon,
+	)
+
+	Box(modifier = Modifier
+//		.border(1.dp, Black, RoundedCornerShape(10.dp))
+		.shadow(
+			color = Color(0xFF1C404E),
+			borderRadius = 10.dp,
+			blurRadius = 5.dp,
+			offsetY = 5.dp,
+			offsetX = 5.dp,
+			spread = 3f.dp
+		)
+		.size(100.dp)
+		.clip(RoundedCornerShape(10.dp))
+		.background(BackgroundBlue)
+		.clickable { mainViewModel.openQuickAddDialog(foodName) }
+
+	){
+		Column(
+			modifier = Modifier.fillMaxSize(),
+			verticalArrangement = Arrangement.Center,
+			horizontalAlignment = Alignment.CenterHorizontally
+		) {
+			val categoryImage = QuickAddImageMap[foodName]
+			categoryImage?.let { image ->
+				Image(
+					painter = painterResource(id = image),
+					contentDescription = null,
+					modifier = Modifier
+						.size(50.dp)
+						.padding(top = 5.dp)
+				)
+			}
+			Text(
+				text = "$foodName",
+				color = White,
+				modifier = Modifier
+					.fillMaxWidth(),
+				fontSize = 16.sp,
+				textAlign = TextAlign.Center,
+				fontWeight = FontWeight.Bold
+			)
+
+			Text(
+				text = "$amount $portion",
+				color = White,
+				modifier = Modifier
+					.fillMaxWidth(),
+				fontSize = 12.sp,
+				textAlign = TextAlign.Center
+			)
+
+		}
+		val openQuickAddDialogForEntry = mainViewModel.openQuickAddingDialogFor.value
+		if (openQuickAddDialogForEntry == foodName) {
+			QuickAddingPopup(mainViewModel, categoryName, amount, portion, foodName, QuickAddImageMap)
+		}
+	}
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun QuickAddingPopup(
+	mainViewModel: MainViewModel,
+	categoryName : String?,
+	amount: String,
+	portion: String,
+	foodName: String,
+	QuickAddImageMap: Map<String, Int>,
+
+) {
+
+	val categories by mainViewModel.categories.collectAsState()
+	val mContext = LocalContext.current
+	var categoryId by remember { mutableIntStateOf(0) }
+	var timeStampChecked by remember { mutableStateOf("")}
+
+
+	var bbDate by remember { mutableStateOf("") }
+
+//	var portionType by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
+	var isChecked = 0
+
+	AlertDialog(
+		onDismissRequest = {
+			mainViewModel.dismissQuickAddDialog()
+		},
+		modifier = Modifier
+			.clip(RoundedCornerShape(20.dp))
+			.background(White)
+			.padding(20.dp),
+
+		) {
+		Column(
+			modifier = Modifier
+				.fillMaxWidth(),
+			horizontalAlignment = Alignment.CenterHorizontally
+
+		) {
+			Text(
+				text = "ADD ITEM",
+				lineHeight = 45.sp,
+				fontWeight = FontWeight.Bold,
+				fontSize = 25.sp,
+				letterSpacing = 2.sp,
+				style = TextStyle(fontFamily = FontFamily.SansSerif),
+				color = Color.Black,
+				textAlign = TextAlign.Center,
+				modifier = Modifier
+					.padding(10.dp)
+					.fillMaxWidth(),
+			)
+
+			Box(modifier = Modifier
+				.border(1.dp, Black, RoundedCornerShape(10.dp))
+				.size(100.dp)
+				.clip(RoundedCornerShape(10.dp))
+				.background(White)
+			) {
+				Column(
+					modifier = Modifier.fillMaxSize(),
+					verticalArrangement = Arrangement.Center,
+					horizontalAlignment = Alignment.CenterHorizontally
+				) {
+					val categoryImage = QuickAddImageMap[foodName]
+					categoryImage?.let { image ->
+						Image(
+							painter = painterResource(id = image),
+							contentDescription = null,
+							modifier = Modifier
+								.size(50.dp)
+								.padding(top = 5.dp)
+						)
+					}
+					Text(
+						text = "$foodName",
+						color = Black,
+						modifier = Modifier
+							.fillMaxWidth(),
+						fontSize = 16.sp,
+						textAlign = TextAlign.Center,
+						fontWeight = FontWeight.Bold
+					)
+
+					Text(
+						text = "$amount $portion",
+						color = Gray,
+						modifier = Modifier
+							.fillMaxWidth(),
+						fontSize = 12.sp,
+						textAlign = TextAlign.Center
+					)
+				}
+			}
+
+			Text(
+				text = "When does it expire?",
+				lineHeight = 45.sp,
+				fontSize = 15.sp,
+				style = TextStyle(fontFamily = FontFamily.SansSerif),
+				color = Color.Black,
+				textAlign = TextAlign.Center,
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(top = 15.dp),
+			)
+
+			DatePickerField(selectedDate = bbDate, onDateSelected = { bbDate = it.toString() })
+
+			Row(
+				horizontalArrangement = Arrangement.Center,
+				verticalAlignment = Alignment.CenterVertically
+			) {
+				Button(
+					elevation = androidx.compose.material.ButtonDefaults.elevation(0.dp),
+					onClick = {
+						mainViewModel.dismissQuickAddDialog()
+					},
+					modifier = Modifier.padding(top = 20.dp),
+					colors = androidx.compose.material.ButtonDefaults.buttonColors(Transparent)
+				) {
+					Text(text = "Cancel", color = Black )
+				}
+
+				Button(
+					onClick = {
+
+						for (category in categories) {
+							if (categoryName == category.categoryName) {
+								categoryId = category.id
+							}
+						}
+
+							mainViewModel.saveButton(
+								SingleEntry(
+									foodName,
+									bbDate,
+									categoryId,
+									amount,
+									portion,
+									isChecked,
+									timeStampChecked
+								)
+							)
+
+					},
+					modifier = Modifier.padding(top = 20.dp),
+					colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
+				) {
+					Text(text = "Add", color = White )
+				}
+
+			}
+		}
+	}
+}
 
 data class ArticlePreview(
 	val articleId: Int,
@@ -2261,7 +2554,7 @@ fun ArticleScreen(articleId: Int, navController: NavHostController) {
 			.background(White),
 
 	) {
-		Header(title = "${selectedArticle!!.heading}", navController)
+		Header(title = "Article", navController)
 
 		Column(
 			modifier = Modifier
@@ -2453,18 +2746,9 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 					TextField(
 						value = amountTaken,
 						modifier = Modifier
-							.fillMaxWidth(0.5f)
+							.fillMaxWidth(0.3f)
 							.shadow(3.dp, RectangleShape, false),
 						keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-						trailingIcon = {
-							Image(
-								painter = painterResource(id = R.drawable.arrows_up_down_icon),
-								contentDescription = "Amount",
-								contentScale = ContentScale.Fit,
-								modifier = Modifier
-									.size(25.dp)
-							)
-						},
 						colors = TextFieldDefaults.colors(
 							focusedTextColor = Black,
 							unfocusedTextColor = Black,
@@ -2475,7 +2759,7 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 						onValueChange = { newText: String ->
 							amountTaken = newText
 						},
-						label = { Text(text = "#", color = Black) }
+						label = { Text(text = "Amount", color = Black) }
 					)
 					Text(
 						text = entry.portionType!!,

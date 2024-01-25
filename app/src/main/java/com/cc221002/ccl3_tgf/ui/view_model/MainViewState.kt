@@ -16,6 +16,7 @@ data class MainViewState (
 
 	val openEditDialog: Boolean = false,
 	val openAddDialog: Boolean = false,
+	val openQuickAddDialog: Boolean = false,
 	val openAskAmountDialog: Boolean = false,
 	val openAlertDialog: Boolean = false,
 	val openAlertDialogForEntry: String = "",

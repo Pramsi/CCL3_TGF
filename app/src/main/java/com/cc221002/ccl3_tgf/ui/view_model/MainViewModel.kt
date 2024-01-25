@@ -66,6 +66,9 @@ class MainViewModel (
 	private val _openAskAmountDialogForEntry = mutableStateOf<String?>(null)
 	val openAskAmountDialogForEntry: State<String?> = _openAskAmountDialogForEntry
 
+	private val _openQuickAddingDialogFor = mutableStateOf<String?>(null)
+	val openQuickAddingDialogFor: State<String?> = _openQuickAddingDialogFor
+
 	private var _giveEntries = MutableStateFlow<List<SingleEntry>>(emptyList())
 	val giveEntries: StateFlow<List<SingleEntry>> = _entriesForCategory.asStateFlow()
 
@@ -143,10 +146,20 @@ class MainViewModel (
 		_mainViewState.update{ it.copy(openAddDialog = false)}
 	}
 
+	fun openQuickAddDialog(foodName: String){
+		_mainViewState.update{ it.copy(openQuickAddDialog = true)}
+		_openQuickAddingDialogFor.value = foodName
+	}
+	fun dismissQuickAddDialog(){
+		_mainViewState.update{ it.copy(openQuickAddDialog = false)}
+		_openQuickAddingDialogFor.value = ""
+	}
+
 	fun saveButton(entry: SingleEntry){
 		viewModelScope.launch {
 			dao.insertEntry(entry)
 			dismissAddDialog()
+			dismissQuickAddDialog()
 			getEntries()
 		}
 	}
