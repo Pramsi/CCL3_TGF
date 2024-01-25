@@ -37,13 +37,11 @@ class MainViewModel (
 	private val _entries = MutableStateFlow<List<SingleEntry>>(emptyList())
 	val entries: StateFlow<List<SingleEntry>> = _entries.asStateFlow()
 
+	// this variable is a list of all the entries of one Category
 	private var _entriesForCategory = MutableStateFlow<List<SingleEntry>>(emptyList())
 	val entriesForCategory: StateFlow<List<SingleEntry>> = _entriesForCategory.asStateFlow()
 
-	private var _entriesForIsCheckedCheck = MutableStateFlow<List<SingleEntry>>(emptyList())
-	val entriesForIsCheckedCheck: StateFlow<List<SingleEntry>> = _entriesForIsCheckedCheck.asStateFlow()
-
-	// this variable is for swipe deleting a trip (it saves for which trip the alert opens)
+	// the next four variables save the entry for which each dialog opens
 	private val _openAlertDialogForEntry = mutableStateOf<String?>(null)
 	val openAlertDialogForEntry: State<String?> = _openAlertDialogForEntry
 
@@ -56,14 +54,12 @@ class MainViewModel (
 	private val _openQuickAddingDialogFor = mutableStateOf<String?>(null)
 	val openQuickAddingDialogFor: State<String?> = _openQuickAddingDialogFor
 
-	private var _giveEntries = MutableStateFlow<List<SingleEntry>>(emptyList())
-	val giveEntries: StateFlow<List<SingleEntry>> = _entriesForCategory.asStateFlow()
-
 	// this function updates on which screen the user currently is
 	fun selectScreen(screen: Screen){
 		_mainViewState.update { it.copy(selectedScreen = screen) }
 	}
 
+	// this part gets all the categories from the datatable
 	fun getAllCategories() {
 		viewModelScope.launch {
 			categoriesDao.getAllCategories().collect { categories ->
@@ -71,16 +67,13 @@ class MainViewModel (
 			}
 		}
 	}
+
+	// this function gets the distinct category names for the dropdown
 	fun getDistinctCategories(): List<String> {
 		return _categories.value.map{it.categoryName}.distinct()
 	}
 
-	// this function determines whether category has entries or not (background color blue or light blue?)
-	fun hasEntriesInCategory(categoryId: Int): Boolean {
-		return entries.value.any { it.categoryId == categoryId }
-	}
-
-	// this function calls the dao function to collect all the trips that are saved in the database
+	// this function calls the dao function to collect all the entries that are saved in the database
 	fun getEntries() {
 		viewModelScope.launch {
 			dao.getEntries().collect{entries ->
@@ -89,7 +82,7 @@ class MainViewModel (
 		}
 	}
 
-	// Method to set the current category
+	// Method to set the current category the user is in
 	fun setCurrentCategory(categoryName: String) {
 		_currentCategory.value = categoryName
 	}
@@ -100,7 +93,6 @@ class MainViewModel (
 			dao.getEntriesByCategory(categoryId).collect { entries ->
 				_entriesForCategory.value = entries
 
-				// call hasEntriesInCategory after updating entriesForCategory
 				_mainViewState.update {
 					it.copy(selectedScreen = Screen.ShowCategoryEntries)
 				}
@@ -108,9 +100,7 @@ class MainViewModel (
 		}
 	}
 
-
-
-	// Function to check if all entries for a category are checked
+	// Function to check if all entries for a category are checked (returns true if that is the case)
 	fun areAllEntriesChecked(categoryId: Int): Boolean {
 		if(categoryId == 0){
 			val allEntries = entries.value
@@ -126,6 +116,7 @@ class MainViewModel (
 		return entries.value.any { it.categoryId == categoryId }
 	}
 
+	// those two functions manage opening and closing the adding Dialog
 	fun openAddDialog(){
 		_mainViewState.update{ it.copy(openAddDialog = true)}
 	}
@@ -133,6 +124,7 @@ class MainViewModel (
 		_mainViewState.update{ it.copy(openAddDialog = false)}
 	}
 
+	// those two functions manage opening and closing the quick adding Dialog
 	fun openQuickAddDialog(foodName: String){
 		_mainViewState.update{ it.copy(openQuickAddDialog = true)}
 		_openQuickAddingDialogFor.value = foodName
@@ -142,6 +134,7 @@ class MainViewModel (
 		_openQuickAddingDialogFor.value = ""
 	}
 
+	// this function inserts the entry it gets sent into the database and closes the Dialogs
 	fun saveButton(entry: SingleEntry){
 		viewModelScope.launch {
 			dao.insertEntry(entry)
@@ -151,12 +144,19 @@ class MainViewModel (
 		}
 	}
 
+	// those two functions manage opening and closing the editing Dialog
 	fun openEditDialog(singleEntry: SingleEntry){
 		_mainViewState.update{ it.copy(openEditDialog = true, editSingleEntry = singleEntry) }
+		// it saves for which entry the edit is opened
 		_openEditDialogForEntry.value = singleEntry.id.toString()
+	}
+	fun dismissEditDialog(){
+		_mainViewState.update{ it.copy(openEditDialog = false) }
+		// it "deletes" for which entry the edit was opened
+		_openEditDialogForEntry.value = ""
 
 	}
-
+	// this function update the information of an entry in the database and closes the dialog
 	fun saveEditedEntry(singleEntry: SingleEntry){
 		dismissEditDialog()
 		viewModelScope.launch {
@@ -165,42 +165,33 @@ class MainViewModel (
 		}
 	}
 
-	fun dismissEditDialog(){
-		_mainViewState.update{ it.copy(openEditDialog = false) }
-		_openEditDialogForEntry.value = ""
-
-	}
-
+	// those two functions manage opening and closing the Dialog to ask how much the user used of the item
 	fun openAskAmountDialog(singleEntry: SingleEntry){
 		_mainViewState.update{ it.copy(openAskAmountDialog = true, editSingleEntry = singleEntry)}
 		_openAskAmountDialogForEntry.value = singleEntry.id.toString()
 	}
-
 	fun dismissAskAmountDialog(){
 		_mainViewState.update{ it.copy(openAskAmountDialog = false)}
 		_openAskAmountDialogForEntry.value = ""
 	}
 
-
-	// this function opens the alertDialog
-	fun openAlertDialog(entryId: String) {
+	// those two functions manage opening and closing the adding Dialog
+		fun openAlertDialog(entryId: String) {
 		_mainViewState.update { it.copy(openAlertDialog = true) }
-		// and saves for which the alert is opened
+		// it saves for which the alert is opened
 		_openAlertDialogForEntry.value = entryId
 	}
-
-	// this function closes the alertDialog
 	fun dismissAlertDialog(){
 		_mainViewState.update { it.copy(openAlertDialog = false) }
-		// and "deletes" for which trip the alert was opened
+		// it "deletes" for which entry the alert was opened
 		_openAlertDialogForEntry.value = ""
 	}
 
+	// those two functions manage opening and closing the confirmation Dialog
 	fun openConfirmationDialog() {
 		_mainViewState.update { it.copy(openConfirmDialog = true) }
 	}
 
-	// this function closes the alertDialog
 	fun dismissConfirmationDialog(){
 		_mainViewState.update { it.copy(openConfirmDialog = false) }
 	}
@@ -214,6 +205,7 @@ class MainViewModel (
 		}
 	}
 
+	// the next two functions handle which view of the Fridge is active
 	fun enableFridgeView(){
 		_mainViewState.update{ it.copy(fridgeView = true)}
 		_mainViewState.update{ it.copy(listView = false)}
@@ -224,6 +216,8 @@ class MainViewModel (
 		_mainViewState.update{ it.copy(fridgeView = false)}
 	}
 
+
+	// this function creates the predefined category list and saves it into the database
 	fun insertCategories() {
 		val hardcodedCategory = listOf(
 			Category("Leftovers"),
