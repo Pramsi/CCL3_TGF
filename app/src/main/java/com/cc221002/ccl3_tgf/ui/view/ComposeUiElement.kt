@@ -381,7 +381,7 @@ fun AllCategories (
 					modifier = Modifier
 						.fillMaxWidth()
 						.height(585.dp)
-						.padding(start = 18.dp, top = 5.dp, end = 18.dp, bottom = 0.dp)
+						.padding(start = 18.dp, top = 13.dp, end = 18.dp, bottom = 0.dp)
 						.clip(RoundedCornerShape(5))
 						.border(width = 3.dp, FridgeBorder, shape = RoundedCornerShape(5))
 						.background(FridgeBlue),
@@ -390,7 +390,7 @@ fun AllCategories (
 					Row(
 						modifier = Modifier
 							.fillMaxWidth()
-							.padding(vertical = 5.dp),
+							.padding(top = 6.dp, bottom = 3.dp),
 						horizontalArrangement = Arrangement.Center,
 						verticalAlignment = Alignment.Top
 					) {
@@ -399,11 +399,19 @@ fun AllCategories (
 								mainViewModel.enableFridgeView()
 							},
 							modifier = Modifier
-							,
+								.height(40.dp)
+								.clip(RoundedCornerShape(25.dp))
+								.padding(0.dp),
 							colors = buttonColorFridge
 
 						) {
-							Text(text = "Fridge", color = White)
+							Text(text = "Fridge",
+								color = White,
+								fontWeight = FontWeight.Bold,
+								fontSize = 15.sp,
+								modifier = Modifier
+								.padding(0.dp)
+							)
 						}
 						Spacer(modifier = Modifier.size(10.dp))
 
@@ -412,10 +420,17 @@ fun AllCategories (
 								mainViewModel.enableListView()
 							},
 							modifier = Modifier
-							,
+								.height(40.dp)
+								.clip(RoundedCornerShape(25.dp))
+								.padding(0.dp),
 							colors = buttonColorList
 						) {
-							Text(text = "List", color = White )
+							Text(text = "List", color = White,
+								fontWeight = FontWeight.Bold,
+								fontSize = 15.sp,
+								modifier = Modifier
+								.padding(0.dp)
+							)
 						}
 					}
 					if(state.fridgeView) {
@@ -763,7 +778,7 @@ fun AllCategories (
 							horizontalAlignment = Alignment.CenterHorizontally,
 							modifier = Modifier
 								.height(550.dp)
-								.padding(start = 10.dp, top = 0.dp, end = 10.dp, bottom = 0.dp),
+								.padding(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 30.dp),
 						) {
 							if (entries.isEmpty() || mainViewModel.areAllEntriesChecked(0)) {
 								item {
@@ -1511,8 +1526,8 @@ fun showConfirmationDialog(mainViewModel: MainViewModel){
 			.border(2.dp, Gray, RoundedCornerShape(20.dp))
 			.clip(RoundedCornerShape(20.dp))
 			.background(White)
-			.fillMaxWidth()
-			.height(200.dp),
+			.width(250.dp)
+			.height(150.dp),
 		onDismissRequest = { /*TODO*/ }
 	) {
 
@@ -1525,13 +1540,13 @@ fun showConfirmationDialog(mainViewModel: MainViewModel){
 				contentDescription = null,
 				contentScale = ContentScale.Fit,
 				modifier = Modifier
-					.size(75.dp),
+					.size(60.dp),
 			)
 
 			Text(text = "Item added successfully!",
-				lineHeight = 45.sp,
+				lineHeight = 30.sp,
 				fontWeight = FontWeight.Bold,
-				fontSize = 25.sp,
+				fontSize = 18.sp,
 				letterSpacing = 2.sp,
 				style = TextStyle(fontFamily = FontFamily.SansSerif),
 				color = Color.Black,
@@ -2524,8 +2539,47 @@ data class ArticlePreview(
 fun getDummyArticlePreviews(): List<ArticlePreview> {
 	return listOf(
 		ArticlePreview(
-			// https://blog.secondharvest.ca/2022/02/19/everything-you-need-to-know-about-best-before-dates/
 			articleId = 1,
+			R.drawable.tgf_logo,
+			"TGF - A Tutorial",
+			"Are you new on The Golden Fridge? Do you want to learn how TGF works? Or are you simply not sure about a 1 or 2 features in our app? " +
+					"Well, no problem! Read this article to learn how to use TGF.",
+			"Welcome to The Golden Fridge! This is an app that helps you organise your fridge better and become aware about the food waste problem in the world." +
+					"Using TGF the right way can save money, maybe some energy, plan your meals in advance and, most importantly, " +
+					"reduce food waste in your own household. In the end, you might even be able to reduce your carbon footprint with the help of TGF.",
+			"\nThe 'Your Fridge' Page", "Fridge Items", "The 'Overview' Page", "Contact",
+			"The main feature of this app is the 'Your Fridge' page. You get to it by clicking the fridge icon on the right of the navigation bar at the bottom. In here, " +
+					"you can choose between 2 modes to display items: Fridge mode show you categories of food, List mode will show you all the items in your fridge in one list, ordered by their Best Before date. " +
+					"With Fridge mode enabled, the categories might have different colors depending on whether or not it contains items. " +
+					"Whenever a category grey, there is currently no item inside of it, so don't worry when the fridge looks grey and sad at the beginning. " +
+					"Whenever you have added one or more items to a category, it will be a bright blue. To add an item, " +
+					"click on the '+' button at the bottom right. You can now choose a name for the item you want to add, and fill in information like when (you think) it will expire, " +
+					"which category it belongs to and what the amount is.\n" +
+					"\n" + "Tip: If you go INTO a category and add an item, the input for the category will be prefilled, which might save you some time!\n",
+			"Inside of a fridge category, you will find all the items you have added to this category, ordered by their Best Before date. Has an item gone overdue or does an item expire " +
+					"on the day you're viewing it, it will be red. Otherwise it will be blue.\n" +
+					"\n" + "To edit an item you can just click on it. Have you added a wrong item by mistake or does the item not exist anymore for " +
+					"whatever reason (hopefully not because you have thrown it away!), you can use the trash can icon at the right of an item entry. Have you used up an item or part of it, " +
+					"click on the pan icon at the left. Now, enter the amount you have taken into the input field of the popup window.",
+			"To get to the Overview page, you can either click on the bell icon at the left of the bottom navigation bar, or restart the app :). The first thing you will see on the Overview page is the alert box. " +
+					"This box informs you about items in your fridge that expire today or have already gone overdue. Does your fridge not" +
+					" contain any overdue items, you will be rewarded with a 'Great job!' in this little window.\n" +
+					"\n" + "Underneath the alert box you will find the 'Quick Add' section. From this section, you can quickly add some of the most used items to your fridge. " +
+					"Just click on one of the items and enter the Best Before date. Don't worry, if the amount or name isn't exactly right, you can always edit it in your fridge.\n" +
+					"\n" + "If you scroll further down, the next thing you will find is the article section, but you have obviously already found it. In here you can inform yourself about " +
+					"many different interesting topics like, for example, fridge organisation, best before dates, the food waste problem in Europe, and so on - with many more to come. Stay tuned!\n" +
+					"\n" + "The last section of the Overview page is a list of all of your used up items. When clicking the pan icon of an item and entering the maximum amount of this item - meaning you have " +
+					"used everything of it - it will no loner be in your fridge, but instead in this list. You won't be able to change anything in this list, it is just here help you and maybe the people you share " +
+					"the fridge with remember what has already been used. Maybe you can't find a specific item in your fridge that somebody else has already taken, or maybe you have eaten something bad and want to " +
+					"know which food it could have been.",
+			"That's pretty much it! If there is anything else that is unclear or you have a question for the developers, just contact us. Find us in the UAS St.Pölten. We are Manuel and Samy " +
+					"from the Bachelor Creative Computing (BCC22).",
+			R.drawable.golden_bin, picHeight1 = 200,
+			R.drawable.the_developers, picHeight2 = 300,
+		),
+		ArticlePreview(
+			// https://blog.secondharvest.ca/2022/02/19/everything-you-need-to-know-about-best-before-dates/
+			articleId = 2,
 			R.drawable.article1_icon,
 			"Best Before?",
 			"Learn about the storage life of the most important foods! This way, " +
@@ -2568,7 +2622,7 @@ fun getDummyArticlePreviews(): List<ArticlePreview> {
 		),
 		ArticlePreview(
 			// https://www.thespruce.com/how-to-organize-a-fridge-5085366
-			articleId = 2,
+			articleId = 3,
 			R.drawable.article2_icon,
 			"Fridge Organization",
 			"A well-organised fridge not only looks good, being able to glance into your fridge " +
@@ -2605,7 +2659,7 @@ fun getDummyArticlePreviews(): List<ArticlePreview> {
 		ArticlePreview(
 			// https://www.bafu.admin.ch/bafu/en/home/topics/waste/guide-to-waste-a-z/biodegradable-waste/types-of-waste/lebensmittelabfaelle.html
 			// https://www.eufic.org/en/food-safety/article/food-waste-in-europe-statistics-and-facts-about-the-problem
-			articleId = 3,
+			articleId = 4,
 			R.drawable.trash_can,
 			"Food Waste in Europe",
 			"Would you go into a supermarket, buy three shopping bags of food, and then immediately throw one away? " +
