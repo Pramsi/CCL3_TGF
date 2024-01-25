@@ -1250,12 +1250,14 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun checkedItemUI(mainViewModel: MainViewModel, entry: SingleEntry) {
+	// here it gets all the categories and saves it
 	mainViewModel.getAllCategories()
-
 	val categories by mainViewModel.categories.collectAsState()
 
 	var categorySelection by remember { mutableStateOf("") }
 
+	// here it loops through the categories and compares the it of the checked off entry with
+	// the id of the category and accordingly saves the category name into the categorySelection variable to later display it
 	for (category in categories) {
 		if (entry.categoryId == category.id) {
 			categorySelection = category.categoryName
@@ -1376,6 +1378,7 @@ fun showDeleteConfirmationDialog(
 	)
 }
 
+// this composable defines how the Adding Popup looks like
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1383,22 +1386,23 @@ fun AddingPopup(
 	mainViewModel: MainViewModel,
 	categoryName : String?
 ){
-	val state = mainViewModel.mainViewState.collectAsState()
-
+	// it needs the categories for the dropdown and the context for toast messages
 	val categories by mainViewModel.categories.collectAsState()
 	val mContext = LocalContext.current
 
+	// those variables are later used to save the input of the user into the database
 	var foodName by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
 	var bbDate by remember { mutableStateOf("") }
 	var categoryId by remember { mutableIntStateOf(0) }
 	var portionAmount by rememberSaveable { mutableStateOf("1") }
-//	var portionType by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
 	var isChecked = 0
 	var categorySelection by remember { mutableStateOf("") }
 	var portionSelection by remember { mutableStateOf("") }
 	var timeStampChecked by remember { mutableStateOf("")}
+
 	AlertDialog(
 		onDismissRequest = {
+			// when you click next to the alert it closes it again
 			mainViewModel.dismissAddDialog()
 						   },
 		modifier = Modifier
@@ -1427,7 +1431,7 @@ fun AddingPopup(
 					.fillMaxWidth(),
 				)
 
-
+			// this Textfield lets users type in the name of the food and saves it into the variable foodName
 			TextField(
 				modifier = Modifier
 					.fillMaxWidth()
@@ -1448,9 +1452,12 @@ fun AddingPopup(
 					Text(text ="Food Name", color = Color.Gray)}
 			)
 
+			// this calls the DatePickerField which is defined in another composable
 			DatePickerField(selectedDate = bbDate , onDateSelected = {bbDate = it.toString()})
 
+			// this calls the CategoryDropDownMenu which is defined in another composable
 			CategoryDropDownMenu(categoryName, mainViewModel, categorySelection, ){ selectedCategory->
+				// this if is used to make sure the categorySelection is not empty for later saving it
 				if(categoryName == "") {
 					categorySelection = selectedCategory
 				} else if(selectedCategory == null) {
@@ -1467,6 +1474,8 @@ fun AddingPopup(
 					.padding(top = 20.dp),
 				horizontalArrangement = Arrangement.SpaceBetween
 			){
+				// this Textfield lets users type in the amount of the food and saves it into the variable portinAmount
+
 				TextField(
 					modifier = Modifier
 						.fillMaxWidth(0.4f)
@@ -1488,6 +1497,7 @@ fun AddingPopup(
 						Text(text ="Amount", color = Color.Gray)}
 				)
 
+				// this calls the PortionsDropDownMenu which is defined in another composable
 				PortionsDropDownMenu(mainViewModel = mainViewModel, selectedPortion = portionSelection){selectedCategory->
 					portionSelection = selectedCategory
 				}
@@ -1497,6 +1507,7 @@ fun AddingPopup(
 				horizontalArrangement = Arrangement.Center,
 				verticalAlignment = Alignment.CenterVertically
 			) {
+				// this button is for canceling
 				Button(
 					elevation = androidx.compose.material.ButtonDefaults.elevation(0.dp),
 					onClick = {
@@ -1508,17 +1519,21 @@ fun AddingPopup(
 					Text(text = "Cancel", color = Black )
 				}
 
+				// this button is for saving everything that was put into the textfields
 				Button(
 					onClick = {
+						// when there is no input it takes the categoryName as the selection
 							if (categorySelection == "") {
 								categorySelection = categoryName!!
 
 							}
+						// it loops through all the categories and saves the id based on the selected category
 							for (category in categories) {
 								if (categorySelection == category.categoryName) {
 									categoryId = category.id
 								}
 							}
+						// if any textfield is empty it asks for completion
 							if (foodName.text.isBlank() || bbDate.isBlank() || categorySelection.isBlank() || portionAmount.isBlank() || portionSelection.isBlank()) {
 								Toast.makeText(
 									mContext,
@@ -1526,7 +1541,9 @@ fun AddingPopup(
 									Toast.LENGTH_SHORT
 								).show()
 							}else {
+								// if everything is ok it opens the short display of confirmation that the item was added
 							mainViewModel.openConfirmationDialog()
+								// and then saves the information into the database
 							mainViewModel.saveButton(
 								SingleEntry(
 									foodName.text,
@@ -1546,9 +1563,6 @@ fun AddingPopup(
 					Text(text = "Add", color = White )
 				}
 			}
-//			if(state.value.openConfirmDialog) {
-//			showConfirmationDialog(mainViewModel)
-//		}
 		}
 	}
 }
