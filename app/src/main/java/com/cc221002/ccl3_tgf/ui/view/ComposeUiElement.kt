@@ -1097,7 +1097,7 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 						ExpiredRed
 					}
 				)
-				// each item is clickable to edit it
+				// each item is clickable to edit it (it saves the information of the clicked entry into a variable in the mainViewState to get it later
 				.clickable { mainViewModel.openEditDialog(entry) },
 			horizontalArrangement = Arrangement.SpaceEvenly,
 			verticalAlignment = Alignment.CenterVertically
@@ -1498,7 +1498,7 @@ fun AddingPopup(
 				)
 
 				// this calls the PortionsDropDownMenu which is defined in another composable
-				PortionsDropDownMenu(mainViewModel = mainViewModel, selectedPortion = portionSelection){selectedCategory->
+				PortionsDropDownMenu(selectedPortion = portionSelection){selectedCategory->
 					portionSelection = selectedCategory
 				}
 			}
@@ -1567,14 +1567,15 @@ fun AddingPopup(
 	}
 }
 
+// this defines the small popup that shows that the item was saved successfully
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun showConfirmationDialog(mainViewModel: MainViewModel){
 	val loadingFinished = remember { mutableStateOf(false) }
 
-	// Introduce a 2-second delay to simulate loading
+	// Introduce a 2-second delay
 	LaunchedEffect(Unit) {
-		delay(2000)  // Delay for 2 seconds
+		delay(2000)
 
 		//setting the variable to true
 		loadingFinished.value = true
@@ -1616,21 +1617,25 @@ fun showConfirmationDialog(mainViewModel: MainViewModel){
 		}
 
 	}
+	// after the delay of 2seconds it closes the AlertDialog
 	if(loadingFinished.value){
 		mainViewModel.dismissConfirmationDialog()
 	}
 }
 
 
+// this composable defines the Edit Popup
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditPopUp(
 	mainViewModel: MainViewModel
 ){
+	// it collects the state and gets the context for the Toast notification
 	val state = mainViewModel.mainViewState.collectAsState()
 	val mContext = LocalContext.current
 
+	// here it gets the information from the state editSingleEntry and saves everything into variables
 	var foodName by rememberSaveable {
 		mutableStateOf(state.value.editSingleEntry.foodName)
 	}
@@ -1653,10 +1658,13 @@ fun EditPopUp(
 		mutableStateOf("")
 	}
 
+	// it gets the categories
 	val categories by mainViewModel.categories.collectAsState()
 
 	var categorySelection by remember { mutableStateOf("") }
 
+	// here it loops over the categories and based on the categoryId which is saved in the state
+	// it gets the category name
 	for (category in categories) {
 		if (categoryId == category.id) {
 			categorySelection = category.categoryName
@@ -1666,6 +1674,7 @@ fun EditPopUp(
 
 		AlertDialog(
 			onDismissRequest = {
+				// this closes the edit popup
 				mainViewModel.dismissEditDialog()
 			},
 			modifier = Modifier
@@ -1694,6 +1703,7 @@ fun EditPopUp(
 						.padding(10.dp)
 				)
 
+				// this textfield displays the information from the database and lets users change it
 				foodName?.let {
 					TextField(
 						modifier = Modifier
@@ -1717,10 +1727,13 @@ fun EditPopUp(
 					)
 				}
 
+				// this calls the DatePickerField which is defined in another composable
 				bbDate?.let { DatePickerField(selectedDate = it, onDateSelected = { bbDate = it.toString() }) }
 
+				// this calls the CategoryDropDownMenu which is defined in another composable
 				CategoryDropDownMenu(categoryName = categorySelection, mainViewModel, categorySelection) { selectedCategory ->
 					categorySelection = selectedCategory
+					// it converts the selected category into the according id
 					for (category in categories) {
 						if (categorySelection == category.categoryName) {
 							categoryId = category.id
@@ -1734,6 +1747,7 @@ fun EditPopUp(
 						.padding(top = 20.dp),
 					horizontalArrangement = Arrangement.SpaceBetween
 				) {
+					// this textfield displays the information from the database and lets users change it
 					TextField(
 						value = portionAmount.toString(),
 						modifier = Modifier
@@ -1755,9 +1769,9 @@ fun EditPopUp(
 
 					)
 
+					// this calls the PortionsDropDownMenu which is defined in another composable
 					portionType?.let {
 						PortionsDropDownMenu(
-							mainViewModel = mainViewModel,
 							selectedPortion = it
 						) { selectedCategory ->
 							portionType = selectedCategory
@@ -1768,6 +1782,7 @@ fun EditPopUp(
 					horizontalArrangement = Arrangement.Center,
 					verticalAlignment = Alignment.CenterVertically
 				) {
+					// this is the cancel button
 					Button(
 						elevation = androidx.compose.material.ButtonDefaults.elevation(0.dp),
 						onClick = {
@@ -1779,8 +1794,10 @@ fun EditPopUp(
 						Text(text = "Cancel", color = Black)
 					}
 
+					// this button is for saving the canges
 					Button(
 						onClick = {
+							// it checks if any textfiel is empty and shows a notification if it is
 							if (foodName!!.isBlank() || bbDate!!.isBlank() || categorySelection.isBlank() || portionAmount!!.isBlank() || portionType!!.isBlank()) {
 								Toast.makeText(
 									mContext,
@@ -1788,6 +1805,7 @@ fun EditPopUp(
 									Toast.LENGTH_SHORT
 								).show()
 							} else {
+								// otherwise it saves the changes
 								mainViewModel.saveEditedEntry(
 									SingleEntry(
 										foodName,
@@ -1815,16 +1833,17 @@ fun EditPopUp(
 	}
 
 
-
+// this is the definitino of the Category Dropdown Menu
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryDropDownMenu(categoryName: String?,mainViewModel: MainViewModel, selectedCategory:String, onCategorySelected: (String) -> Unit){
+	// it creates the state if it is expanded or not
 	var isExpanded by remember {
 		mutableStateOf(false)
 	}
 
+	// and gets the distinct categories
 	val distinctCategories = mainViewModel.getDistinctCategories()
-	Log.d("PREFILLEDCATEGORY", "getting passed categoryName: $categoryName")
 
 	Row(
 		modifier = Modifier
@@ -1833,10 +1852,12 @@ fun CategoryDropDownMenu(categoryName: String?,mainViewModel: MainViewModel, sel
 	){
 		ExposedDropdownMenuBox(
 			expanded = isExpanded,
+			// if the state changes it sets it to the new state
 			onExpandedChange = { isExpanded = it }
 		){
 			val textFieldValue = remember { mutableStateOf(TextFieldValue(categoryName ?: "")) }
 
+			// this Textfield displays the selection of the category (or the categoryName which was sent)
 			TextField(
 				modifier = Modifier
 					.fillMaxWidth()
@@ -1848,8 +1869,6 @@ fun CategoryDropDownMenu(categoryName: String?,mainViewModel: MainViewModel, sel
 					textFieldValue.value = it
                     // Update the selected category when the text changes
                     onCategorySelected(it.toString())
-					Log.d("PREFILLEDCATEGORY", "OnValue Change categoryName: $categoryName")
-
 				},
 				readOnly = true,
 				trailingIcon = {
@@ -1867,15 +1886,16 @@ fun CategoryDropDownMenu(categoryName: String?,mainViewModel: MainViewModel, sel
 				expanded = isExpanded,
 				onDismissRequest = { isExpanded = false }
 			) {
+				// for every category it creates a DropDownMenu item
 				for(category in distinctCategories){
 					DropdownMenuItem(
 						text = { Text(text = category, color = Black, textAlign = TextAlign.Center) },
 						onClick = {
+							// when selecting a category it changes the Textfield value to the selected category
 							textFieldValue.value = TextFieldValue(category)
 						onCategorySelected(category)
 						isExpanded = false;
 					},
-
 					)
 				}
 			}
@@ -1883,9 +1903,10 @@ fun CategoryDropDownMenu(categoryName: String?,mainViewModel: MainViewModel, sel
 	}
 }
 
+// this is the PortionsDropDownMenu (it works the same as the CategoryDropDownMenu composable
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun PortionsDropDownMenu(mainViewModel: MainViewModel,selectedPortion:String,onPortionSelected: (String) -> Unit){
+fun PortionsDropDownMenu(selectedPortion:String,onPortionSelected: (String) -> Unit){
 	var isExpanded by remember {
 		mutableStateOf(false)
 	}
@@ -1919,6 +1940,7 @@ fun PortionsDropDownMenu(mainViewModel: MainViewModel,selectedPortion:String,onP
 				Column(
 					horizontalAlignment = Alignment.CenterHorizontally
 				){
+					// the only difference is that the portions are created here
 					val hardcodedPortions = listOf(
 						"Piece(s)",
 						"Portion(s)",
@@ -1942,11 +1964,10 @@ fun PortionsDropDownMenu(mainViewModel: MainViewModel,selectedPortion:String,onP
 									onPortionSelected(portion)
 									isExpanded = false;
 								},
-
 								)
 						}
 					}
-
+						 // and this picture should show that the dropdown menu is scrollable
 					Image(
 						painter = painterResource(id = R.drawable.arrow_down_icon),
 						contentDescription = null,
@@ -1961,7 +1982,7 @@ fun PortionsDropDownMenu(mainViewModel: MainViewModel,selectedPortion:String,onP
 	}
 
 
-
+// this defines the DatePicker
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DatePickerField(
@@ -2031,7 +2052,7 @@ fun DatePickerField(
 	}
 }
 
-
+// this Composable defines the OverViewScreen
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
@@ -2040,14 +2061,17 @@ fun OverviewScreen(
 	navController: NavHostController
 ) {
 	mainViewModel.getEntries()
-
+	// it gets the entries, the states and the current date
 	val allEntries by mainViewModel.entries.collectAsState()
 	val state by mainViewModel.mainViewState.collectAsState()
 	val currentDate = LocalDate.now()
+	// and creates a list of all the items that are expired and not checked off
 	val expiredItemsList = allEntries.filter { entry ->
+		// it compares the date from the entry with the current date
 		val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
 		storedDate != null && !storedDate.isAfter(currentDate) && entry.isChecked == 0
 	}
+	// if the list of expired items is not empty this is true
 	var hasOverdueItems = expiredItemsList.isNotEmpty()
 
 	Column(
@@ -2057,7 +2081,8 @@ fun OverviewScreen(
 		verticalArrangement = Arrangement.SpaceEvenly
 
 	) {
-		Header(title = "Overview",navController)
+		// The header shows the title Overview
+		Header(title = "Overview", navController)
 
 		Column(
 			modifier = Modifier
@@ -2072,6 +2097,7 @@ fun OverviewScreen(
 				modifier = Modifier
 					.clip(shape = RoundedCornerShape(topStart = 68.dp, topEnd = 68.dp))
 					.background(
+						// the background color is dependent on if there are expired items or not
 						if (hasOverdueItems) {
 							AlertBoxBlue
 						} else {
@@ -2100,6 +2126,7 @@ fun OverviewScreen(
 				modifier = Modifier
 					.clip(RoundedCornerShape(10.dp))
 					.background(
+						// the background color is dependent on if there are expired items or not
 						if (hasOverdueItems) {
 							AlertBoxBlue
 						} else {
@@ -2120,6 +2147,7 @@ fun OverviewScreen(
 						)
 						.clip(shape = RoundedCornerShape(bottomStart = 68.dp, bottomEnd = 68.dp))
 						.background(
+							// the background color is dependent on if there are expired items or not
 							if (hasOverdueItems) {
 								AlertBoxBlue
 							} else {
@@ -2150,7 +2178,7 @@ fun OverviewScreen(
 						.padding(horizontal = 30.dp),
 					horizontalAlignment = Alignment.CenterHorizontally
 				) {
-
+					// the Text is dependent on if there are expired items or not
 					if (hasOverdueItems) {
 						Text(
 							text = "Watch out!",
@@ -2203,6 +2231,8 @@ fun OverviewScreen(
 						)
 					}
 				}
+				// under the text it displays all the items that are expired and not checked off
+				// sorted after the expiration date
 				Row {
 					LazyColumn(
 						modifier = Modifier
@@ -2221,6 +2251,7 @@ fun OverviewScreen(
 				}
 			}
 
+			// this is for the Quick adding section
 			Column(
 				modifier = Modifier.padding(top = 20.dp)
 			) {
@@ -2246,6 +2277,7 @@ fun OverviewScreen(
 						.fillMaxWidth(),
 					horizontalArrangement = Arrangement.SpaceEvenly
 				) {
+					// those lines call the QuickAddItemUi with the information to be displayed
 					quickAddItemUI(mainViewModel,"10", "Piece(s)","Eggs", "Extras")
 					quickAddItemUI(mainViewModel,"500", "g","Beef", "Meat")
 					quickAddItemUI(mainViewModel,"1", "Pack(s)","Milk", "Dairy")
@@ -2262,11 +2294,13 @@ fun OverviewScreen(
 				}
 			}
 
+			// when an item is added it opens this dialog shortly to show that the item was added
 			if(state.openConfirmDialog) {
 					showConfirmationDialog(mainViewModel)
 			}
 
 
+			// this section is for displaying the articles
 			Column(
 				modifier = Modifier.padding(top = 20.dp)
 			) {
@@ -2295,11 +2329,13 @@ fun OverviewScreen(
 						.padding(horizontal = 20.dp)
 				) {
 					items(getDummyArticlePreviews()) { articlePreview ->
+						// for each article preview it creates an item with the ArticlePreviewUI
 						ArticlePreviewUI(articlePreview, navController)
 					}
 				}
 			}
 
+			// this section shows all the used up items (checked off items)
 			Column(
 				modifier = Modifier.padding(top = 20.dp)
 			){
@@ -2327,6 +2363,8 @@ fun OverviewScreen(
 							.height(400.dp)
 							.padding(horizontal = 20.dp)
 					) {
+						// for each entry that is checked off it creates an item with the checkedItemUI
+						// sorted after the timestamp it creates when checking off an item
 						items(
 							allEntries.sortedByDescending { it.timeStampChecked }
 						) { entry ->
@@ -2341,11 +2379,13 @@ fun OverviewScreen(
 	}
 }
 
+// this defines how each quickAddItem should look like
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun quickAddItemUI(mainViewModel: MainViewModel,amount: String, portion: String, foodName: String, categoryName: String?){
-	val state = mainViewModel.mainViewState.collectAsState()
+	// it takes the passed variables to display them and later save it into the database
 
+	// each item has an icon which is handled here
 	val QuickAddImageMap = mapOf(
 		"Eggs" to R.drawable.eggs_icon,
 		"Beef" to R.drawable.beef_icon,
@@ -2356,7 +2396,6 @@ fun quickAddItemUI(mainViewModel: MainViewModel,amount: String, portion: String,
 	)
 
 	Box(modifier = Modifier
-//		.border(1.dp, Black, RoundedCornerShape(10.dp))
 		.shadow(
 			color = Color(0xFF1C404E),
 			borderRadius = 10.dp,
@@ -2368,6 +2407,7 @@ fun quickAddItemUI(mainViewModel: MainViewModel,amount: String, portion: String,
 		.size(100.dp)
 		.clip(RoundedCornerShape(10.dp))
 		.background(BackgroundBlue)
+		// when clicking on an item it opens a quick adding dialog
 		.clickable { mainViewModel.openQuickAddDialog(foodName) }
 
 	){
@@ -2406,6 +2446,7 @@ fun quickAddItemUI(mainViewModel: MainViewModel,amount: String, portion: String,
 			)
 
 		}
+		// here it opens the adding dialog for the clicked item
 		val openQuickAddDialogForEntry = mainViewModel.openQuickAddingDialogFor.value
 		if (openQuickAddDialogForEntry == foodName) {
 			QuickAddingPopup(mainViewModel, categoryName, amount, portion, foodName, QuickAddImageMap)
@@ -2413,6 +2454,7 @@ fun quickAddItemUI(mainViewModel: MainViewModel,amount: String, portion: String,
 	}
 }
 
+// this defines how the QuickAddingPopup looks like and works
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -2426,16 +2468,15 @@ fun QuickAddingPopup(
 
 ) {
 
+	// here it creates the needed variable (context for toast notifications, categories to get the id)
 	val categories by mainViewModel.categories.collectAsState()
 	val mContext = LocalContext.current
+	// those variables are needed to complete the database entry
 	var categoryId by remember { mutableIntStateOf(0) }
 	var timeStampChecked by remember { mutableStateOf("")}
-
-
 	var bbDate by remember { mutableStateOf("") }
-
-//	var portionType by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
 	var isChecked = 0
+
 
 	AlertDialog(
 		onDismissRequest = {
@@ -2521,7 +2562,8 @@ fun QuickAddingPopup(
 					.fillMaxWidth()
 					.padding(top = 15.dp),
 			)
-
+			// above it again shows the information of the quick add item
+			// and below it call the datePickerField to let the user enter the expiration date
 			DatePickerField(selectedDate = bbDate, onDateSelected = { bbDate = it.toString() })
 
 			Row(
@@ -2541,12 +2583,13 @@ fun QuickAddingPopup(
 
 				Button(
 					onClick = {
-
+						// it transforms the category Name into the suiting categoryID
 						for (category in categories) {
 							if (categoryName == category.categoryName) {
 								categoryId = category.id
 							}
 						}
+						// if this textfield is empty it shows a notification
 						if (bbDate.isBlank()) {
 							Toast.makeText(
 								mContext,
@@ -2554,8 +2597,9 @@ fun QuickAddingPopup(
 								Toast.LENGTH_SHORT
 							).show()
 						}else {
+							// it then opens the short confirmation notification
 							mainViewModel.openConfirmationDialog()
-
+							// and saves the entry into the database
 							mainViewModel.saveButton(
 								SingleEntry(
 									foodName,
@@ -2580,6 +2624,7 @@ fun QuickAddingPopup(
 	}
 }
 
+// this is a data class to define the ArticlePreview
 data class ArticlePreview(
 	val articleId: Int,
 	val iconResId: Int,
@@ -2768,6 +2813,7 @@ fun getDummyArticlePreviews(): List<ArticlePreview> {
 	)
 }
 
+// this composable defines how each article should look like
 @Composable
 fun ArticlePreviewUI(articlePreview: ArticlePreview, navController: NavController) {
 	Box(
@@ -2828,9 +2874,10 @@ fun ArticlePreviewUI(articlePreview: ArticlePreview, navController: NavControlle
 	Spacer(modifier = Modifier.height(20.dp))
 }
 
+// this composable is for defining the Screen to show a single article
 @Composable
 fun ArticleScreen(articleId: Int, navController: NavHostController) {
-
+	// it saves the article based on the articleId that was passed
 	val selectedArticle = getDummyArticlePreviews().find { it.articleId == articleId }
 
 	Column(
@@ -2839,6 +2886,7 @@ fun ArticleScreen(articleId: Int, navController: NavHostController) {
 			.background(White),
 
 	) {
+		// and here it displays all the information and pictures of the article
 		Header(title = "Article", navController)
 
 		Column(
@@ -2955,13 +3003,15 @@ fun ArticleScreen(articleId: Int, navController: NavHostController) {
 
 
 
-
+// this composable defines the looks and works of the AlertDialog to ask the user how much they used from an item
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry) {
+	// it gets the state
 	val state = mainViewModel.mainViewState.collectAsState()
 
+	// and saves the information for the entry into variables
 	var foodName by rememberSaveable {
 		mutableStateOf(state.value.editSingleEntry.foodName)
 	}
@@ -2984,10 +3034,12 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry) {
 		mutableStateOf(entry.timeStampChecked)
 	}
 
+	// this variable is for subtracting from the amount in the database
 	var amountTaken by rememberSaveable {
 		mutableStateOf("")
 	}
 
+	// at first it sets the amount from the database as the amount taken to display how much the user can take at max
 	amountTaken = portionAmount!!
 
 	val mContext = LocalContext.current
@@ -3029,6 +3081,7 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry) {
 					horizontalArrangement = Arrangement.SpaceEvenly,
 					verticalAlignment = Alignment.CenterVertically
 				) {
+					// in this textfield the user can change the amount they took
 					TextField(
 						value = amountTaken,
 						modifier = Modifier
@@ -3059,6 +3112,7 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry) {
 					horizontalArrangement = Arrangement.Center,
 					verticalAlignment = Alignment.CenterVertically
 				) {
+					// this is the cancel button
 					Button(
 						elevation = androidx.compose.material.ButtonDefaults.elevation(0.dp),
 						onClick = {
@@ -3069,10 +3123,12 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry) {
 					) {
 						Text(text = "Cancel", color = Black)
 					}
+					// this is the save button
 					Button(
 						onClick = {
 							val takenAmount = amountTaken.toFloatOrNull()
-
+							// here it takes the taken amount and subtracts it from the amount in the database
+							// it then check if there is something left or not and based on the result checks the item off or not
 							if (takenAmount != null) {
 								val remainingAmount =
 									portionAmount?.toFloatOrNull()?.minus(takenAmount)
@@ -3080,7 +3136,7 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry) {
 								if ((remainingAmount != null) && (remainingAmount >= 0)) {
 									portionAmount = remainingAmount.toString()
 									mainViewModel.dismissAskAmountDialog()
-
+									// if the remaining amount is more than 0 it just subtracts the amount
 								} else {
 									Toast.makeText(
 										mContext,
@@ -3090,12 +3146,14 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry) {
 								}
 
 								if (remainingAmount == 0.0f) {
+									// if the remaining amount is 0 it checks the item off and creates the timestamp
 									isChecked = 1;
 									val currentTime = LocalTime.now()
 									timeStampChecked = currentTime.toString()
 									mainViewModel.dismissAskAmountDialog()
 								}
 
+								// it saves the changes into the database
 								mainViewModel.saveEditedEntry(
 									SingleEntry(
 										foodName,
