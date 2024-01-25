@@ -10,5 +10,4 @@ import com.cc221002.ccl3_tgf.data.model.SingleEntry
 abstract class EntriesDatabase : RoomDatabase() {
 	abstract val dao:EntriesDao;
 	abstract val categoriesDao: CategoriesDao
-
 }
