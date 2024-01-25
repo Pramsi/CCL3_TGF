@@ -889,6 +889,19 @@ fun Header(title:String, navController: NavHostController){
 				.background(NavigationBlue),
 			contentAlignment = Alignment.Center
 		) {
+			if(title == "Article"){
+				Image(
+					painter = painterResource(id = R.drawable.go_back_button),
+					contentDescription = null,
+					modifier = Modifier
+						.size(30.dp)
+						.padding(start = 15.dp)
+						.align(Alignment.CenterStart)
+						.clickable {
+							navController.navigate(Screen.Overview.route)
+						}
+				)
+			}
 			Text(
 				text = title,
 				letterSpacing = 2.sp,
@@ -922,11 +935,7 @@ fun Header(title:String, navController: NavHostController){
 					.padding(start = 15.dp)
 					.align(Alignment.CenterStart)
 					.clickable {
-						if (title == "Leftovers" || title == "Drinks" || title == "Dairy" || title == "Extras" || title == "Meat" || title == "Fruit" || title == "Vegetables") {
-							navController.navigate(Screen.ShowCategories.route)
-						} else {
-							navController.navigate(Screen.Overview.route)
-						}
+						navController.navigate(Screen.ShowCategories.route)
 					}
 			)
 				Row {
@@ -1535,7 +1544,7 @@ fun EditPopUp(
 						onValueChange = {
 								newText:String-> portionAmount = newText
 						},
-						label ={Text(text ="Nr.", color = Black  )}
+						label ={Text(text ="Amount", color = Gray)}
 
 					)
 
@@ -1700,27 +1709,47 @@ fun PortionsDropDownMenu(mainViewModel: MainViewModel,selectedPortion:String,onP
 				expanded = isExpanded,
 				onDismissRequest = { isExpanded = false }
 			) {
-				val hardcodedPortions = listOf(
-					"Piece(s)",
-					"Portion(s)",
-					"Glass(es)",
-					"Bottle(s)",
-					"Can(s)",
-					"Pack(s)",
-					"g",
-					"dag",
-					"kg",
-				)
-				for(portion in hardcodedPortions){
-					DropdownMenuItem(
-						text = { Text(text = portion, color = Black, textAlign = TextAlign.Center) },
-						onClick = {
-							onPortionSelected(portion)
-							isExpanded = false;
-						},
+				Column(
+					horizontalAlignment = Alignment.CenterHorizontally
+				){
+					val hardcodedPortions = listOf(
+						"Piece(s)",
+						"Portion(s)",
+						"Glass(es)",
+						"Bottle(s)",
+						"Can(s)",
+						"Pack(s)",
+						"g",
+						"dag",
+						"kg",
+					)
+					Column(
+						modifier = Modifier
+							.height(220.dp)
+							.verticalScroll(rememberScrollState())
+					) {
+						for(portion in hardcodedPortions){
+							DropdownMenuItem(
+								text = { Text(text = portion, color = Black, textAlign = TextAlign.Center) },
+								onClick = {
+									onPortionSelected(portion)
+									isExpanded = false;
+								},
 
-						)
+								)
+						}
+					}
+
+					Image(
+						painter = painterResource(id = R.drawable.arrow_down_icon),
+						contentDescription = null,
+						contentScale = ContentScale.Fit,
+						modifier = Modifier
+							.size(25.dp),
+						colorFilter = ColorFilter.tint(Gray)
+					)
 				}
+
 			}
 		}
 	}
