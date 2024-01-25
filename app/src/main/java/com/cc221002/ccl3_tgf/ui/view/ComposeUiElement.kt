@@ -1275,6 +1275,7 @@ fun AddingPopup(
 			mainViewModel.dismissAddDialog()
 						   },
 		modifier = Modifier
+			.border(2.dp, Gray, RoundedCornerShape(20.dp))
 			.clip(RoundedCornerShape(20.dp))
 			.background(White)
 			.padding(20.dp),
@@ -1440,6 +1441,7 @@ fun showConfirmationDialog(mainViewModel: MainViewModel){
 	}
 	AlertDialog(
 		modifier = Modifier
+			.border(2.dp, Gray, RoundedCornerShape(20.dp))
 			.clip(RoundedCornerShape(20.dp))
 			.background(White)
 			.fillMaxWidth()
@@ -1527,6 +1529,7 @@ fun EditPopUp(
 				mainViewModel.dismissEditDialog()
 			},
 			modifier = Modifier
+				.border(2.dp, Gray, RoundedCornerShape(20.dp))
 				.clip(RoundedCornerShape(20.dp))
 				.background(White)
 				.padding(20.dp)
@@ -2300,6 +2303,7 @@ fun QuickAddingPopup(
 			mainViewModel.dismissQuickAddDialog()
 		},
 		modifier = Modifier
+			.border(2.dp, Gray, RoundedCornerShape(20.dp))
 			.clip(RoundedCornerShape(20.dp))
 			.background(White)
 			.padding(20.dp),
