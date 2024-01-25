@@ -398,7 +398,9 @@ fun AllCategories (
 	) {
 
 		Header(title = "Your Fridge", navController)
-
+		if(state.openConfirmDialog) {
+			showConfirmationDialog(mainViewModel)
+		}
 		Column(
 			modifier = Modifier
 				.fillMaxSize()
@@ -1317,6 +1319,8 @@ fun showDeleteConfirmationDialog(
 	// It generally is just an AlertDialog which is dismissed when you tap beside the alert, when you press "Cancel" and when you press "Delete"
 	// but on Confirm the function sends back that it was confirmed to delete that entry
 	AlertDialog(
+		modifier = Modifier
+			.border(2.dp, Gray, RoundedCornerShape(20.dp)),
 		containerColor = White,
 		onDismissRequest = { mainViewModel.dismissAlertDialog() },
 		title = {
