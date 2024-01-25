@@ -130,7 +130,6 @@ sealed class Screen(val route: String) {
 	object ShowCategories: Screen("categories")
 	object Overview: Screen("overview")
 	object ShowCategoryEntries: Screen("showCategoryEntries")
-
 	data class Article(val articleId: String) : Screen("article/$articleId")
 }
 
@@ -145,20 +144,22 @@ fun MainView(
 
 	// creating instances of the ViewModels and the NavController
 	val navController = rememberNavController()
+	// those two variables are used for handling if the nav bar and floating button should appear or not
 	var showBottomBar by rememberSaveable { mutableStateOf(true) }
 	var showFloatingButton by rememberSaveable { mutableStateOf(true) }
 
 	val navBackStackEntry by navController.currentBackStackEntryAsState()
 
+	// here it is managed if the nav bar or floating button are shown (it depends on which screen the user is)
 	showBottomBar = when (navBackStackEntry?.destination?.route) {
 		"splashScreen" -> false
 		else -> true // in all other cases show bottom bar
 	}
 	showFloatingButton = when (navBackStackEntry?.destination?.route) {
 		"splashScreen" -> false
-		"overview" -> false// on this screen bottom bar should be hidden
+		"overview" -> false// on this screens floating button should be hidden
 		"article/{articleId}" -> false
-		else -> true // in all other cases show bottom bar
+		else -> true // in all other cases show floating button
 	}
 	// defining the routes to each Screen and what happens when that route is used
 	Scaffold(
@@ -229,6 +230,7 @@ fun MainView(
 	}
 }
 
+// this defines how the navigation bar looks like and where it should navigate if the icons are clicked
 @Composable
 fun BottomNavigationBar(navController: NavHostController, selectedScreen: Screen){
 
@@ -314,12 +316,14 @@ fun SplashScreen(
 		)
 	}
 
-	// if the value of the variable is true it navigates to the ShowAllTrips
+	// if the value of the variable is true it navigates to the OverView page
 	if(loadingFinished.value) {
 		navController.navigate(Screen.Overview.route)
 	}
 }
 
+// This page shows all the categories we have predefined and orders them in a fridge layout
+// or it shows all entries as a list
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -327,27 +331,26 @@ fun AllCategories (
 	mainViewModel: MainViewModel,
 	navController: NavHostController,
 ) {
+	// here we get the states, categories and all entries from the database
 	val state by mainViewModel.mainViewState.collectAsState()
 	val categories by mainViewModel.categories.collectAsState()
 	val entries by mainViewModel.entries.collectAsState()
 
-	val entriesForCategories by mainViewModel.entriesForCategory.collectAsState()
-
-	mainViewModel.getEntries()
+	// this variables save the color for the button on the top of the fridge to simulate enabled and disabled effect
 	val buttonColorFridge =
 		if (state.fridgeView) {
-			// No entries for the category
+			// if the fridgeView is enabled use this color
 			androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
 		} else {
-			// Some entries are not checked
+			// otherwise this
 			androidx.compose.material.ButtonDefaults.buttonColors(BackgroundLightBlue)
 		}
 	val buttonColorList =
 		if (state.listView) {
-			// No entries for the category
+			// if the listView is enabled use this color
 			androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
 		} else {
-			// Some entries are not checked
+			// otherwise this
 			androidx.compose.material.ButtonDefaults.buttonColors(BackgroundLightBlue)
 		}
 
@@ -358,11 +361,14 @@ fun AllCategories (
 		verticalArrangement = Arrangement.Top,
 		horizontalAlignment = Alignment.CenterHorizontally,
 	) {
-
+		// The Header is a Composable and needs a title and the navController
 		Header(title = "Your Fridge", navController)
+
+		// when adding an item there is a short confirmation notification that the item was added succesfully
 		if(state.openConfirmDialog) {
 			showConfirmationDialog(mainViewModel)
 		}
+
 		Column(
 			modifier = Modifier
 				.fillMaxSize()
@@ -371,8 +377,9 @@ fun AllCategories (
 			horizontalAlignment = Alignment.CenterHorizontally,
 		) {
 
-
 			Row {
+				// When clicking on the plus on the bottom right it changes the state of openAddDialog
+				// depending on the state it shows the AlertDialog or not
 				if (state.openAddDialog) {
 					AddingPopup(mainViewModel = mainViewModel, categoryName = "")
 				}
@@ -434,6 +441,8 @@ fun AllCategories (
 							)
 						}
 					}
+					// here it checks which view it should display for the fridgeView it shows the categories in the layout of a fridge
+					// and if it is the listView it shows all items that are currently in your fridge, sorted after Expiration date
 					if(state.fridgeView) {
 						LazyColumn(
 							modifier = Modifier
@@ -446,7 +455,7 @@ fun AllCategories (
 								val leftovers = categories.find { it.categoryName == "Leftovers" }
 
 								leftovers?.let {
-									// Determine background color based on conditions
+									// Changing background color based on conditions
 									val backgroundColor =
 										if (!mainViewModel.hasEntriesForCategory(leftovers.id)) {
 											// No entries for the category
@@ -479,6 +488,9 @@ fun AllCategories (
 											modifier = Modifier
 												.fillMaxWidth()
 												.clickable {
+													// This is true for every item below too:
+													// every category is clickable to show only the items that are in that category
+													// it collects the data and navigates to another screen to show that information
 													mainViewModel.setCurrentCategory(it.categoryName)
 													mainViewModel.getEntriesByCategory(it.id)
 													navController.navigate(Screen.ShowCategoryEntries.route)
@@ -781,6 +793,7 @@ fun AllCategories (
 								.height(550.dp)
 								.padding(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 30.dp),
 						) {
+							// when there are no entries in the fridge it displays a text, otherwise it shows the entries
 							if (entries.isEmpty() || mainViewModel.areAllEntriesChecked(0)) {
 								item {
 									Text(
@@ -801,9 +814,9 @@ fun AllCategories (
 							}
 						}
 					}
-
 			}
 		}
+			// these are the fridge feet
 		Row(
 			modifier = Modifier
 				.fillMaxWidth()
@@ -829,15 +842,20 @@ fun AllCategories (
 	}
 }
 
+// this is the page where only the entries of a single category are shown
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun categoryEntries(navController: NavHostController,mainViewModel: MainViewModel) {
+	// again collecting all the states, entries for a category and categories
 	val state = mainViewModel.mainViewState.collectAsState()
 	val entries = mainViewModel.entriesForCategory.collectAsState()
 	val categories by mainViewModel.categories.collectAsState()
 
 	val categoryName = mainViewModel.currentCategory
 	var categoryId by remember { mutableIntStateOf(0) }
+
+	// here it loops through the categories and where the name of the category that was clicked is the same as the collected state
+	// it takes the id and saves it
 	for (category in categories) {
 		if (category.categoryName == categoryName) {
 			categoryId = category.id
@@ -848,7 +866,9 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 			.background(White)
 			.fillMaxSize()
 	) {
+		// the header displays the name of the category that is currently shown
 		Header("$categoryName", navController)
+
 		Column(
 			modifier = Modifier
 				.fillMaxSize()
@@ -875,6 +895,7 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 						.height(550.dp)
 						.padding(top = 30.dp, bottom = 30.dp)
 				) {
+					// when there are no entries for a category it shows a text, otherwise it shows the Entries
 					if (entries.value.isEmpty() || mainViewModel.areAllEntriesChecked(categoryId)) {
 						item {
 							Text(
@@ -895,15 +916,17 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 					}
 				}
 
+				// Here it checks if the adding dialog is open. If the user clicks the button on the bottom right it opens the AlertDialog
 					if (state.value.openAddDialog) {
 						AddingPopup(mainViewModel = mainViewModel, categoryName)
 					}
+				// and after saving the Entry it shows a short confirmation
 					if(state.value.openConfirmDialog) {
 						showConfirmationDialog(mainViewModel)
 					}
 				}
 			}
-
+			// these are the fridge feet
 		Row(
 			modifier = Modifier
 				.fillMaxWidth()
@@ -930,9 +953,11 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 	}
 }
 
+// this composable defines the Header
 @Composable
 fun Header(title:String, navController: NavHostController){
 
+	// Each category has an icon which is handled here
 	val categoryImageMap = mapOf(
 		"Leftovers" to R.drawable.leftovers_icon,
 		"Drinks" to R.drawable.drinks_icon,
@@ -943,6 +968,7 @@ fun Header(title:String, navController: NavHostController){
 		"Vegetables" to R.drawable.vegetables_icon
 	)
 
+	// for these three pages the header is a bit simpler (no icon)
 	if(title == "Your Fridge" || title == "Overview" || title == "Article"){
 
 		Box(
@@ -953,6 +979,7 @@ fun Header(title:String, navController: NavHostController){
 				.background(NavigationBlue),
 			contentAlignment = Alignment.Center
 		) {
+			// but for this page it needs the go back button
 			if(title == "Article"){
 				Image(
 					painter = painterResource(id = R.drawable.go_back_button),
@@ -977,6 +1004,7 @@ fun Header(title:String, navController: NavHostController){
 			)
 		}
 	} else {
+		// for all other pages (the categories) this header is used
 		Column(
 			modifier = Modifier
 				.fillMaxWidth(),
@@ -1038,13 +1066,12 @@ fun Header(title:String, navController: NavHostController){
 
 
 
-
+// this composable defines the UI of each single Item
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
-	var checkBoxState by remember { mutableStateOf(false) }
-	val state = mainViewModel.mainViewState.collectAsState()
 
+	// it needs the date to late determine which background color to use
 	val currentDate = LocalDate.now()
 	val storedDate = runCatching { LocalDate.parse(entry.bbDate) }.getOrNull()
 
@@ -1063,17 +1090,21 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 				.fillMaxWidth()
 				.clip(RoundedCornerShape(10.dp))
 				.background(
+					// here it checks if the item is expired and decides which color to use
 					if (storedDate != null && storedDate.isAfter(currentDate)) {
 						BackgroundBlue
 					} else {
 						ExpiredRed
 					}
 				)
+				// each item is clickable to edit it
 				.clickable { mainViewModel.openEditDialog(entry) },
 			horizontalArrangement = Arrangement.SpaceEvenly,
 			verticalAlignment = Alignment.CenterVertically
 		) {
 			Spacer(modifier = Modifier.padding(7.dp))
+
+			// this is the Checkbox button
 			Box(
 				modifier = Modifier
 					.size(40.dp)
@@ -1112,6 +1143,7 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 				}
 			}
 			Spacer(modifier = Modifier.padding(7.dp))
+			// here is the data of each item displayed
 			Column(
 				modifier = Modifier
 					.padding(vertical = 10.dp),
@@ -1142,6 +1174,7 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					textAlign = TextAlign.Start,
 					fontSize = 12.sp,
 					style = TextStyle(fontFamily = FontFamily.Monospace),
+					// here it checks if the item is expired and based on that it changes the color of the text
 					color = if (storedDate != null && storedDate.isAfter(currentDate)) {
 						White
 					} else {
@@ -1158,13 +1191,15 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 				)
 			}
 			Spacer(modifier = Modifier.padding(5.dp))
+
+			// this is the delete button
 			Box(
 				modifier = Modifier
 					.padding(end = 10.dp)
 					.size(25.dp)
 					.clickable {
+						// when clicked it stores for which entry the alert is opened and opens an alert to make sure the user wants to delete the item
 						mainViewModel.openAlertDialog(entry.id.toString())
-//						mainViewModel.deleteTrip(entry)
 					},
 				contentAlignment = Alignment.Center
 			){
@@ -1179,21 +1214,26 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 			}
 		}
 
+
 	val openAskAmountDialogForEntry = mainViewModel.openAskAmountDialogForEntry.value
 	if(openAskAmountDialogForEntry == entry.id.toString()) {
-		AskAmountModal(mainViewModel = mainViewModel, entry = entry, checkBoxState)
+		// if the entry id from the mainViewModel is the same as the one from the entry you clicked, it shows the
+		// Ask Amount AlertDialog to ask if the user how much they used of the item
+		AskAmountModal(mainViewModel = mainViewModel, entry = entry)
+
 	}
+
 	val openEditDialogForEntry = mainViewModel.openEditDialogForEntry.value
 	if (openEditDialogForEntry == entry.id.toString()) {
-//		if (state.value.openEditDialog) {
+		// if the entry id from the mainViewModel is the same as the one from the entry you clicked, it shows the
+		// Edit AlertDialog to let the user edit this entry
 			EditPopUp(mainViewModel = mainViewModel)
-//		}
 	}
 
 	val openAlertDialogForEntry = mainViewModel.openAlertDialogForEntry.value
 	if (openAlertDialogForEntry == entry.id.toString()) {
 		// if the entry id from the mainViewModel is the same as the one from the entry you clicked, it shows the
-		// confirmation alert to ask if the user is sure to delete the entry
+		// confirmation AlertDialog to ask if the user is sure to delete the entry
 		showDeleteConfirmationDialog(
 			mainViewModel = mainViewModel,
 			entry = entry,
@@ -1205,10 +1245,13 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 	}
 }
 
+// this composable defines how the item looks like when the user used the last bit of it.
+// it is then displayed on the overview page instead of the page for the category
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun checkedItemUI(mainViewModel: MainViewModel, entry: SingleEntry) {
 	mainViewModel.getAllCategories()
+
 	val categories by mainViewModel.categories.collectAsState()
 
 	var categorySelection by remember { mutableStateOf("") }
@@ -2902,7 +2945,7 @@ fun ArticleScreen(articleId: Int, navController: NavHostController) {
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxState:Boolean) {
+fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry) {
 	val state = mainViewModel.mainViewState.collectAsState()
 
 	var foodName by rememberSaveable {
