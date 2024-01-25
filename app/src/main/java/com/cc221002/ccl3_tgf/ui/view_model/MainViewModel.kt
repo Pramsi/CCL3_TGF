@@ -227,6 +227,15 @@ class MainViewModel (
 		}
 	}
 
+	fun enableFridgeView(){
+		_mainViewState.update{ it.copy(fridgeView = true)}
+		_mainViewState.update{ it.copy(listView = false)}
+	}
+
+	fun enableListView(){
+		_mainViewState.update{ it.copy(listView = true)}
+		_mainViewState.update{ it.copy(fridgeView = false)}
+	}
 
 	fun insertCategories() {
 		val hardcodedCategory = listOf(

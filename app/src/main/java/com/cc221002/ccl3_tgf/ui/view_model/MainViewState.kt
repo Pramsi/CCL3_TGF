@@ -21,5 +21,7 @@ data class MainViewState (
 	val openAlertDialog: Boolean = false,
 	val openAlertDialogForEntry: String = "",
 	val openConfirmDialog: Boolean = false,
+	val listView: Boolean = false,
+	val fridgeView: Boolean = true,
 
 	)

@@ -367,9 +367,27 @@ fun AllCategories (
 ) {
 	val state by mainViewModel.mainViewState.collectAsState()
 	val categories by mainViewModel.categories.collectAsState()
+	val entries by mainViewModel.entries.collectAsState()
+
 	val entriesForCategories by mainViewModel.entriesForCategory.collectAsState()
 
 	mainViewModel.getEntries()
+	val buttonColorFridge =
+		if (state.fridgeView) {
+			// No entries for the category
+			androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
+		} else {
+			// Some entries are not checked
+			androidx.compose.material.ButtonDefaults.buttonColors(BackgroundLightBlue)
+		}
+	val buttonColorList =
+		if (state.listView) {
+			// No entries for the category
+			androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
+		} else {
+			// Some entries are not checked
+			androidx.compose.material.ButtonDefaults.buttonColors(BackgroundLightBlue)
+		}
 
 	Column(
 		modifier = Modifier
@@ -396,353 +414,415 @@ fun AllCategories (
 				}
 
 				// fridge box containing all the categories
-				Box(
+				Column(
 					modifier = Modifier
 						.fillMaxWidth()
 						.height(585.dp)
-						.padding(start = 18.dp, top = 10.dp, end = 18.dp, bottom = 0.dp)
+						.padding(start = 18.dp, top = 5.dp, end = 18.dp, bottom = 0.dp)
 						.clip(RoundedCornerShape(5))
 						.border(width = 3.dp, FridgeBorder, shape = RoundedCornerShape(5))
 						.background(FridgeBlue),
-					contentAlignment = Alignment.Center
+					verticalArrangement = Arrangement.Top
 				) {
-					LazyColumn(
+					Row(
 						modifier = Modifier
 							.fillMaxWidth()
-							.padding(start = 10.dp, top = 0.dp, end = 10.dp, bottom = 0.dp),
-						verticalArrangement = Arrangement.spacedBy(8.dp),
-						horizontalAlignment = Alignment.CenterHorizontally
+							.padding(vertical = 5.dp),
+						horizontalArrangement = Arrangement.Center,
+						verticalAlignment = Alignment.Top
 					) {
-						item {
-							val leftovers = categories.find { it.categoryName == "Leftovers" }
+						Button(
+							onClick = {
+								mainViewModel.enableFridgeView()
+							},
+							modifier = Modifier
+							,
+							colors = buttonColorFridge
 
-							leftovers?.let {
-								// Determine background color based on conditions
-								val backgroundColor =
-									if (!mainViewModel.hasEntriesForCategory(leftovers.id)) {
-										// No entries for the category
-										BackgroundLightBlue
-									} else if (mainViewModel.areAllEntriesChecked(leftovers.id)) {
-										// All entries for the category are checked
-										BackgroundLightBlue
-									} else {
-										// Some entries are not checked
-										BackgroundBlue
+						) {
+							Text(text = "Fridge", color = White)
+						}
+						Spacer(modifier = Modifier.size(10.dp))
+
+						Button(
+							onClick = {
+								mainViewModel.enableListView()
+							},
+							modifier = Modifier
+							,
+							colors = buttonColorList
+						) {
+							Text(text = "List", color = White )
+						}
+					}
+					if(state.fridgeView) {
+						LazyColumn(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(start = 10.dp, top = 0.dp, end = 10.dp, bottom = 0.dp),
+							verticalArrangement = Arrangement.spacedBy(8.dp),
+							horizontalAlignment = Alignment.CenterHorizontally
+						) {
+							item {
+								val leftovers = categories.find { it.categoryName == "Leftovers" }
+
+								leftovers?.let {
+									// Determine background color based on conditions
+									val backgroundColor =
+										if (!mainViewModel.hasEntriesForCategory(leftovers.id)) {
+											// No entries for the category
+											BackgroundLightBlue
+										} else if (mainViewModel.areAllEntriesChecked(leftovers.id)) {
+											// All entries for the category are checked
+											BackgroundLightBlue
+										} else {
+											// Some entries are not checked
+											BackgroundBlue
+										}
+
+									Box(
+										modifier = Modifier
+											.shadow(
+												color = Color(0xFF1C404E),
+												borderRadius = 10.dp,
+												blurRadius = 5.dp,
+												offsetY = 5.dp,
+												offsetX = 5.dp,
+												spread = 3f.dp
+											)
+											.fillMaxWidth()
+											.clip(RoundedCornerShape(6.dp))
+											.background(color = backgroundColor),
+										contentAlignment = Alignment.Center
+									) {
+										Text(
+											text = it.categoryName,
+											modifier = Modifier
+												.fillMaxWidth()
+												.clickable {
+													mainViewModel.setCurrentCategory(it.categoryName)
+													mainViewModel.getEntriesByCategory(it.id)
+													navController.navigate(Screen.ShowCategoryEntries.route)
+												}
+												.padding(34.dp),
+											textAlign = TextAlign.Center,
+											fontSize = 20.sp,
+											fontWeight = FontWeight.Bold,
+											color = Color.White
+										)
 									}
+								}
+							}
 
-							Box(
-								modifier = Modifier
-									.shadow(
-										color = Color(0xFF1C404E),
-										borderRadius = 10.dp,
-										blurRadius = 5.dp,
-										offsetY = 5.dp,
-										offsetX = 5.dp,
-										spread = 3f.dp
+							item {
+								Box(
+									modifier = Modifier.fillMaxWidth(),
+									contentAlignment = Alignment.Center
+								) {
+									Row(
+										modifier = Modifier.fillMaxWidth(),
+										horizontalArrangement = Arrangement.spacedBy(8.dp)
+									) {
+										val drinks = categories.find { it.categoryName == "Drinks" }
+										val dairy = categories.find { it.categoryName == "Dairy" }
+
+										drinks?.let {
+											val backgroundColor =
+												if (!mainViewModel.hasEntriesForCategory(drinks.id)) {
+													// No entries for the category
+													BackgroundLightBlue
+												} else if (mainViewModel.areAllEntriesChecked(drinks.id)) {
+													// All entries for the category are checked
+													BackgroundLightBlue
+												} else {
+													// Some entries are not checked
+													BackgroundBlue
+												}
+											Text(
+												text = it.categoryName,
+												modifier = Modifier
+													.shadow(
+														color = Color(0xFF1C404E),
+														borderRadius = 10.dp,
+														blurRadius = 5.dp,
+														offsetY = 5.dp,
+														offsetX = 5.dp,
+														spread = 3f.dp
+													)
+													.weight(1f)
+													.clickable {
+														mainViewModel.setCurrentCategory(it.categoryName)
+														mainViewModel.getEntriesByCategory(it.id)
+														navController.navigate(Screen.ShowCategoryEntries.route)
+														// Handle click action for Drinks category
+													}
+													.clip(RoundedCornerShape(6.dp))
+													.background(color = backgroundColor)
+													.padding(34.dp),
+												textAlign = TextAlign.Center,
+												fontSize = 20.sp,
+												fontWeight = FontWeight.Bold,
+												color = Color.White
+											)
+										}
+
+										dairy?.let {
+											val backgroundColor =
+												if (!mainViewModel.hasEntriesForCategory(dairy.id)) {
+													// No entries for the category
+													BackgroundLightBlue
+												} else if (mainViewModel.areAllEntriesChecked(dairy.id)) {
+													// All entries for the category are checked
+													BackgroundLightBlue
+												} else {
+													// Some entries are not checked
+													BackgroundBlue
+												}
+											Text(
+												text = it.categoryName,
+												modifier = Modifier
+													.shadow(
+														color = Color(0xFF1C404E),
+														borderRadius = 10.dp,
+														blurRadius = 5.dp,
+														offsetY = 5.dp,
+														offsetX = 5.dp,
+														spread = 3f.dp
+													)
+													.weight(1f)
+													.clickable {
+														mainViewModel.setCurrentCategory(it.categoryName)
+														mainViewModel.getEntriesByCategory(it.id)
+														navController.navigate(Screen.ShowCategoryEntries.route)
+														// Handle click action for Dairy category
+													}
+													.clip(RoundedCornerShape(6.dp))
+													.background(color = backgroundColor)
+													.padding(34.dp),
+												textAlign = TextAlign.Center,
+												fontSize = 20.sp,
+												fontWeight = FontWeight.Bold,
+												color = Color.White
+											)
+										}
+									}
+								}
+							}
+
+							item {
+								val extras = categories.find { it.categoryName == "Extras" }
+								val meat = categories.find { it.categoryName == "Meat" }
+
+								extras?.let {
+									val backgroundColor =
+										if (!mainViewModel.hasEntriesForCategory(extras.id)) {
+											// No entries for the category
+											BackgroundLightBlue
+										} else if (mainViewModel.areAllEntriesChecked(extras.id)) {
+											// All entries for the category are checked
+											BackgroundLightBlue
+										} else {
+											// Some entries are not checked
+											BackgroundBlue
+										}
+									Text(
+										text = it.categoryName,
+										modifier = Modifier
+											.shadow(
+												color = Color(0xFF1C404E),
+												borderRadius = 10.dp,
+												blurRadius = 5.dp,
+												offsetY = 5.dp,
+												offsetX = 5.dp,
+												spread = 3f.dp,
+											)
+											.fillMaxWidth()
+											.clickable {
+												mainViewModel.setCurrentCategory(it.categoryName)
+												mainViewModel.getEntriesByCategory(it.id)
+												navController.navigate(Screen.ShowCategoryEntries.route)
+												// Handle click action for Extras category
+											}
+											.clip(RoundedCornerShape(6.dp))
+											.background(color = backgroundColor)
+											.padding(34.dp),
+										textAlign = TextAlign.Center,
+										fontSize = 20.sp,
+										fontWeight = FontWeight.Bold,
+										color = Color.White
 									)
-									.fillMaxWidth()
-									.clip(RoundedCornerShape(6.dp))
-									.background(color = backgroundColor),
-								contentAlignment = Alignment.Center
-							) {
-								Text(
-									text = it.categoryName,
+								}
+
+								Spacer(modifier = Modifier.height(8.dp))
+
+								meat?.let {
+									val backgroundColor =
+										if (!mainViewModel.hasEntriesForCategory(meat.id)) {
+											// No entries for the category
+											BackgroundLightBlue
+										} else if (mainViewModel.areAllEntriesChecked(meat.id)) {
+											// All entries for the category are checked
+											BackgroundLightBlue
+										} else {
+											// Some entries are not checked
+											BackgroundBlue
+										}
+									Text(
+										text = it.categoryName,
+										modifier = Modifier
+											.shadow(
+												color = Color(0xFF1C404E),
+												borderRadius = 10.dp,
+												blurRadius = 5.dp,
+												offsetY = 5.dp,
+												offsetX = 5.dp,
+												spread = 3f.dp
+											)
+											.fillMaxWidth()
+											.clickable {
+												mainViewModel.setCurrentCategory(it.categoryName)
+												mainViewModel.getEntriesByCategory(it.id)
+												navController.navigate(Screen.ShowCategoryEntries.route)
+												// Handle click action for Meat category
+											}
+											.clip(RoundedCornerShape(6.dp))
+											.background(color = backgroundColor)
+											.padding(34.dp),
+										textAlign = TextAlign.Center,
+										fontSize = 20.sp,
+										fontWeight = FontWeight.Bold,
+										color = Color.White
+									)
+								}
+							}
+
+							item {
+								Row(
 									modifier = Modifier
 										.fillMaxWidth()
-										.clickable {
-											mainViewModel.setCurrentCategory(it.categoryName)
-											mainViewModel.getEntriesByCategory(it.id)
-											navController.navigate(Screen.ShowCategoryEntries.route)
-										}
-										.padding(34.dp),
-									textAlign = TextAlign.Center,
-									fontSize = 20.sp,
-									fontWeight = FontWeight.Bold,
-									color = Color.White
-								)
-							}
-						}
-					}
-
-						item {
-							Box(
-								modifier = Modifier.fillMaxWidth(),
-								contentAlignment = Alignment.Center
-							) {
-								Row(
-									modifier = Modifier.fillMaxWidth(),
+										.padding(bottom = 5.dp),
 									horizontalArrangement = Arrangement.spacedBy(8.dp)
 								) {
-									val drinks = categories.find { it.categoryName == "Drinks" }
-									val dairy = categories.find { it.categoryName == "Dairy" }
+									val fruit = categories.find { it.categoryName == "Fruit" }
+									val vegetables =
+										categories.find { it.categoryName == "Vegetables" }
 
-								drinks?.let {
-									val backgroundColor =
-										if (!mainViewModel.hasEntriesForCategory(drinks.id)) {
-											// No entries for the category
-											BackgroundLightBlue
-										} else if (mainViewModel.areAllEntriesChecked(drinks.id)) {
-											// All entries for the category are checked
-											BackgroundLightBlue
-										} else {
-											// Some entries are not checked
-											BackgroundBlue
-										}
-									Text(
-										text = it.categoryName,
-										modifier = Modifier
-											.shadow(
-												color = Color(0xFF1C404E),
-												borderRadius = 10.dp,
-												blurRadius = 5.dp,
-												offsetY = 5.dp,
-												offsetX = 5.dp,
-												spread = 3f.dp
-											)
-											.weight(1f)
-											.clickable {
-												mainViewModel.setCurrentCategory(it.categoryName)
-												mainViewModel.getEntriesByCategory(it.id)
-												navController.navigate(Screen.ShowCategoryEntries.route)
-												// Handle click action for Drinks category
+									fruit?.let {
+										val backgroundColor =
+											if (!mainViewModel.hasEntriesForCategory(fruit.id)) {
+												// No entries for the category
+												BackgroundLightBlue
+											} else if (mainViewModel.areAllEntriesChecked(fruit.id)) {
+												// All entries for the category are checked
+												BackgroundLightBlue
+											} else {
+												// Some entries are not checked
+												BackgroundBlue
 											}
-											.clip(RoundedCornerShape(6.dp))
-											.background(color = backgroundColor)
-											.padding(34.dp),
-										textAlign = TextAlign.Center,
-										fontSize = 20.sp,
-										fontWeight = FontWeight.Bold,
-										color = Color.White
-									)
-								}
+										Text(
+											text = it.categoryName,
+											modifier = Modifier
+												.shadow(
+													color = Color(0xFF1C404E),
+													borderRadius = 10.dp,
+													blurRadius = 5.dp,
+													offsetY = 5.dp,
+													offsetX = 5.dp,
+													spread = 3f.dp
+												)
+												.weight(1f)
+												.clickable {
+													mainViewModel.setCurrentCategory(it.categoryName)
+													mainViewModel.getEntriesByCategory(it.id)
+													navController.navigate(Screen.ShowCategoryEntries.route)
+													// Handle click action for Fruit category
+												}
+												.clip(RoundedCornerShape(6.dp))
+												.background(color = backgroundColor)
+												.padding(34.dp),
+											textAlign = TextAlign.Center,
+											fontSize = 20.sp,
+											fontWeight = FontWeight.Bold,
+											color = Color.White
+										)
+									}
 
-								dairy?.let {
-									val backgroundColor =
-										if (!mainViewModel.hasEntriesForCategory(dairy.id)) {
-											// No entries for the category
-											BackgroundLightBlue
-										} else if (mainViewModel.areAllEntriesChecked(dairy.id)) {
-											// All entries for the category are checked
-											BackgroundLightBlue
-										} else {
-											// Some entries are not checked
-											BackgroundBlue
-										}
-									Text(
-										text = it.categoryName,
-										modifier = Modifier
-											.shadow(
-												color = Color(0xFF1C404E),
-												borderRadius = 10.dp,
-												blurRadius = 5.dp,
-												offsetY = 5.dp,
-												offsetX = 5.dp,
-												spread = 3f.dp
-											)
-											.weight(1f)
-											.clickable {
-												mainViewModel.setCurrentCategory(it.categoryName)
-												mainViewModel.getEntriesByCategory(it.id)
-												navController.navigate(Screen.ShowCategoryEntries.route)
-												// Handle click action for Dairy category
+									vegetables?.let {
+										val backgroundColor =
+											if (!mainViewModel.hasEntriesForCategory(vegetables.id)) {
+												// No entries for the category
+												BackgroundLightBlue
+											} else if (mainViewModel.areAllEntriesChecked(vegetables.id)) {
+												// All entries for the category are checked
+												BackgroundLightBlue
+											} else {
+												// Some entries are not checked
+												BackgroundBlue
 											}
-											.clip(RoundedCornerShape(6.dp))
-											.background(color = backgroundColor)
-											.padding(34.dp),
+										Text(
+											text = it.categoryName,
+											modifier = Modifier
+												.shadow(
+													color = Color(0xFF1C404E),
+													borderRadius = 10.dp,
+													blurRadius = 5.dp,
+													offsetY = 5.dp,
+													offsetX = 5.dp,
+													spread = 3f.dp
+												)
+												.weight(1f)
+												.clickable {
+													mainViewModel.setCurrentCategory(it.categoryName)
+													mainViewModel.getEntriesByCategory(it.id)
+													navController.navigate(Screen.ShowCategoryEntries.route)
+													// Handle click action for Vegetable category
+												}
+												.clip(RoundedCornerShape(6.dp))
+												.background(color = backgroundColor)
+												.padding(
+													start = 23.dp,
+													end = 23.dp,
+													top = 34.dp,
+													bottom = 34.dp
+												),
+											textAlign = TextAlign.Center,
+											fontSize = 20.sp,
+											fontWeight = FontWeight.Bold,
+											color = Color.White
+										)
+									}
+								}
+							}
+						}
+					} else if(state.listView){
+						LazyColumn(
+							verticalArrangement = Arrangement.Top,
+							horizontalAlignment = Alignment.CenterHorizontally,
+							modifier = Modifier
+								.height(550.dp)
+								.padding(start = 10.dp, top = 0.dp, end = 10.dp, bottom = 0.dp),
+						) {
+							if (entries.isEmpty() || mainViewModel.areAllEntriesChecked(0)) {
+								item {
+									Text(
+										text = "Your fridge is currently empty. You can add an item with the '+' button in the bottom right.",
+										color = SecondaryGray,
+										fontSize = 16.sp,
 										textAlign = TextAlign.Center,
-										fontSize = 20.sp,
-										fontWeight = FontWeight.Bold,
-										color = Color.White
+										modifier = Modifier
+											.padding(30.dp),
 									)
+								}
+							} else {
+								items(entries.sortedBy { it.bbDate }) { entry ->
+									if (entry.isChecked == 0) {
+										ItemUI(mainViewModel, entry = entry)
+									}
 								}
 							}
 						}
 					}
 
-						item {
-							val extras = categories.find { it.categoryName == "Extras" }
-							val meat = categories.find { it.categoryName == "Meat" }
-
-						extras?.let {
-							val backgroundColor =
-								if (!mainViewModel.hasEntriesForCategory(extras.id)) {
-									// No entries for the category
-									BackgroundLightBlue
-								} else if (mainViewModel.areAllEntriesChecked(extras.id)) {
-									// All entries for the category are checked
-									BackgroundLightBlue
-								} else {
-									// Some entries are not checked
-									BackgroundBlue
-								}
-							Text(
-								text = it.categoryName,
-								modifier = Modifier
-									.shadow(
-										color = Color(0xFF1C404E),
-										borderRadius = 10.dp,
-										blurRadius = 5.dp,
-										offsetY = 5.dp,
-										offsetX = 5.dp,
-										spread = 3f.dp,
-									)
-									.fillMaxWidth()
-									.clickable {
-										mainViewModel.setCurrentCategory(it.categoryName)
-										mainViewModel.getEntriesByCategory(it.id)
-										navController.navigate(Screen.ShowCategoryEntries.route)
-										// Handle click action for Extras category
-									}
-									.clip(RoundedCornerShape(6.dp))
-									.background(color = backgroundColor)
-									.padding(34.dp),
-								textAlign = TextAlign.Center,
-								fontSize = 20.sp,
-								fontWeight = FontWeight.Bold,
-								color = Color.White
-							)
-						}
-
-							Spacer(modifier = Modifier.height(8.dp))
-
-						meat?.let {
-							val backgroundColor =
-								if (!mainViewModel.hasEntriesForCategory(meat.id)) {
-									// No entries for the category
-									BackgroundLightBlue
-								} else if (mainViewModel.areAllEntriesChecked(meat.id)) {
-									// All entries for the category are checked
-									BackgroundLightBlue
-								} else {
-									// Some entries are not checked
-									BackgroundBlue
-								}
-							Text(
-								text = it.categoryName,
-								modifier = Modifier
-									.shadow(
-										color = Color(0xFF1C404E),
-										borderRadius = 10.dp,
-										blurRadius = 5.dp,
-										offsetY = 5.dp,
-										offsetX = 5.dp,
-										spread = 3f.dp
-									)
-									.fillMaxWidth()
-									.clickable {
-										mainViewModel.setCurrentCategory(it.categoryName)
-										mainViewModel.getEntriesByCategory(it.id)
-										navController.navigate(Screen.ShowCategoryEntries.route)
-										// Handle click action for Meat category
-									}
-									.clip(RoundedCornerShape(6.dp))
-									.background(color = backgroundColor)
-									.padding(34.dp),
-								textAlign = TextAlign.Center,
-								fontSize = 20.sp,
-								fontWeight = FontWeight.Bold,
-								color = Color.White
-							)
-						}
-					}
-
-						item {
-							Row(
-								modifier = Modifier
-									.fillMaxWidth()
-									.padding(bottom = 5.dp),
-								horizontalArrangement = Arrangement.spacedBy(8.dp)
-							) {
-								val fruit = categories.find { it.categoryName == "Fruit" }
-								val vegetables = categories.find { it.categoryName == "Vegetables" }
-
-							fruit?.let {
-								val backgroundColor =
-									if (!mainViewModel.hasEntriesForCategory(fruit.id)) {
-										// No entries for the category
-										BackgroundLightBlue
-									} else if (mainViewModel.areAllEntriesChecked(fruit.id)) {
-										// All entries for the category are checked
-										BackgroundLightBlue
-									} else {
-										// Some entries are not checked
-										BackgroundBlue
-									}
-								Text(
-									text = it.categoryName,
-									modifier = Modifier
-										.shadow(
-											color = Color(0xFF1C404E),
-											borderRadius = 10.dp,
-											blurRadius = 5.dp,
-											offsetY = 5.dp,
-											offsetX = 5.dp,
-											spread = 3f.dp
-										)
-										.weight(1f)
-										.clickable {
-											mainViewModel.setCurrentCategory(it.categoryName)
-											mainViewModel.getEntriesByCategory(it.id)
-											navController.navigate(Screen.ShowCategoryEntries.route)
-											// Handle click action for Fruit category
-										}
-										.clip(RoundedCornerShape(6.dp))
-										.background(color = backgroundColor)
-										.padding(34.dp),
-									textAlign = TextAlign.Center,
-									fontSize = 20.sp,
-									fontWeight = FontWeight.Bold,
-									color = Color.White
-								)
-							}
-
-							vegetables?.let {
-								val backgroundColor =
-									if (!mainViewModel.hasEntriesForCategory(vegetables.id)) {
-										// No entries for the category
-										BackgroundLightBlue
-									} else if (mainViewModel.areAllEntriesChecked(vegetables.id)) {
-										// All entries for the category are checked
-										BackgroundLightBlue
-									} else {
-										// Some entries are not checked
-										BackgroundBlue
-									}
-								Text(
-									text = it.categoryName,
-									modifier = Modifier
-										.shadow(
-											color = Color(0xFF1C404E),
-											borderRadius = 10.dp,
-											blurRadius = 5.dp,
-											offsetY = 5.dp,
-											offsetX = 5.dp,
-											spread = 3f.dp
-										)
-										.weight(1f)
-										.clickable {
-											mainViewModel.setCurrentCategory(it.categoryName)
-											mainViewModel.getEntriesByCategory(it.id)
-											navController.navigate(Screen.ShowCategoryEntries.route)
-											// Handle click action for Vegetable category
-										}
-										.clip(RoundedCornerShape(6.dp))
-										.background(color = backgroundColor)
-										.padding(
-											start = 23.dp,
-											end = 23.dp,
-											top = 34.dp,
-											bottom = 34.dp
-										),
-									textAlign = TextAlign.Center,
-									fontSize = 20.sp,
-									fontWeight = FontWeight.Bold,
-									color = Color.White
-								)
-							}
-						}
-					}
-				}
 			}
 		}
 		Row(
