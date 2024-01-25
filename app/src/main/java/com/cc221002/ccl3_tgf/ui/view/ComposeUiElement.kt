@@ -746,22 +746,21 @@ fun AllCategories (
 		Row(
 			modifier = Modifier
 				.fillMaxWidth()
-//				.offset(y = (-15).dp)
 				.height(45.dp),
 			horizontalArrangement = Arrangement.SpaceEvenly
 		) {
 			Box(
 				modifier = Modifier
-					.width(40.dp)
-					.height(20.dp)
-					.clip(RoundedCornerShape(4.dp))
+					.width(35.dp)
+					.height(15.dp)
+					.clip(RoundedCornerShape(bottomStart = 6.dp, bottomEnd = 6.dp))
 					.background(FridgeBorder)
 			)
 			Box(
 				modifier = Modifier
-					.width(40.dp)
-					.height(20.dp)
-					.clip(RoundedCornerShape(4.dp))
+					.width(35.dp)
+					.height(15.dp)
+					.clip(RoundedCornerShape(bottomStart = 6.dp, bottomEnd = 6.dp))
 					.background(FridgeBorder)
 			)
 			}
@@ -849,15 +848,15 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 		) {
 			Box(
 				modifier = Modifier
-					.width(40.dp)
-					.height(20.dp)
+					.width(35.dp)
+					.height(15.dp)
 					.clip(RoundedCornerShape(bottomStart = 6.dp, bottomEnd = 6.dp))
 					.background(FridgeBorder)
 			)
 			Box(
 				modifier = Modifier
-					.width(40.dp)
-					.height(20.dp)
+					.width(35.dp)
+					.height(15.dp)
 					.clip(RoundedCornerShape(bottomStart = 6.dp, bottomEnd = 6.dp))
 					.background(FridgeBorder)
 			)
@@ -2019,7 +2018,7 @@ fun OverviewScreen(
 				modifier = Modifier.padding(top = 20.dp)
 			) {
 				Text(
-					text = "Quick Adding",
+					text = "Quick Add",
 					fontWeight = FontWeight.Bold,
 					fontSize = 25.sp,
 					color = Black,
