@@ -209,6 +209,15 @@ class MainViewModel (
 		_openAlertDialogForEntry.value = ""
 	}
 
+	fun openConfirmationDialog() {
+		_mainViewState.update { it.copy(openConfirmDialog = true) }
+	}
+
+	// this function closes the alertDialog
+	fun dismissConfirmationDialog(){
+		_mainViewState.update { it.copy(openConfirmDialog = false) }
+	}
+
 	// this function calls the dao function to delete the entry that was passed to it
 	fun deleteTrip(singleEntry: SingleEntry) {
 		viewModelScope.launch() {

@@ -836,6 +836,9 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 					if (state.value.openAddDialog) {
 						AddingPopup(mainViewModel = mainViewModel, categoryName)
 					}
+					if(state.value.openConfirmDialog) {
+						showConfirmationDialog(mainViewModel)
+					}
 				}
 			}
 
@@ -1061,9 +1064,15 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					} else {
 						Yellow
 					},
+					fontWeight = if (storedDate != null && storedDate.isAfter(currentDate)) {
+						FontWeight.Normal
+					} else {
+						FontWeight.Bold
+					},
 					modifier = Modifier
 						.padding(bottom = 7.dp)
 						.width(200.dp)
+
 				)
 			}
 			Spacer(modifier = Modifier.padding(7.dp))
@@ -1247,6 +1256,8 @@ fun AddingPopup(
 	mainViewModel: MainViewModel,
 	categoryName : String?
 ){
+	val state = mainViewModel.mainViewState.collectAsState()
+
 	val categories by mainViewModel.categories.collectAsState()
 	val mContext = LocalContext.current
 
@@ -1369,6 +1380,7 @@ fun AddingPopup(
 					Text(text = "Cancel", color = Black )
 				}
 
+
 				Button(
 					onClick = {
 							if (categorySelection == "") {
@@ -1380,9 +1392,6 @@ fun AddingPopup(
 									categoryId = category.id
 								}
 							}
-							Log.d("Saving prefilled", "categoryname: $categoryName")
-							Log.d("Saving prefilled", "categorySelection: $categorySelection")
-
 							if (foodName.text.isBlank() || bbDate.isBlank() || categorySelection.isBlank() || portionAmount.isBlank() || portionSelection.isBlank()) {
 								Toast.makeText(
 									mContext,
@@ -1390,6 +1399,7 @@ fun AddingPopup(
 									Toast.LENGTH_SHORT
 								).show()
 							}else {
+							mainViewModel.openConfirmationDialog()
 							mainViewModel.saveButton(
 								SingleEntry(
 									foodName.text,
@@ -1408,12 +1418,67 @@ fun AddingPopup(
 				) {
 					Text(text = "Add", color = White )
 				}
-
 			}
-
+//			if(state.value.openConfirmDialog) {
+//			showConfirmationDialog(mainViewModel)
+//		}
 		}
 	}
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun showConfirmationDialog(mainViewModel: MainViewModel){
+	val loadingFinished = remember { mutableStateOf(false) }
+
+	// Introduce a 2-second delay to simulate loading
+	LaunchedEffect(Unit) {
+		delay(2000)  // Delay for 2 seconds
+
+		//setting the variable to true
+		loadingFinished.value = true
+	}
+	AlertDialog(
+		modifier = Modifier
+			.clip(RoundedCornerShape(20.dp))
+			.background(White)
+			.fillMaxWidth()
+			.height(200.dp),
+		onDismissRequest = { /*TODO*/ }
+	) {
+
+		Column(
+			horizontalAlignment = Alignment.CenterHorizontally,
+			verticalArrangement = Arrangement.Center
+		) {
+			Image(
+				painter = painterResource(id = R.drawable.done_icon),
+				contentDescription = null,
+				contentScale = ContentScale.Fit,
+				modifier = Modifier
+					.size(75.dp),
+			)
+
+			Text(text = "Item added successfully!",
+				lineHeight = 45.sp,
+				fontWeight = FontWeight.Bold,
+				fontSize = 25.sp,
+				letterSpacing = 2.sp,
+				style = TextStyle(fontFamily = FontFamily.SansSerif),
+				color = Color.Black,
+				textAlign = TextAlign.Center,
+				modifier = Modifier
+					.padding(10.dp)
+					.fillMaxWidth(),
+			)
+		}
+
+	}
+	if(loadingFinished.value){
+		mainViewModel.dismissConfirmationDialog()
+	}
+}
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -2055,7 +2120,9 @@ fun OverviewScreen(
 				}
 			}
 
-
+			if(state.openConfirmDialog) {
+					showConfirmationDialog(mainViewModel)
+			}
 
 
 			Column(
@@ -2337,6 +2404,7 @@ fun QuickAddingPopup(
 								categoryId = category.id
 							}
 						}
+							mainViewModel.openConfirmationDialog()
 
 							mainViewModel.saveButton(
 								SingleEntry(
@@ -2787,7 +2855,7 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 						onValueChange = { newText: String ->
 							amountTaken = newText
 						},
-						label = { Text(text = "Amount", color = Black) }
+						label = { Text(text = "Amount", color = Gray) }
 					)
 					Text(
 						text = entry.portionType!!,
