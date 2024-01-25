@@ -3,6 +3,7 @@ package com.cc221002.ccl3_tgf.data
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import com.cc221002.ccl3_tgf.data.model.Category
 import kotlinx.coroutines.flow.Flow
 
 

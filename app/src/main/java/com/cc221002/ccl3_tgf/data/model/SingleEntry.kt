@@ -3,7 +3,6 @@ package com.cc221002.ccl3_tgf.data.model
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
-import com.cc221002.ccl3_tgf.data.Category
 
 // this part is linking the categories table to the EntriesList table
 @Entity(tableName = "EntriesList",
