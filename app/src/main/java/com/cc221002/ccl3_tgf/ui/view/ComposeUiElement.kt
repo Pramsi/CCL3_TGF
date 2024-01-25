@@ -2679,7 +2679,7 @@ fun getDummyArticlePreviews(): List<ArticlePreview> {
 					"\n" + "If you scroll further down, the next thing you will find is the article section, but you have obviously already found it. In here you can inform yourself about " +
 					"many different interesting topics like, for example, fridge organisation, best before dates, the food waste problem in Europe, and so on - with many more to come. Stay tuned!\n" +
 					"\n" + "The last section of the Overview page is a list of all of your used up items. When clicking the pan icon of an item and entering the maximum amount of this item - meaning you have " +
-					"used everything of it - it will no loner be in your fridge, but instead in this list. You won't be able to change anything in this list, it is just here help you and maybe the people you share " +
+					"used everything of it - it will no longer be in your fridge, but instead in this list. You won't be able to change anything in this list, it is just here help you and maybe the people you share " +
 					"the fridge with remember what has already been used. Maybe you can't find a specific item in your fridge that somebody else has already taken, or maybe you have eaten something bad and want to " +
 					"know which food it could have been.",
 			"That's pretty much it! If there is anything else that is unclear or you have a question for the developers, just contact us. Find us in the UAS St.Pölten. We are Manuel and Samy " +
