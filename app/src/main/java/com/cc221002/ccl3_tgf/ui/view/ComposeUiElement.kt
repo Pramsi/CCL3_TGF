@@ -38,6 +38,7 @@ import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.ExposedDropdownMenuDefaults
+import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -2489,6 +2490,13 @@ fun QuickAddingPopup(
 								categoryId = category.id
 							}
 						}
+						if (bbDate.isBlank()) {
+							Toast.makeText(
+								mContext,
+								"You forgot something! Please fill everything out!",
+								Toast.LENGTH_SHORT
+							).show()
+						}else {
 							mainViewModel.openConfirmationDialog()
 
 							mainViewModel.saveButton(
@@ -2502,7 +2510,7 @@ fun QuickAddingPopup(
 									timeStampChecked
 								)
 							)
-
+						}
 					},
 					modifier = Modifier.padding(top = 20.dp),
 					colors = androidx.compose.material.ButtonDefaults.buttonColors(BackgroundBlue)
@@ -2932,6 +2940,7 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 				mainViewModel.dismissAskAmountDialog()
 			},
 			modifier = Modifier
+				.border(2.dp, Gray, RoundedCornerShape(20.dp))
 				.clip(RoundedCornerShape(20.dp))
 				.background(White)
 				.padding(10.dp)
