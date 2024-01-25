@@ -5,7 +5,7 @@ import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import com.cc221002.ccl3_tgf.data.Category
 
-
+// this part is linking the categories table to the EntriesList table
 @Entity(tableName = "EntriesList",
 	foreignKeys = [ForeignKey(
 		entity = Category::class,
@@ -14,6 +14,8 @@ import com.cc221002.ccl3_tgf.data.Category
 		onDelete = ForeignKey.CASCADE // Choose appropriate action on deletion
 	)]
 )
+
+// this part defines which information each single Entry has. Some are for displaying and some are just for sorting and organising
 data class SingleEntry(
 	val foodName: String?,
 	val bbDate: String?,
