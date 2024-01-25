@@ -418,7 +418,7 @@ fun AllCategories (
 					modifier = Modifier
 						.fillMaxWidth()
 						.height(585.dp)
-						.padding(start = 18.dp, top = 5.dp, end = 18.dp, bottom = 0.dp)
+						.padding(start = 18.dp, top = 13.dp, end = 18.dp, bottom = 0.dp)
 						.clip(RoundedCornerShape(5))
 						.border(width = 3.dp, FridgeBorder, shape = RoundedCornerShape(5))
 						.background(FridgeBlue),
@@ -427,7 +427,7 @@ fun AllCategories (
 					Row(
 						modifier = Modifier
 							.fillMaxWidth()
-							.padding(vertical = 5.dp),
+							.padding(top = 6.dp, bottom = 3.dp),
 						horizontalArrangement = Arrangement.Center,
 						verticalAlignment = Alignment.Top
 					) {
@@ -436,11 +436,19 @@ fun AllCategories (
 								mainViewModel.enableFridgeView()
 							},
 							modifier = Modifier
-							,
+								.height(40.dp)
+								.clip(RoundedCornerShape(25.dp))
+								.padding(0.dp),
 							colors = buttonColorFridge
 
 						) {
-							Text(text = "Fridge", color = White)
+							Text(text = "Fridge",
+								color = White,
+								fontWeight = FontWeight.Bold,
+								fontSize = 15.sp,
+								modifier = Modifier
+								.padding(0.dp)
+							)
 						}
 						Spacer(modifier = Modifier.size(10.dp))
 
@@ -449,10 +457,17 @@ fun AllCategories (
 								mainViewModel.enableListView()
 							},
 							modifier = Modifier
-							,
+								.height(40.dp)
+								.clip(RoundedCornerShape(25.dp))
+								.padding(0.dp),
 							colors = buttonColorList
 						) {
-							Text(text = "List", color = White )
+							Text(text = "List", color = White,
+								fontWeight = FontWeight.Bold,
+								fontSize = 15.sp,
+								modifier = Modifier
+								.padding(0.dp)
+							)
 						}
 					}
 					if(state.fridgeView) {
@@ -800,7 +815,7 @@ fun AllCategories (
 							horizontalAlignment = Alignment.CenterHorizontally,
 							modifier = Modifier
 								.height(550.dp)
-								.padding(start = 10.dp, top = 0.dp, end = 10.dp, bottom = 0.dp),
+								.padding(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 30.dp),
 						) {
 							if (entries.isEmpty() || mainViewModel.areAllEntriesChecked(0)) {
 								item {
@@ -1546,8 +1561,8 @@ fun showConfirmationDialog(mainViewModel: MainViewModel){
 			.border(2.dp, Gray, RoundedCornerShape(20.dp))
 			.clip(RoundedCornerShape(20.dp))
 			.background(White)
-			.fillMaxWidth()
-			.height(200.dp),
+			.width(250.dp)
+			.height(150.dp),
 		onDismissRequest = { /*TODO*/ }
 	) {
 
@@ -1560,13 +1575,13 @@ fun showConfirmationDialog(mainViewModel: MainViewModel){
 				contentDescription = null,
 				contentScale = ContentScale.Fit,
 				modifier = Modifier
-					.size(75.dp),
+					.size(60.dp),
 			)
 
 			Text(text = "Item added successfully!",
-				lineHeight = 45.sp,
+				lineHeight = 30.sp,
 				fontWeight = FontWeight.Bold,
-				fontSize = 25.sp,
+				fontSize = 18.sp,
 				letterSpacing = 2.sp,
 				style = TextStyle(fontFamily = FontFamily.SansSerif),
 				color = Color.Black,
@@ -2568,8 +2583,10 @@ fun getDummyArticlePreviews(): List<ArticlePreview> {
 					"Using TGF the right way can save money, maybe some energy, plan your meals in advance and, most importantly, " +
 					"reduce food waste in your own household. In the end, you might even be able to reduce your carbon footprint with the help of TGF.",
 			"\nThe 'Your Fridge' Page", "Fridge Items", "The 'Overview' Page", "Contact",
-			"The main feature of this app is the 'Your Fridge' page. You get to it by clicking the fridge icon on the right of the navigation bar at the bottom.In here, you'll find a virtual " +
-					"fridge with different categories of food. Whenever a category grey, there is currently no item inside of it, so don't worry when the fridge looks grey and sad at the beginning. " +
+			"The main feature of this app is the 'Your Fridge' page. You get to it by clicking the fridge icon on the right of the navigation bar at the bottom. In here, " +
+					"you can choose between 2 modes to display items: Fridge mode show you categories of food, List mode will show you all the items in your fridge in one list, ordered by their Best Before date. " +
+					"With Fridge mode enabled, the categories might have different colors depending on whether or not it contains items. " +
+					"Whenever a category grey, there is currently no item inside of it, so don't worry when the fridge looks grey and sad at the beginning. " +
 					"Whenever you have added one or more items to a category, it will be a bright blue. To add an item, " +
 					"click on the '+' button at the bottom right. You can now choose a name for the item you want to add, and fill in information like when (you think) it will expire, " +
 					"which category it belongs to and what the amount is.\n" +
