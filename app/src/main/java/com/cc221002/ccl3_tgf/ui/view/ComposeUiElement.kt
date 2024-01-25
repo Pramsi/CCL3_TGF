@@ -215,6 +215,7 @@ fun MainView(
 			}
 			composable(Screen.Overview.route) {
 				mainViewModel.selectScreen(Screen.Overview)
+				mainViewModel.getAllCategories()
 				mainViewModel.getEntries()
 				OverviewScreen(mainViewModel, navController)
 			}
@@ -2465,9 +2466,8 @@ fun QuickAddingPopup(
 	portion: String,
 	foodName: String,
 	QuickAddImageMap: Map<String, Int>,
-
 ) {
-
+//	mainViewModel.getAllCategories()
 	// here it creates the needed variable (context for toast notifications, categories to get the id)
 	val categories by mainViewModel.categories.collectAsState()
 	val mContext = LocalContext.current
@@ -2583,13 +2583,14 @@ fun QuickAddingPopup(
 
 				Button(
 					onClick = {
+
 						// it transforms the category Name into the suiting categoryID
 						for (category in categories) {
 							if (categoryName == category.categoryName) {
 								categoryId = category.id
 							}
 						}
-						// if this textfield is empty it shows a notification
+						// if this Textfield is empty it shows a notification
 						if (bbDate.isBlank()) {
 							Toast.makeText(
 								mContext,
@@ -2598,8 +2599,9 @@ fun QuickAddingPopup(
 							).show()
 						}else {
 							// it then opens the short confirmation notification
-							mainViewModel.openConfirmationDialog()
 							// and saves the entry into the database
+							mainViewModel.openConfirmationDialog()
+
 							mainViewModel.saveButton(
 								SingleEntry(
 									foodName,
@@ -2618,7 +2620,6 @@ fun QuickAddingPopup(
 				) {
 					Text(text = "Add", color = White )
 				}
-
 			}
 		}
 	}
