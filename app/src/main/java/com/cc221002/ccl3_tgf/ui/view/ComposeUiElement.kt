@@ -98,6 +98,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.DarkGray
+import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.Color.Companion.Yellow
@@ -745,7 +746,7 @@ fun AllCategories (
 		Row(
 			modifier = Modifier
 				.fillMaxWidth()
-				.offset(y = (-15).dp)
+//				.offset(y = (-15).dp)
 				.height(45.dp),
 			horizontalArrangement = Arrangement.SpaceEvenly
 		) {
@@ -754,14 +755,14 @@ fun AllCategories (
 					.width(40.dp)
 					.height(20.dp)
 					.clip(RoundedCornerShape(4.dp))
-					.background(FridgeBlue)
+					.background(FridgeBorder)
 			)
 			Box(
 				modifier = Modifier
 					.width(40.dp)
 					.height(20.dp)
 					.clip(RoundedCornerShape(4.dp))
-					.background(FridgeBlue)
+					.background(FridgeBorder)
 			)
 			}
 		}
@@ -1303,18 +1304,13 @@ fun AddingPopup(
 			DatePickerField(selectedDate = bbDate , onDateSelected = {bbDate = it.toString()})
 
 			CategoryDropDownMenu(categoryName, mainViewModel, categorySelection, ){ selectedCategory->
-				Log.d("PREFILLEDCATEGORY", "IF selectedCategory: $selectedCategory")
-				Log.d("PREFILLEDCATEGORY", categoryName!!)
 				if(categoryName == "") {
 					categorySelection = selectedCategory
 				} else if(selectedCategory == null) {
-					categorySelection = categoryName
+					categorySelection = categoryName!!
 				} else{
 					categorySelection = selectedCategory
 				}
-					Log.d("PREFILLEDCATEGORY", "IF categorySelection: $categorySelection")
-					Log.d("PREFILLEDCATEGORY", "IF categoryName: $categoryName")
-
 			}
 
 
@@ -2015,9 +2011,9 @@ fun OverviewScreen(
 						.fillMaxWidth(),
 					horizontalArrangement = Arrangement.SpaceEvenly
 				) {
-					quickAddItemUI(mainViewModel,"10", "Pieces","Eggs", "Extras")
+					quickAddItemUI(mainViewModel,"10", "Piece(s)","Eggs", "Extras")
 					quickAddItemUI(mainViewModel,"500", "g","Beef", "Meat")
-					quickAddItemUI(mainViewModel,"1", "Pack","Milk", "Dairy")
+					quickAddItemUI(mainViewModel,"1", "Pack(s)","Milk", "Dairy")
 				}
 				Row(
 					modifier = Modifier
@@ -2025,8 +2021,8 @@ fun OverviewScreen(
 						.fillMaxWidth(),
 					horizontalArrangement = Arrangement.SpaceEvenly
 				) {
-					quickAddItemUI(mainViewModel,"2", "Cans","Beer", "Drinks")
-					quickAddItemUI(mainViewModel,"6", "Pieces","Apples", "Fruit")
+					quickAddItemUI(mainViewModel,"6", "Bottle(s)","Beer", "Drinks")
+					quickAddItemUI(mainViewModel,"6", "Piece(s)","Apples", "Fruit")
 					quickAddItemUI(mainViewModel,"500", "g","Carrots", "Vegetables")
 				}
 			}
@@ -2112,18 +2108,29 @@ fun OverviewScreen(
 @Composable
 fun quickAddItemUI(mainViewModel: MainViewModel,amount: String, portion: String, foodName: String, categoryName: String?){
 	val state = mainViewModel.mainViewState.collectAsState()
+
+	val QuickAddImageMap = mapOf(
+		"Eggs" to R.drawable.eggs_icon,
+		"Beef" to R.drawable.beef_icon,
+		"Milk" to R.drawable.dairy_icon,
+		"Beer" to R.drawable.beer_icon,
+		"Apples" to R.drawable.apple_icon,
+		"Carrots" to R.drawable.carrot_icon,
+	)
+
 	Box(modifier = Modifier
-		.border(1.dp, Black, RoundedCornerShape(10.dp))
-//		.shadow(
-//			color = Color(0x430B1418),
-//			borderRadius = 75.dp,
-//			blurRadius = 15.dp,
-//			offsetY = 0.dp,
-//			spread = 0f.dp
-//		)
+//		.border(1.dp, Black, RoundedCornerShape(10.dp))
+		.shadow(
+			color = Color(0xFF1C404E),
+			borderRadius = 10.dp,
+			blurRadius = 5.dp,
+			offsetY = 5.dp,
+			offsetX = 5.dp,
+			spread = 3f.dp
+		)
 		.size(100.dp)
-		.background(White)
 		.clip(RoundedCornerShape(10.dp))
+		.background(BackgroundBlue)
 		.clickable { mainViewModel.openQuickAddDialog(foodName) }
 
 	){
@@ -2132,26 +2139,39 @@ fun quickAddItemUI(mainViewModel: MainViewModel,amount: String, portion: String,
 			verticalArrangement = Arrangement.Center,
 			horizontalAlignment = Alignment.CenterHorizontally
 		) {
-			Text(
-				text = "$amount $portion",
-				color = Black,
-				modifier = Modifier
-					.fillMaxWidth(),
-				fontSize = 16.sp,
-				textAlign = TextAlign.Center
-			)
+			val categoryImage = QuickAddImageMap[foodName]
+			categoryImage?.let { image ->
+				Image(
+					painter = painterResource(id = image),
+					contentDescription = null,
+					modifier = Modifier
+						.size(50.dp)
+						.padding(top = 5.dp)
+				)
+			}
 			Text(
 				text = "$foodName",
-				color = Black,
+				color = White,
 				modifier = Modifier
 					.fillMaxWidth(),
 				fontSize = 16.sp,
+				textAlign = TextAlign.Center,
+				fontWeight = FontWeight.Bold
+			)
+
+			Text(
+				text = "$amount $portion",
+				color = White,
+				modifier = Modifier
+					.fillMaxWidth(),
+				fontSize = 12.sp,
 				textAlign = TextAlign.Center
 			)
+
 		}
 		val openQuickAddDialogForEntry = mainViewModel.openQuickAddingDialogFor.value
 		if (openQuickAddDialogForEntry == foodName) {
-			QuickAddingPopup(mainViewModel, categoryName, amount, portion, foodName)
+			QuickAddingPopup(mainViewModel, categoryName, amount, portion, foodName, QuickAddImageMap)
 		}
 	}
 }
@@ -2164,7 +2184,8 @@ fun QuickAddingPopup(
 	categoryName : String?,
 	amount: String,
 	portion: String,
-	foodName: String
+	foodName: String,
+	QuickAddImageMap: Map<String, Int>,
 
 ) {
 
@@ -2209,11 +2230,52 @@ fun QuickAddingPopup(
 					.fillMaxWidth(),
 			)
 
+			Box(modifier = Modifier
+				.border(1.dp, Black, RoundedCornerShape(10.dp))
+				.size(100.dp)
+				.clip(RoundedCornerShape(10.dp))
+				.background(White)
+			) {
+				Column(
+					modifier = Modifier.fillMaxSize(),
+					verticalArrangement = Arrangement.Center,
+					horizontalAlignment = Alignment.CenterHorizontally
+				) {
+					val categoryImage = QuickAddImageMap[foodName]
+					categoryImage?.let { image ->
+						Image(
+							painter = painterResource(id = image),
+							contentDescription = null,
+							modifier = Modifier
+								.size(50.dp)
+								.padding(top = 5.dp)
+						)
+					}
+					Text(
+						text = "$foodName",
+						color = Black,
+						modifier = Modifier
+							.fillMaxWidth(),
+						fontSize = 16.sp,
+						textAlign = TextAlign.Center,
+						fontWeight = FontWeight.Bold
+					)
+
+					Text(
+						text = "$amount $portion",
+						color = Gray,
+						modifier = Modifier
+							.fillMaxWidth(),
+						fontSize = 12.sp,
+						textAlign = TextAlign.Center
+					)
+				}
+			}
+
 			Text(
 				text = "When does it expire?",
 				lineHeight = 45.sp,
-				fontWeight = FontWeight.Bold,
-				fontSize = 25.sp,
+				fontSize = 15.sp,
 				style = TextStyle(fontFamily = FontFamily.SansSerif),
 				color = Color.Black,
 				textAlign = TextAlign.Center,
@@ -2221,19 +2283,6 @@ fun QuickAddingPopup(
 					.fillMaxWidth()
 					.padding(top = 15.dp),
 			)
-			Text(
-				text = "$foodName $amount $categoryName",
-				lineHeight = 45.sp,
-				fontWeight = FontWeight.Bold,
-				fontSize = 25.sp,
-				style = TextStyle(fontFamily = FontFamily.SansSerif),
-				color = Color.Black,
-				textAlign = TextAlign.Center,
-				modifier = Modifier
-					.fillMaxWidth()
-					.padding(top = 15.dp),
-			)
-
 
 			DatePickerField(selectedDate = bbDate, onDateSelected = { bbDate = it.toString() })
 
@@ -2697,18 +2746,9 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 					TextField(
 						value = amountTaken,
 						modifier = Modifier
-							.fillMaxWidth(0.5f)
+							.fillMaxWidth(0.3f)
 							.shadow(3.dp, RectangleShape, false),
 						keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-						trailingIcon = {
-							Image(
-								painter = painterResource(id = R.drawable.arrows_up_down_icon),
-								contentDescription = "Amount",
-								contentScale = ContentScale.Fit,
-								modifier = Modifier
-									.size(25.dp)
-							)
-						},
 						colors = TextFieldDefaults.colors(
 							focusedTextColor = Black,
 							unfocusedTextColor = Black,
@@ -2719,7 +2759,7 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry, checkboxSta
 						onValueChange = { newText: String ->
 							amountTaken = newText
 						},
-						label = { Text(text = "#", color = Black) }
+						label = { Text(text = "Amount", color = Black) }
 					)
 					Text(
 						text = entry.portionType!!,
