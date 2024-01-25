@@ -20,4 +20,8 @@ data class MainViewState (
 	val openAskAmountDialog: Boolean = false,
 	val openAlertDialog: Boolean = false,
 	val openAlertDialogForEntry: String = "",
+	val openConfirmDialog: Boolean = false,
+	val listView: Boolean = false,
+	val fridgeView: Boolean = true,
+
 	)
