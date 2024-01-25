@@ -43,28 +43,28 @@ class MainActivity : ComponentActivity() {
 		}
 	)
 
+	// Those variables are part of limiting the call of insertCategories
 	private val PREFS_NAME = "MyPrefsFile"
 	private val CATEGORIES_INSERTED_KEY = "categories_inserted"
 	@RequiresApi(Build.VERSION_CODES.O)
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
-
+		// this part until setContent is reliable for calling the insertCategories function only once after installing it
+		// we have a predefined category list so we need it to build the database but we only need it once
 		val sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 		val categoriesInserted = sharedPreferences.getBoolean(CATEGORIES_INSERTED_KEY, false)
 
-
+		// if the categories are not inserted yet it does it
 		if (!categoriesInserted) {
 			mainViewModel.insertCategories()
 
-			// Mark categories as inserted
+			// and marks categories as inserted
 			val editor = sharedPreferences.edit()
 			editor.putBoolean(CATEGORIES_INSERTED_KEY, true)
 			editor.apply()
 		}
 
-//		deleteDatabase("EntriesDatabase.db")
-//		mainViewModel.insertPreTrips()
 		setContent {
 			CCL3_TGFTheme {
 				// A surface container using the 'background' color from the theme
