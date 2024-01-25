@@ -2694,8 +2694,8 @@ fun getDummyArticlePreviews(): List<ArticlePreview> {
 			"Best Before?",
 			"Learn about the storage life of the most important foods! This way, " +
 					"you can better manage your fridge items.",
-			"There's no standardized system for food dating in this country. So is it really any wonder why dates on" +
-					"packaged foods are a bit, baffling? But spoiler alert (pun intended): Food products are safe to consume past the date on the label.",
+			"There's no standardized system for food dating in this country. So is it really any wonder why dates on " +
+					"packaged foods are a bit baffling? But spoiler alert (pun intended): Food products are safe to consume past the date on the label.",
 			"What's Shelf Life?", "After Best Before", "Simple Checks For Overdue Foods", "Why is understanding the Best Before date important?",
 			"Shelf-life is the period of time during which a food maintains its acceptable or desirable characteristics " +
 					"under specified storage and handling conditions. These acceptable or desirable characteristics can be related " +
@@ -2793,7 +2793,7 @@ fun getDummyArticlePreviews(): List<ArticlePreview> {
 					"Latest estimates suggest that around 931 million tonnes of food waste were generated in 2019, out of which 61% came from households.\n" +
 					"Around 88 million tonnes of food waste are generated annually in the EU.4 This is equal to 174 kg per person, 143 billion euros or 170 000 000 tonnes of CO2.\n" +
 					"Estimates show that up to 10% of the 88 million tonnes of food waste that is generated in the EU every year are somehow linked to date labelling - " +
-					"53% of consumers don’t know the meaning of “best before” labelling.\n",
+					"53% of consumers don’t know the meaning of “best before” labelling.",
 			"Different foods have different environmental impacts. For example, the volume of meat that is wasted and lost is not very high compared to foods such as " +
 					"cereals and vegetables. However, meat requires much more resources to produce, so wasting meat still has a significant impact on climate change (estimated " +
 					"to contribute to 20% of the carbon footprint of total food waste and loss).",
