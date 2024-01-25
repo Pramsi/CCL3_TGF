@@ -14,13 +14,15 @@ data class MainViewState (
 	// this one saves on which screen the user is
 	val selectedScreen: Screen = Screen.SplashScreen,
 
+	// those variables are for handling all the Dialogs in the app
 	val openEditDialog: Boolean = false,
 	val openAddDialog: Boolean = false,
 	val openQuickAddDialog: Boolean = false,
 	val openAskAmountDialog: Boolean = false,
 	val openAlertDialog: Boolean = false,
-	val openAlertDialogForEntry: String = "",
 	val openConfirmDialog: Boolean = false,
+
+	// those two are for changing the fridge views
 	val listView: Boolean = false,
 	val fridgeView: Boolean = true,
 
