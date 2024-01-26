@@ -90,7 +90,10 @@ class MainViewModel (
 	// Function to get entries by category
 	fun getEntriesByCategory(categoryId: Int) {
 		viewModelScope.launch {
+
 			dao.getEntriesByCategory(categoryId).collect { entries ->
+				_entriesForCategory.value = (emptyList())
+
 				_entriesForCategory.value = entries
 
 				_mainViewState.update {
@@ -163,6 +166,8 @@ class MainViewModel (
 			dao.updateEntry(singleEntry)
 			getEntries()
 		}
+		_mainViewState.update{ it.copy(editSingleEntry = SingleEntry("","",0,"","",0, ""),)}
+
 	}
 
 	// those two functions manage opening and closing the Dialog to ask how much the user used of the item
@@ -171,7 +176,7 @@ class MainViewModel (
 		_openAskAmountDialogForEntry.value = singleEntry.id.toString()
 	}
 	fun dismissAskAmountDialog(){
-		_mainViewState.update{ it.copy(openAskAmountDialog = false)}
+		_mainViewState.update{ it.copy(openAskAmountDialog = false, editSingleEntry = SingleEntry("","",0,"","",0, ""))}
 		_openAskAmountDialogForEntry.value = ""
 	}
 

@@ -3137,6 +3137,19 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry) {
 								if ((remainingAmount != null) && (remainingAmount >= 0)) {
 									portionAmount = remainingAmount.toString()
 									mainViewModel.dismissAskAmountDialog()
+									// it saves the changes into the database
+								mainViewModel.saveEditedEntry(
+									SingleEntry(
+										foodName,
+										bbDate,
+										categoryId,
+										portionAmount,
+										portionType,
+										isChecked,
+										timeStampChecked,
+										state.value.editSingleEntry.id
+									)
+								)
 									// if the remaining amount is more than 0 it just subtracts the amount
 								} else {
 									Toast.makeText(
@@ -3152,9 +3165,8 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry) {
 									val currentTime = LocalTime.now()
 									timeStampChecked = currentTime.toString()
 									mainViewModel.dismissAskAmountDialog()
-								}
 
-								// it saves the changes into the database
+									// it saves the changes into the database
 								mainViewModel.saveEditedEntry(
 									SingleEntry(
 										foodName,
@@ -3167,6 +3179,21 @@ fun AskAmountModal(mainViewModel: MainViewModel, entry: SingleEntry) {
 										state.value.editSingleEntry.id
 									)
 								)
+								}
+
+//								// it saves the changes into the database
+//								mainViewModel.saveEditedEntry(
+//									SingleEntry(
+//										foodName,
+//										bbDate,
+//										categoryId,
+//										portionAmount,
+//										portionType,
+//										isChecked,
+//										timeStampChecked,
+//										state.value.editSingleEntry.id
+//									)
+//								)
 							} else {
 								// Handle invalid input (non-numeric amount taken)
 								Toast.makeText(
