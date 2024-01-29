@@ -862,6 +862,9 @@ fun categoryEntries(navController: NavHostController,mainViewModel: MainViewMode
 			categoryId = category.id
 		}
 	}
+
+	mainViewModel.getEntriesByCategory(categoryId)
+
 	Column(
 		modifier = Modifier
 			.background(White)
@@ -1158,7 +1161,7 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					color = Color.White,
 					modifier = Modifier
 						.padding(bottom = 8.dp)
-						.width(193.dp)
+						.width(170.dp)
 				)
 				Text(
 					text = "${entry.portionAmount} ${entry.portionType}",
@@ -1168,7 +1171,7 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					color = Color.White,
 					modifier = Modifier
 						.padding(bottom = 6.dp)
-						.width(193.dp)
+						.width(170.dp)
 				)
 				Text(
 					text = "Best Before: ${entry.bbDate}",
@@ -1188,7 +1191,7 @@ fun ItemUI(mainViewModel: MainViewModel,entry:SingleEntry) {
 					},
 					modifier = Modifier
 						.padding(bottom = 7.dp)
-						.width(193.dp)
+						.width(170.dp)
 				)
 			}
 			Spacer(modifier = Modifier.padding(5.dp))
@@ -1795,7 +1798,7 @@ fun EditPopUp(
 						Text(text = "Cancel", color = Black)
 					}
 
-					// this button is for saving the canges
+					// this button is for saving the changes
 					Button(
 						onClick = {
 							// it checks if any textfiel is empty and shows a notification if it is
@@ -2239,7 +2242,7 @@ fun OverviewScreen(
 						modifier = Modifier
 							.fillMaxWidth()
 							.heightIn(min = 20.dp, max = 400.dp)
-							.padding(15.dp),
+							.padding(horizontal = 7.dp, vertical = 15.dp),
 					) {
 						items(allEntries.sortedBy { it.bbDate }) { entry ->
 							val storedDate =

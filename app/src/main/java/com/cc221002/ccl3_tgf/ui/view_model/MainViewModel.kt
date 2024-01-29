@@ -9,11 +9,13 @@ import com.cc221002.ccl3_tgf.data.model.Category
 import com.cc221002.ccl3_tgf.data.EntriesDao
 import com.cc221002.ccl3_tgf.data.model.SingleEntry
 import com.cc221002.ccl3_tgf.ui.view.Screen
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainViewModel (
 	private val dao: EntriesDao,
@@ -62,8 +64,10 @@ class MainViewModel (
 	// this part gets all the categories from the datatable
 	fun getAllCategories() {
 		viewModelScope.launch {
-			categoriesDao.getAllCategories().collect { categories ->
-				_categories.value = categories
+			withContext(Dispatchers.Main) {
+				categoriesDao.getAllCategories().collect { categories ->
+					_categories.value = categories
+				}
 			}
 		}
 	}
@@ -76,8 +80,10 @@ class MainViewModel (
 	// this function calls the dao function to collect all the entries that are saved in the database
 	fun getEntries() {
 		viewModelScope.launch {
-			dao.getEntries().collect{entries ->
-				_entries.value = entries
+			withContext(Dispatchers.Main) {
+				dao.getEntries().collect { entries ->
+					_entries.value = entries
+				}
 			}
 		}
 	}
@@ -90,14 +96,18 @@ class MainViewModel (
 	// Function to get entries by category
 	fun getEntriesByCategory(categoryId: Int) {
 		viewModelScope.launch {
+			withContext(Dispatchers.Main) {
 
-			dao.getEntriesByCategory(categoryId).collect { entries ->
-				_entriesForCategory.value = (emptyList())
+				dao.getEntriesByCategory(categoryId).collect { entries ->
+					withContext(Dispatchers.Main) {
+						_entriesForCategory.value = (emptyList())
 
-				_entriesForCategory.value = entries
+						_entriesForCategory.value = entries
 
-				_mainViewState.update {
-					it.copy(selectedScreen = Screen.ShowCategoryEntries)
+						_mainViewState.update {
+							it.copy(selectedScreen = Screen.ShowCategoryEntries)
+						}
+					}
 				}
 			}
 		}
@@ -140,10 +150,12 @@ class MainViewModel (
 	// this function inserts the entry it gets sent into the database and closes the Dialogs
 	fun saveButton(entry: SingleEntry){
 		viewModelScope.launch {
-			dao.insertEntry(entry)
-			dismissAddDialog()
-			dismissQuickAddDialog()
-			getEntries()
+			withContext(Dispatchers.Main) {
+				dao.insertEntry(entry)
+				dismissAddDialog()
+				dismissQuickAddDialog()
+				getEntries()
+			}
 		}
 	}
 
@@ -163,8 +175,10 @@ class MainViewModel (
 	fun saveEditedEntry(singleEntry: SingleEntry){
 		dismissEditDialog()
 		viewModelScope.launch {
-			dao.updateEntry(singleEntry)
-			getEntries()
+			withContext(Dispatchers.Main) {
+				dao.updateEntry(singleEntry)
+				getEntries()
+			}
 		}
 		_mainViewState.update{ it.copy(editSingleEntry = SingleEntry("","",0,"","",0, ""),)}
 
@@ -204,9 +218,11 @@ class MainViewModel (
 	// this function calls the dao function to delete the entry that was passed to it
 	fun deleteTrip(singleEntry: SingleEntry) {
 		viewModelScope.launch() {
-			dao.deleteEntry(singleEntry)
-			getEntries()
-			// and then navigates to the ShowAllTrips Screen
+			withContext(Dispatchers.Main) {
+				dao.deleteEntry(singleEntry)
+				getEntries()
+				// and then navigates to the ShowAllTrips Screen
+			}
 		}
 	}
 
@@ -233,9 +249,11 @@ class MainViewModel (
 			Category("Fruit"),
 			Category("Vegetables"),
 			)
-		viewModelScope.launch{
-			for (category in hardcodedCategory)
-				categoriesDao.insertCategory(category)
+		viewModelScope.launch {
+			withContext(Dispatchers.Main) {
+				for (category in hardcodedCategory)
+					categoriesDao.insertCategory(category)
+			}
 		}
 	}
 }
